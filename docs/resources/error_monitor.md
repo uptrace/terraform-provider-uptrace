@@ -3,38 +3,24 @@
 page_title: "uptrace_error_monitor Resource - uptrace"
 subcategory: ""
 description: |-
-  Manages an Uptrace error monitor. Watches trend anomalies in an MQL query and fires alerts through attached notification channels and/or team email.
+  Manages an Uptrace error monitor: it alerts on each new group of error logs or error spans the query selects.
 ---
 
 # uptrace_error_monitor (Resource)
 
-Manages an Uptrace error monitor. Watches trend anomalies in an MQL query and fires alerts through attached notification channels and/or team email.
+Manages an Uptrace error monitor: it alerts on each new group of error logs or error spans the query selects.
 
 ## Example Usage
 
 ```terraform
-resource "uptrace_org" "example" {
-  name = "My Organization"
-}
-
-resource "uptrace_project" "example" {
-  org_id = uptrace_org.example.id
-  name   = "api"
-}
-
-# Error monitor — fires when error trends anomalously.
-resource "uptrace_error_monitor" "log_errors" {
+# Alert on each new group of error and fatal logs.
+resource "uptrace_error_monitor" "example" {
   project_id = uptrace_project.example.id
   name       = "Notify on all errors"
 
-  trend_agg_func    = "sum"
-  trend_sensitivity = "medium"
-
   params = {
-    metrics = [
-      { name = "uptrace_tracing_logs", alias = "$logs" }
-    ]
-    query = "sum($logs) | where _system in (\"log:error\", \"log:fatal\")"
+    metrics = [{ name = "uptrace_tracing_logs", alias = "$logs" }]
+    query   = "sum($logs) | group by _group_id | where _system in (\"log:error\", \"log:fatal\")"
   }
 }
 ```
@@ -44,41 +30,53 @@ resource "uptrace_error_monitor" "log_errors" {
 
 ### Required
 
-- `name` (String) Human-readable monitor name.
-- `params` (Attributes) Error monitor query parameters. (see [below for nested schema](#nestedatt--params))
+- `name` (String) Monitor name. It may hold template variables, such as {{ .Attrs.host_name }}.
+- `params` (Attributes) The error-count query; each group it yields is one alert. (see [below for nested schema](#nestedatt--params))
 - `project_id` (String) Project ID this monitor belongs to. Changing this forces recreation.
 
 ### Optional
 
-- `channel_ids` (Set of String) Notification channel IDs from typed channel resources such as uptrace_webhook_channel.id. Removing this attribute clears the association server-side.
-- `notify_everyone_by_email` (Boolean) Notify every project member by email when the monitor fires.
-- `team_ids` (Set of String) Team IDs to notify when the monitor fires. Removing this attribute clears the association server-side.
-- `trend_agg_func` (String) Aggregation function used to compute the trend baseline (sum, avg, median, last).
-- `trend_sensitivity` (String) Sensitivity level of the trend-based anomaly detector (low, medium, high).
+- `channel_ids` (Set of String) Notification channel IDs, such as uptrace_telegram_channel.id. Omit to leave the links alone, as when channels name the monitor in their monitor_ids; set [] to detach every channel.
+- `description` (String) Alert description sent with each notification. It may hold template variables.
+- `repeat_interval` (Attributes) How often a firing alert notifies again. Omit for the server's default strategy. (see [below for nested schema](#nestedatt--repeat_interval))
+- `trend_agg_func` (String) How a series' points combine into the trend an alert shows. Omit for the server default.
+- `trend_sensitivity` (String) How much a value must move before the alert trend reports it. Omit for the server default.
 
 ### Read-Only
 
 - `id` (String) Monitor ID.
-- `status` (String) Runtime status (active, paused, firing, no_data, disabled).
+- `status` (String) Runtime status: active, paused, firing, no_data, warming_up or disabled.
 
 <a id="nestedatt--params"></a>
 ### Nested Schema for `params`
 
 Required:
 
-- `metrics` (Attributes List) Metrics referenced by the query. At least one metric must be provided. (see [below for nested schema](#nestedatt--params--metrics))
-- `query` (String) MQL query expression that defines which events the monitor watches.
+- `metrics` (Attributes List) Metrics the query refers to, each under an alias such as $requests. (see [below for nested schema](#nestedatt--params--metrics))
+- `query` (String) MQL expression, such as sum($logs) | group by _group_id | where _system in ("log:error", "log:fatal").
 
 <a id="nestedatt--params--metrics"></a>
 ### Nested Schema for `params.metrics`
 
 Required:
 
+- `alias` (String) Alias the query uses: $ followed by an identifier.
 - `name` (String) Metric name.
+
+
+
+<a id="nestedatt--repeat_interval"></a>
+### Nested Schema for `repeat_interval`
+
+Required:
+
+- `strategy` (String) default, fixed (every interval), linear or exponential (from min up to max).
 
 Optional:
 
-- `alias` (String) Alias used in the query expression. Must start with $ followed by an identifier.
+- `interval` (String) Repeat interval of the fixed strategy. A duration string: ms, s, m, h, d (day) or w (week).
+- `max` (String) Last interval of the linear and exponential strategies. A duration string: ms, s, m, h, d (day) or w (week).
+- `min` (String) First interval of the linear and exponential strategies. A duration string: ms, s, m, h, d (day) or w (week).
 
 ## Import
 
@@ -87,5 +85,6 @@ Import is supported using the following syntax:
 The [`terraform import` command](https://developer.hashicorp.com/terraform/cli/commands/import) can be used, for example:
 
 ```shell
-terraform import uptrace_error_monitor.log_errors 1:123
+# Import an error monitor by "<project_id>:<monitor_id>".
+terraform import uptrace_error_monitor.example 456:789
 ```

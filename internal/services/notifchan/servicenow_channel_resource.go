@@ -2,6 +2,7 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -194,16 +195,13 @@ func (r *ServicenowChannelResource) Delete(ctx context.Context, req resource.Del
 
 // ImportState accepts "<project_id>:<channel_id>".
 func (r *ServicenowChannelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tfutil.ImportStateCompoundID(ctx, req, resp,
-		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
-		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseInt64},
-	)
+	importChannel(ctx, req, resp)
 }
 
-func buildServicenowRequest(ctx context.Context, m *servicenowChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildServicenowRequest(ctx context.Context, m *servicenowChannelModel) (*channelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	body := &generated.NotificationChannelRequest{Type: generated.NotificationChannelRequestTypeServicenow}
+	body := &channelRequest{Type: "servicenow"}
 	diags.Append(buildSharedRequest(ctx, sharedFields{
 		Name: &m.Name, MatchAll: &m.MatchAll, Condition: &m.Condition,
 		Priorities: &m.Priorities, MonitorIDs: &m.MonitorIDs,
@@ -220,15 +218,15 @@ func buildServicenowRequest(ctx context.Context, m *servicenowChannelModel) (*ge
 	p.Category = valueStringToPtr(m.Category)
 	p.Subcategory = valueStringToPtr(m.Subcategory)
 	if !m.Impact.IsNull() && !m.Impact.IsUnknown() {
-		v := generated.ServicenowParamsImpact(m.Impact.ValueString())
+		v := generated.ServicenowImpact(m.Impact.ValueString())
 		p.Impact = &v
 	}
 	if !m.Urgency.IsNull() && !m.Urgency.IsUnknown() {
-		v := generated.ServicenowParamsUrgency(m.Urgency.ValueString())
+		v := generated.ServicenowUrgency(m.Urgency.ValueString())
 		p.Urgency = &v
 	}
 	if !m.Severity.IsNull() && !m.Severity.IsUnknown() {
-		v := generated.ServicenowParamsSeverity(m.Severity.ValueString())
+		v := generated.ServicenowSeverity(m.Severity.ValueString())
 		p.Severity = &v
 	}
 	p.CallerID = valueStringToPtr(m.CallerID)
@@ -236,25 +234,20 @@ func buildServicenowRequest(ctx context.Context, m *servicenowChannelModel) (*ge
 	p.AssignedTo = valueStringToPtr(m.AssignedTo)
 	p.OpenedBy = valueStringToPtr(m.OpenedBy)
 	if !m.Notify.IsNull() && !m.Notify.IsUnknown() {
-		v := generated.ServicenowParamsNotify(m.Notify.ValueString())
+		v := generated.ServicenowNotify(m.Notify.ValueString())
 		p.Notify = &v
 	}
 	p.DueDate = valueStringToPtr(m.DueDate)
 
-	oneOf := &generated.NotificationChannelRequest_Params_OneOf{}
-	if err := oneOf.FromServicenowParams(p); err != nil {
-		diags.AddError("failed to set servicenow params", err.Error())
-		return nil, diags
-	}
-	body.Params = generated.NotificationChannelRequest_Params{NotificationChannelRequest_Params_OneOf: oneOf}
+	body.Params = p
 
 	return body, diags
 }
 
-func applyServicenowToModel(ctx context.Context, ch *generated.NotificationChannel, dst *servicenowChannelModel) diag.Diagnostics {
+func applyServicenowToModel(ctx context.Context, ch *channelResponse, dst *servicenowChannelModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rejectChannelType(generated.Servicenow, ch, &diags)
+	rejectChannelType("servicenow", ch, &diags)
 	if diags.HasError() {
 		return diags
 	}
@@ -268,11 +261,8 @@ func applyServicenowToModel(ctx context.Context, ch *generated.NotificationChann
 		return diags
 	}
 
-	if ch.Params.NotificationChannel_Params_OneOf == nil {
-		return diags
-	}
-	p, err := ch.Params.NotificationChannel_Params_OneOf.AsServicenowParams()
-	if err != nil {
+	var p generated.ServicenowParams
+	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode servicenow params", err.Error())
 		return diags
 	}

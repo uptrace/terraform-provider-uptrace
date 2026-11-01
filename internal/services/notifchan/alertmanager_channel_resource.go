@@ -2,6 +2,7 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -196,16 +197,13 @@ func (r *AlertmanagerChannelResource) Delete(ctx context.Context, req resource.D
 
 // ImportState accepts "<project_id>:<channel_id>".
 func (r *AlertmanagerChannelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tfutil.ImportStateCompoundID(ctx, req, resp,
-		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
-		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseInt64},
-	)
+	importChannel(ctx, req, resp)
 }
 
-func buildAlertmanagerRequest(ctx context.Context, m *alertmanagerChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildAlertmanagerRequest(ctx context.Context, m *alertmanagerChannelModel) (*channelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	body := &generated.NotificationChannelRequest{Type: generated.NotificationChannelRequestTypeAlertmanager}
+	body := &channelRequest{Type: "alertmanager"}
 	diags.Append(buildSharedRequest(ctx, sharedFields{
 		Name: &m.Name, MatchAll: &m.MatchAll, Condition: &m.Condition,
 		Priorities: &m.Priorities, MonitorIDs: &m.MonitorIDs,
@@ -216,27 +214,22 @@ func buildAlertmanagerRequest(ctx context.Context, m *alertmanagerChannelModel) 
 
 	p := generated.AlertmanagerParams{URL: m.URL.ValueString()}
 	if !m.AuthMethod.IsNull() && !m.AuthMethod.IsUnknown() {
-		v := generated.AlertmanagerParamsAuthMethod(m.AuthMethod.ValueString())
+		v := generated.HTTPAuthMethod(m.AuthMethod.ValueString())
 		p.AuthMethod = &v
 	}
 	p.Username = valueStringToPtr(m.Username)
 	p.Password = valueStringToPtr(m.Password)
 	p.Token = valueStringToPtr(m.Token)
 
-	oneOf := &generated.NotificationChannelRequest_Params_OneOf{}
-	if err := oneOf.FromAlertmanagerParams(p); err != nil {
-		diags.AddError("failed to set alertmanager params", err.Error())
-		return nil, diags
-	}
-	body.Params = generated.NotificationChannelRequest_Params{NotificationChannelRequest_Params_OneOf: oneOf}
+	body.Params = p
 
 	return body, diags
 }
 
-func applyAlertmanagerToModel(ctx context.Context, ch *generated.NotificationChannel, dst *alertmanagerChannelModel) diag.Diagnostics {
+func applyAlertmanagerToModel(ctx context.Context, ch *channelResponse, dst *alertmanagerChannelModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rejectChannelType(generated.Alertmanager, ch, &diags)
+	rejectChannelType("alertmanager", ch, &diags)
 	if diags.HasError() {
 		return diags
 	}
@@ -250,11 +243,8 @@ func applyAlertmanagerToModel(ctx context.Context, ch *generated.NotificationCha
 		return diags
 	}
 
-	if ch.Params.NotificationChannel_Params_OneOf == nil {
-		return diags
-	}
-	p, err := ch.Params.NotificationChannel_Params_OneOf.AsAlertmanagerParams()
-	if err != nil {
+	var p generated.AlertmanagerParams
+	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode alertmanager params", err.Error())
 		return diags
 	}

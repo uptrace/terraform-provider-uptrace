@@ -46,7 +46,7 @@ resource "uptrace_pagerduty_channel" "example" {
 
 - `condition` (String) Alert condition expression.
 - `match_all` (Boolean) Match all monitors. If false, monitor_ids must be provided.
-- `monitor_ids` (Set of String) Monitor IDs to match when match_all is false.
+- `monitor_ids` (Set of String) Monitor IDs to match when match_all is false. Omit to leave the links alone, as when monitors name the channel in their channel_ids; set [] to detach every monitor.
 
 ### Read-Only
 

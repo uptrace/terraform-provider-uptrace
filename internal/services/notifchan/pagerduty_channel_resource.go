@@ -2,6 +2,7 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -147,16 +148,13 @@ func (r *PagerdutyChannelResource) Delete(ctx context.Context, req resource.Dele
 
 // ImportState accepts "<project_id>:<channel_id>".
 func (r *PagerdutyChannelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tfutil.ImportStateCompoundID(ctx, req, resp,
-		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
-		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseInt64},
-	)
+	importChannel(ctx, req, resp)
 }
 
-func buildPagerdutyRequest(ctx context.Context, m *pagerdutyChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildPagerdutyRequest(ctx context.Context, m *pagerdutyChannelModel) (*channelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	body := &generated.NotificationChannelRequest{Type: generated.NotificationChannelRequestTypePagerduty}
+	body := &channelRequest{Type: "pagerduty"}
 	diags.Append(buildSharedRequest(ctx, sharedFields{
 		Name: &m.Name, MatchAll: &m.MatchAll, Condition: &m.Condition,
 		Priorities: &m.Priorities, MonitorIDs: &m.MonitorIDs,
@@ -165,23 +163,18 @@ func buildPagerdutyRequest(ctx context.Context, m *pagerdutyChannelModel) (*gene
 		return nil, diags
 	}
 
-	oneOf := &generated.NotificationChannelRequest_Params_OneOf{}
-	if err := oneOf.FromPagerdutyParams(generated.PagerdutyParams{
+	body.Params = generated.PagerdutyParams{
 		RoutingKey: m.RoutingKey.ValueString(),
-		Severity:   generated.PagerdutyParamsSeverity(m.Severity.ValueString()),
-	}); err != nil {
-		diags.AddError("failed to set pagerduty params", err.Error())
-		return nil, diags
+		Severity:   generated.PagerdutySeverity(m.Severity.ValueString()),
 	}
-	body.Params = generated.NotificationChannelRequest_Params{NotificationChannelRequest_Params_OneOf: oneOf}
 
 	return body, diags
 }
 
-func applyPagerdutyToModel(ctx context.Context, ch *generated.NotificationChannel, dst *pagerdutyChannelModel) diag.Diagnostics {
+func applyPagerdutyToModel(ctx context.Context, ch *channelResponse, dst *pagerdutyChannelModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rejectChannelType(generated.Pagerduty, ch, &diags)
+	rejectChannelType("pagerduty", ch, &diags)
 	if diags.HasError() {
 		return diags
 	}
@@ -195,11 +188,8 @@ func applyPagerdutyToModel(ctx context.Context, ch *generated.NotificationChanne
 		return diags
 	}
 
-	if ch.Params.NotificationChannel_Params_OneOf == nil {
-		return diags
-	}
-	p, err := ch.Params.NotificationChannel_Params_OneOf.AsPagerdutyParams()
-	if err != nil {
+	var p generated.PagerdutyParams
+	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode pagerduty params", err.Error())
 		return diags
 	}

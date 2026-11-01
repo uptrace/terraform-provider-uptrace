@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
-	"github.com/uptrace/oapi-codegen-dd/v3/pkg/runtime"
 
 	"github.com/uptrace/terraform/internal/generated"
 )
@@ -49,9 +48,9 @@ func TestProjectTokenToModel_fullPayload(t *testing.T) {
 	token := &generated.ProjectToken{
 		ID:        42,
 		ProjectID: 7,
-		Name:      runtime.Ptr("ci-ingest"),
+		Name:      "ci-ingest",
 		Token:     "secret123",
-		Dsn:       runtime.Ptr("http://secret123@localhost:14318/7"),
+		Dsn:       "http://secret123@localhost:14318/7",
 	}
 	m := projectTokenModel{ProjectID: types.StringValue("7")}
 
@@ -78,12 +77,13 @@ func TestProjectTokenToModel_doesNotSetProjectID(t *testing.T) {
 		"mapper must not overwrite ProjectID — callers own that field")
 }
 
-func TestProjectTokenToModel_nilOptionalFields(t *testing.T) {
+func TestProjectTokenToModel_dsnFollowsAPI(t *testing.T) {
 	token := &generated.ProjectToken{
 		ID:        42,
 		ProjectID: 7,
 		Token:     "secret123",
-		Name:      runtime.Ptr("test"),
+		Name:      "test",
+		Dsn:       "https://secret123@uptrace.example.com?grpc=4317",
 	}
 	var m projectTokenModel
 
@@ -92,7 +92,7 @@ func TestProjectTokenToModel_nilOptionalFields(t *testing.T) {
 	require.Equal(t, types.StringValue("42"), m.ID)
 	require.Equal(t, types.StringValue("secret123"), m.Token)
 	require.Equal(t, types.StringValue("test"), m.Name)
-	require.True(t, m.DSN.IsNull())
+	require.Equal(t, types.StringValue("https://secret123@uptrace.example.com?grpc=4317"), m.DSN)
 }
 
 func TestProjectTokenImportState_rejectsInvalidTokenID(t *testing.T) {

@@ -8,484 +8,199 @@ import (
 	"github.com/uptrace/oapi-codegen-dd/v3/pkg/runtime"
 )
 
-// AlertType Alert type.
-type AlertType string
+// ErrorCode The stable, machine-readable category of an error response. A client branches on it, never on the title or the detail. The detail holds the human-readable reason, and a vendor's own error text goes there too, never in the code.
+type ErrorCode string
 
 const (
-	AlertTypeError AlertType = "error"
-	Metric         AlertType = "metric"
+	ErrorCodeAlertFilter                ErrorCode = "alert_filter"
+	ErrorCodeAlreadyInstalled           ErrorCode = "already_installed"
+	ErrorCodeAssistantMCPDisabled       ErrorCode = "assistant_mcp_disabled"
+	ErrorCodeAssistantNotEnabled        ErrorCode = "assistant_not_enabled"
+	ErrorCodeAuthDisabled               ErrorCode = "auth_disabled"
+	ErrorCodeBadRequest                 ErrorCode = "bad_request"
+	ErrorCodeBase64CorruptInput         ErrorCode = "base64_corrupt_input"
+	ErrorCodeCapabilitySuspended        ErrorCode = "capability_suspended"
+	ErrorCodeClickhouse                 ErrorCode = "clickhouse"
+	ErrorCodeConfirmEmail               ErrorCode = "confirm_email"
+	ErrorCodeConflict                   ErrorCode = "conflict"
+	ErrorCodeConversationTooLong        ErrorCode = "conversation_too_long"
+	ErrorCodeCredentialBlocked          ErrorCode = "credential_blocked"
+	ErrorCodeCredentialExpired          ErrorCode = "credential_expired"
+	ErrorCodeCredentialLifetimeExceeded ErrorCode = "credential_lifetime_exceeded"
+	ErrorCodeCredentialMFARequired      ErrorCode = "credential_mfa_required"
+	ErrorCodeCredentialSSORequired      ErrorCode = "credential_sso_required"
+	ErrorCodeDecisionMismatch           ErrorCode = "decision_mismatch"
+	ErrorCodeEOF                        ErrorCode = "eof"
+	ErrorCodeEmailTaken                 ErrorCode = "email_taken"
+	ErrorCodeFileTooLarge               ErrorCode = "file_too_large"
+	ErrorCodeForbidden                  ErrorCode = "forbidden"
+	ErrorCodeHetznerAPI                 ErrorCode = "hetzner_api"
+	ErrorCodeIncidentFilter             ErrorCode = "incident_filter"
+	ErrorCodeIncorrectPassword          ErrorCode = "incorrect_password"
+	ErrorCodeInsufficientScope          ErrorCode = "insufficient_scope"
+	ErrorCodeInternal                   ErrorCode = "internal"
+	ErrorCodeInvalidBody                ErrorCode = "invalid_body"
+	ErrorCodeInvalidChunk               ErrorCode = "invalid_chunk"
+	ErrorCodeInvalidCredentials         ErrorCode = "invalid_credentials"
+	ErrorCodeInvalidForm                ErrorCode = "invalid_form"
+	ErrorCodeInvalidPasscode            ErrorCode = "invalid_passcode"
+	ErrorCodeInvalidSNSJSON             ErrorCode = "invalid_sns_json"
+	ErrorCodeInvalidSNSSignature        ErrorCode = "invalid_sns_signature"
+	ErrorCodeInvalidSNSSubscribeURL     ErrorCode = "invalid_sns_subscribe_url"
+	ErrorCodeInvalidSourcemap           ErrorCode = "invalid_sourcemap"
+	ErrorCodeInvalidSymbolTable         ErrorCode = "invalid_symbol_table"
+	ErrorCodeInviteAlreadyAccepted      ErrorCode = "invite_already_accepted"
+	ErrorCodeInviteExpired              ErrorCode = "invite_expired"
+	ErrorCodeInviteLimitReached         ErrorCode = "invite_limit_reached"
+	ErrorCodeInviteNotFound             ErrorCode = "invite_not_found"
+	ErrorCodeInviteStatusUnsupported    ErrorCode = "invite_status_unsupported"
+	ErrorCodeInviteUserMissing          ErrorCode = "invite_user_missing"
+	ErrorCodeIssueTrackerRateLimited    ErrorCode = "issue_tracker_rate_limited"
+	ErrorCodeIssueTrackerUnavailable    ErrorCode = "issue_tracker_unavailable"
+	ErrorCodeJSONSyntax                 ErrorCode = "json_syntax"
+	ErrorCodeJSONUnmarshal              ErrorCode = "json_unmarshal"
+	ErrorCodeLicenseInactive            ErrorCode = "license_inactive"
+	ErrorCodeLicenseRequired            ErrorCode = "license_required"
+	ErrorCodeMCPDisabled                ErrorCode = "mcp_disabled"
+	ErrorCodeMFAEnrollmentRequired      ErrorCode = "mfa_enrollment_required"
+	ErrorCodeMetricNotFound             ErrorCode = "metric_not_found"
+	ErrorCodeMissingFile                ErrorCode = "missing_file"
+	ErrorCodeMonitorFilter              ErrorCode = "monitor_filter"
+	ErrorCodeNotFound                   ErrorCode = "not_found"
+	ErrorCodeNotImplemented             ErrorCode = "not_implemented"
+	ErrorCodeNotifChannel               ErrorCode = "notif_channel"
+	ErrorCodeNotificationNotFound       ErrorCode = "notification_not_found"
+	ErrorCodeOTPRequired                ErrorCode = "otp_required"
+	ErrorCodeOwnLoginRequired           ErrorCode = "own_login_required"
+	ErrorCodePaddle                     ErrorCode = "paddle"
+	ErrorCodePaymentRequired            ErrorCode = "payment_required"
+	ErrorCodeRateLimited                ErrorCode = "rate_limited"
+	ErrorCodeReadFailed                 ErrorCode = "read_failed"
+	ErrorCodeRecordChanged              ErrorCode = "record_changed"
+	ErrorCodeRequestBodyTooLarge        ErrorCode = "request_body_too_large"
+	ErrorCodeRequestTimeout             ErrorCode = "request_timeout"
+	ErrorCodeRoleInvalid                ErrorCode = "role_invalid"
+	ErrorCodeRouteParam                 ErrorCode = "route_param"
+	ErrorCodeSLOConfig                  ErrorCode = "slo_config"
+	ErrorCodeSLOCorrectionFilter        ErrorCode = "slo_correction_filter"
+	ErrorCodeSLOSubjectFilter           ErrorCode = "slo_subject_filter"
+	ErrorCodeSSOLoginRequired           ErrorCode = "sso_login_required"
+	ErrorCodeSSOSessionExpired          ErrorCode = "sso_session_expired"
+	ErrorCodeSearchScope                ErrorCode = "search_scope"
+	ErrorCodeSearchSyntax               ErrorCode = "search_syntax"
+	ErrorCodeServiceAccountLimitReached ErrorCode = "service_account_limit_reached"
+	ErrorCodeSourcemapLimitExceeded     ErrorCode = "sourcemap_limit_exceeded"
+	ErrorCodeSpanFilter                 ErrorCode = "span_filter"
+	ErrorCodeStagedQuotaExceeded        ErrorCode = "staged_quota_exceeded"
+	ErrorCodeStorageUnavailable         ErrorCode = "storage_unavailable"
+	ErrorCodeStrconvNum                 ErrorCode = "strconv_num"
+	ErrorCodeSymbolTableLimitExceeded   ErrorCode = "symbol_table_limit_exceeded"
+	ErrorCodeTemplateYAML               ErrorCode = "template_yaml"
+	ErrorCodeTimeout                    ErrorCode = "timeout"
+	ErrorCodeTokenLimitReached          ErrorCode = "token_limit_reached"
+	ErrorCodeTokenRequired              ErrorCode = "token_required"
+	ErrorCodeTooManyChunks              ErrorCode = "too_many_chunks"
+	ErrorCodeTraceLimitExceeded         ErrorCode = "trace_limit_exceeded"
+	ErrorCodeTurnInProgress             ErrorCode = "turn_in_progress"
+	ErrorCodeTurnPaused                 ErrorCode = "turn_paused"
+	ErrorCodeURL                        ErrorCode = "url"
+	ErrorCodeUnauthorized               ErrorCode = "unauthorized"
+	ErrorCodeUnknownRequest             ErrorCode = "unknown_request"
+	ErrorCodeUnsupportedFormat          ErrorCode = "unsupported_format"
+	ErrorCodeUnsupportedMediaType       ErrorCode = "unsupported_media_type"
+	ErrorCodeUserIDRequired             ErrorCode = "user_id_required"
+	ErrorCodeUserNotFound               ErrorCode = "user_not_found"
+	ErrorCodeValidation                 ErrorCode = "validation"
+	ErrorCodeXMLSyntax                  ErrorCode = "xml_syntax"
+	ErrorCodeXMLUnmarshal               ErrorCode = "xml_unmarshal"
 )
 
-// Validate checks if the AlertType value is valid
-func (a AlertType) Validate() error {
-	switch a {
-	case AlertTypeError, Metric:
+// Validate checks if the ErrorCode value is valid
+func (e ErrorCode) Validate() error {
+	switch e {
+	case ErrorCodeAlertFilter, ErrorCodeAlreadyInstalled, ErrorCodeAssistantMCPDisabled, ErrorCodeAssistantNotEnabled, ErrorCodeAuthDisabled, ErrorCodeBadRequest, ErrorCodeBase64CorruptInput, ErrorCodeCapabilitySuspended, ErrorCodeClickhouse, ErrorCodeConfirmEmail, ErrorCodeConflict, ErrorCodeConversationTooLong, ErrorCodeCredentialBlocked, ErrorCodeCredentialExpired, ErrorCodeCredentialLifetimeExceeded, ErrorCodeCredentialMFARequired, ErrorCodeCredentialSSORequired, ErrorCodeDecisionMismatch, ErrorCodeEOF, ErrorCodeEmailTaken, ErrorCodeFileTooLarge, ErrorCodeForbidden, ErrorCodeHetznerAPI, ErrorCodeIncidentFilter, ErrorCodeIncorrectPassword, ErrorCodeInsufficientScope, ErrorCodeInternal, ErrorCodeInvalidBody, ErrorCodeInvalidChunk, ErrorCodeInvalidCredentials, ErrorCodeInvalidForm, ErrorCodeInvalidPasscode, ErrorCodeInvalidSNSJSON, ErrorCodeInvalidSNSSignature, ErrorCodeInvalidSNSSubscribeURL, ErrorCodeInvalidSourcemap, ErrorCodeInvalidSymbolTable, ErrorCodeInviteAlreadyAccepted, ErrorCodeInviteExpired, ErrorCodeInviteLimitReached, ErrorCodeInviteNotFound, ErrorCodeInviteStatusUnsupported, ErrorCodeInviteUserMissing, ErrorCodeIssueTrackerRateLimited, ErrorCodeIssueTrackerUnavailable, ErrorCodeJSONSyntax, ErrorCodeJSONUnmarshal, ErrorCodeLicenseInactive, ErrorCodeLicenseRequired, ErrorCodeMCPDisabled, ErrorCodeMFAEnrollmentRequired, ErrorCodeMetricNotFound, ErrorCodeMissingFile, ErrorCodeMonitorFilter, ErrorCodeNotFound, ErrorCodeNotImplemented, ErrorCodeNotifChannel, ErrorCodeNotificationNotFound, ErrorCodeOTPRequired, ErrorCodeOwnLoginRequired, ErrorCodePaddle, ErrorCodePaymentRequired, ErrorCodeRateLimited, ErrorCodeReadFailed, ErrorCodeRecordChanged, ErrorCodeRequestBodyTooLarge, ErrorCodeRequestTimeout, ErrorCodeRoleInvalid, ErrorCodeRouteParam, ErrorCodeSLOConfig, ErrorCodeSLOCorrectionFilter, ErrorCodeSLOSubjectFilter, ErrorCodeSSOLoginRequired, ErrorCodeSSOSessionExpired, ErrorCodeSearchScope, ErrorCodeSearchSyntax, ErrorCodeServiceAccountLimitReached, ErrorCodeSourcemapLimitExceeded, ErrorCodeSpanFilter, ErrorCodeStagedQuotaExceeded, ErrorCodeStorageUnavailable, ErrorCodeStrconvNum, ErrorCodeSymbolTableLimitExceeded, ErrorCodeTemplateYAML, ErrorCodeTimeout, ErrorCodeTokenLimitReached, ErrorCodeTokenRequired, ErrorCodeTooManyChunks, ErrorCodeTraceLimitExceeded, ErrorCodeTurnInProgress, ErrorCodeTurnPaused, ErrorCodeURL, ErrorCodeUnauthorized, ErrorCodeUnknownRequest, ErrorCodeUnsupportedFormat, ErrorCodeUnsupportedMediaType, ErrorCodeUserIDRequired, ErrorCodeUserNotFound, ErrorCodeValidation, ErrorCodeXMLSyntax, ErrorCodeXMLUnmarshal:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AlertType value, got: %v", a))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ErrorCode value, got: %v", e))
 	}
 }
 
-// AlertStatus Alert resolution status.
-type AlertStatus string
+// ClauseType What one clause of a split query does. The parser reports the routing it chose, so a clause a client sent as filter comes back as where, having or search.
+type ClauseType string
 
 const (
-	Archived   AlertStatus = "archived"
-	Resolved   AlertStatus = "resolved"
-	Unresolved AlertStatus = "unresolved"
+	ClauseTypeFilter   ClauseType = "filter"
+	ClauseTypeGrouping ClauseType = "grouping"
+	ClauseTypeHaving   ClauseType = "having"
+	ClauseTypeSearch   ClauseType = "search"
+	ClauseTypeSelector ClauseType = "selector"
+	ClauseTypeWhere    ClauseType = "where"
 )
 
-// Validate checks if the AlertStatus value is valid
-func (a AlertStatus) Validate() error {
-	switch a {
-	case Archived, Resolved, Unresolved:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AlertStatus value, got: %v", a))
-	}
-}
-
-// AlertActivityState Alert activity state while unresolved.
-type AlertActivityState string
-
-const (
-	Escalated AlertActivityState = "escalated"
-	New       AlertActivityState = "new"
-	Ongoing   AlertActivityState = "ongoing"
-	Regressed AlertActivityState = "regressed"
-)
-
-// Validate checks if the AlertActivityState value is valid
-func (a AlertActivityState) Validate() error {
-	switch a {
-	case Escalated, New, Ongoing, Regressed:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AlertActivityState value, got: %v", a))
-	}
-}
-
-// AlertPriority Alert priority level.
-type AlertPriority string
-
-const (
-	High   AlertPriority = "high"
-	Info   AlertPriority = "info"
-	Low    AlertPriority = "low"
-	Medium AlertPriority = "medium"
-)
-
-// Validate checks if the AlertPriority value is valid
-func (a AlertPriority) Validate() error {
-	switch a {
-	case High, Info, Low, Medium:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AlertPriority value, got: %v", a))
-	}
-}
-
-type ProjectSamplingMode string
-
-const (
-	Disabled ProjectSamplingMode = "disabled"
-	Dynamic  ProjectSamplingMode = "dynamic"
-	Fixed    ProjectSamplingMode = "fixed"
-	OrgWide  ProjectSamplingMode = "org_wide"
-)
-
-// Validate checks if the ProjectSamplingMode value is valid
-func (p ProjectSamplingMode) Validate() error {
-	switch p {
-	case Disabled, Dynamic, Fixed, OrgWide:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ProjectSamplingMode value, got: %v", p))
-	}
-}
-
-type ProjectSemconvVersion string
-
-const (
-	None  ProjectSemconvVersion = "none"
-	V1250 ProjectSemconvVersion = "v1.25.0"
-	V1330 ProjectSemconvVersion = "v1.33.0"
-)
-
-// Validate checks if the ProjectSemconvVersion value is valid
-func (p ProjectSemconvVersion) Validate() error {
-	switch p {
-	case None, V1250, V1330:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ProjectSemconvVersion value, got: %v", p))
-	}
-}
-
-type ProjectCreateRequestSemconvVersion string
-
-const (
-	ProjectCreateRequestSemconvVersionNone  ProjectCreateRequestSemconvVersion = "none"
-	ProjectCreateRequestSemconvVersionV1250 ProjectCreateRequestSemconvVersion = "v1.25.0"
-	ProjectCreateRequestSemconvVersionV1330 ProjectCreateRequestSemconvVersion = "v1.33.0"
-)
-
-// Validate checks if the ProjectCreateRequestSemconvVersion value is valid
-func (p ProjectCreateRequestSemconvVersion) Validate() error {
-	switch p {
-	case ProjectCreateRequestSemconvVersionNone, ProjectCreateRequestSemconvVersionV1250, ProjectCreateRequestSemconvVersionV1330:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ProjectCreateRequestSemconvVersion value, got: %v", p))
-	}
-}
-
-// SortDirection Sort direction.
-type SortDirection string
-
-const (
-	ASC  SortDirection = "ASC"
-	DESC SortDirection = "DESC"
-)
-
-// Validate checks if the SortDirection value is valid
-func (s SortDirection) Validate() error {
-	switch s {
-	case ASC, DESC:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SortDirection value, got: %v", s))
-	}
-}
-
-type OrderItemOrder string
-
-const (
-	Asc  OrderItemOrder = "asc"
-	Desc OrderItemOrder = "desc"
-)
-
-// Validate checks if the OrderItemOrder value is valid
-func (o OrderItemOrder) Validate() error {
-	switch o {
-	case Asc, Desc:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid OrderItemOrder value, got: %v", o))
-	}
-}
-
-// CloseAlertsParamsType Alert type to close.
-type CloseAlertsParamsType string
-
-const (
-	CloseAlertsParamsTypeError  CloseAlertsParamsType = "error"
-	CloseAlertsParamsTypeMetric CloseAlertsParamsType = "metric"
-)
-
-// Validate checks if the CloseAlertsParamsType value is valid
-func (c CloseAlertsParamsType) Validate() error {
+// Validate checks if the ClauseType value is valid
+func (c ClauseType) Validate() error {
 	switch c {
-	case CloseAlertsParamsTypeError, CloseAlertsParamsTypeMetric:
+	case ClauseTypeFilter, ClauseTypeGrouping, ClauseTypeHaving, ClauseTypeSearch, ClauseTypeSelector, ClauseTypeWhere:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid CloseAlertsParamsType value, got: %v", c))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ClauseType value, got: %v", c))
 	}
 }
 
-// TemplateStatus Template availability status.
-type TemplateStatus string
+// MonitorStatus Monitor lifecycle status. active is checking and quiet, firing has an open alert, and no_data found no timeseries at all. warming_up is different: the check returned series but the detector has too little fitted history to judge them, so the monitor keeps checking until it can. paused and disabled stop the checks — a person pauses, an error disables.
+type MonitorStatus string
 
 const (
-	Installed TemplateStatus = "installed"
-	Pending   TemplateStatus = "pending"
-	Ready     TemplateStatus = "ready"
+	MonitorStatusActive    MonitorStatus = "active"
+	MonitorStatusDisabled  MonitorStatus = "disabled"
+	MonitorStatusFiring    MonitorStatus = "firing"
+	MonitorStatusNoData    MonitorStatus = "no_data"
+	MonitorStatusPaused    MonitorStatus = "paused"
+	MonitorStatusWarmingUp MonitorStatus = "warming_up"
 )
 
-// Validate checks if the TemplateStatus value is valid
-func (t TemplateStatus) Validate() error {
-	switch t {
-	case Installed, Pending, Ready:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid TemplateStatus value, got: %v", t))
-	}
-}
-
-// ExploredMetricInstrument OpenTelemetry instrument type.
-type ExploredMetricInstrument string
-
-const (
-	Additive    ExploredMetricInstrument = "additive"
-	Counter     ExploredMetricInstrument = "counter"
-	Gauge       ExploredMetricInstrument = "gauge"
-	Histogram   ExploredMetricInstrument = "histogram"
-	PromCounter ExploredMetricInstrument = "prom-counter"
-	Summary     ExploredMetricInstrument = "summary"
-)
-
-// Validate checks if the ExploredMetricInstrument value is valid
-func (e ExploredMetricInstrument) Validate() error {
-	switch e {
-	case Additive, Counter, Gauge, Histogram, PromCounter, Summary:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ExploredMetricInstrument value, got: %v", e))
-	}
-}
-
-type OrgUserFixtureRole string
-
-const (
-	Admin          OrgUserFixtureRole = "admin"
-	BillingManager OrgUserFixtureRole = "billing_manager"
-	Collaborator   OrgUserFixtureRole = "collaborator"
-	Member         OrgUserFixtureRole = "member"
-	Owner          OrgUserFixtureRole = "owner"
-	Viewer         OrgUserFixtureRole = "viewer"
-)
-
-// Validate checks if the OrgUserFixtureRole value is valid
-func (o OrgUserFixtureRole) Validate() error {
-	switch o {
-	case Admin, BillingManager, Collaborator, Member, Owner, Viewer:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid OrgUserFixtureRole value, got: %v", o))
-	}
-}
-
-type ProjectUserFixturePermLevel string
-
-const (
-	Maintain                         ProjectUserFixturePermLevel = "maintain"
-	ProjectUserFixturePermLevelAdmin ProjectUserFixturePermLevel = "admin"
-	ProjectUserFixturePermLevelNone  ProjectUserFixturePermLevel = "none"
-	View                             ProjectUserFixturePermLevel = "view"
-)
-
-// Validate checks if the ProjectUserFixturePermLevel value is valid
-func (p ProjectUserFixturePermLevel) Validate() error {
-	switch p {
-	case Maintain, ProjectUserFixturePermLevelAdmin, ProjectUserFixturePermLevelNone, View:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ProjectUserFixturePermLevel value, got: %v", p))
-	}
-}
-
-// BaseMonitorRequestTrendAggFunc Aggregation function used to compute the trend baseline.
-type BaseMonitorRequestTrendAggFunc string
-
-const (
-	Avg    BaseMonitorRequestTrendAggFunc = "avg"
-	Last   BaseMonitorRequestTrendAggFunc = "last"
-	Median BaseMonitorRequestTrendAggFunc = "median"
-	Sum    BaseMonitorRequestTrendAggFunc = "sum"
-)
-
-// Validate checks if the BaseMonitorRequestTrendAggFunc value is valid
-func (b BaseMonitorRequestTrendAggFunc) Validate() error {
-	switch b {
-	case Avg, Last, Median, Sum:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid BaseMonitorRequestTrendAggFunc value, got: %v", b))
-	}
-}
-
-// BaseMonitorRequestTrendSensitivity Sensitivity level of the trend-based anomaly detector.
-type BaseMonitorRequestTrendSensitivity string
-
-const (
-	BaseMonitorRequestTrendSensitivityHigh   BaseMonitorRequestTrendSensitivity = "high"
-	BaseMonitorRequestTrendSensitivityLow    BaseMonitorRequestTrendSensitivity = "low"
-	BaseMonitorRequestTrendSensitivityMedium BaseMonitorRequestTrendSensitivity = "medium"
-)
-
-// Validate checks if the BaseMonitorRequestTrendSensitivity value is valid
-func (b BaseMonitorRequestTrendSensitivity) Validate() error {
-	switch b {
-	case BaseMonitorRequestTrendSensitivityHigh, BaseMonitorRequestTrendSensitivityLow, BaseMonitorRequestTrendSensitivityMedium:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid BaseMonitorRequestTrendSensitivity value, got: %v", b))
-	}
-}
-
-// MetricMonitorRequestTrendAggFunc Aggregation function used to compute the trend baseline.
-type MetricMonitorRequestTrendAggFunc string
-
-const (
-	MetricMonitorRequestTrendAggFuncAvg    MetricMonitorRequestTrendAggFunc = "avg"
-	MetricMonitorRequestTrendAggFuncLast   MetricMonitorRequestTrendAggFunc = "last"
-	MetricMonitorRequestTrendAggFuncMedian MetricMonitorRequestTrendAggFunc = "median"
-	MetricMonitorRequestTrendAggFuncSum    MetricMonitorRequestTrendAggFunc = "sum"
-)
-
-// Validate checks if the MetricMonitorRequestTrendAggFunc value is valid
-func (m MetricMonitorRequestTrendAggFunc) Validate() error {
+// Validate checks if the MonitorStatus value is valid
+func (m MonitorStatus) Validate() error {
 	switch m {
-	case MetricMonitorRequestTrendAggFuncAvg, MetricMonitorRequestTrendAggFuncLast, MetricMonitorRequestTrendAggFuncMedian, MetricMonitorRequestTrendAggFuncSum:
+	case MonitorStatusActive, MonitorStatusDisabled, MonitorStatusFiring, MonitorStatusNoData, MonitorStatusPaused, MonitorStatusWarmingUp:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MetricMonitorRequestTrendAggFunc value, got: %v", m))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MonitorStatus value, got: %v", m))
 	}
 }
 
-// MetricMonitorRequestTrendSensitivity Sensitivity level of the trend-based anomaly detector.
-type MetricMonitorRequestTrendSensitivity string
+// MonitorType The decision a monitor makes. threshold fires outside a fixed range you state, anomaly on a departure from a model fitted on history, outlier on a series that departs from its peers, forecast on a crossing projected within the horizon; error fires on matching log records and slo on a burn-rate rule.
+type MonitorType string
 
 const (
-	MetricMonitorRequestTrendSensitivityHigh   MetricMonitorRequestTrendSensitivity = "high"
-	MetricMonitorRequestTrendSensitivityLow    MetricMonitorRequestTrendSensitivity = "low"
-	MetricMonitorRequestTrendSensitivityMedium MetricMonitorRequestTrendSensitivity = "medium"
+	MonitorTypeAnomaly   MonitorType = "anomaly"
+	MonitorTypeError     MonitorType = "error"
+	MonitorTypeForecast  MonitorType = "forecast"
+	MonitorTypeOutlier   MonitorType = "outlier"
+	MonitorTypeSLO       MonitorType = "slo"
+	MonitorTypeThreshold MonitorType = "threshold"
 )
 
-// Validate checks if the MetricMonitorRequestTrendSensitivity value is valid
-func (m MetricMonitorRequestTrendSensitivity) Validate() error {
+// Validate checks if the MonitorType value is valid
+func (m MonitorType) Validate() error {
 	switch m {
-	case MetricMonitorRequestTrendSensitivityHigh, MetricMonitorRequestTrendSensitivityLow, MetricMonitorRequestTrendSensitivityMedium:
+	case MonitorTypeAnomaly, MonitorTypeError, MonitorTypeForecast, MonitorTypeOutlier, MonitorTypeSLO, MonitorTypeThreshold:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MetricMonitorRequestTrendSensitivity value, got: %v", m))
-	}
-}
-
-type MetricMonitorRequestType string
-
-const (
-	MetricMonitorRequestTypeMetric MetricMonitorRequestType = "metric"
-)
-
-// Validate checks if the MetricMonitorRequestType value is valid
-func (m MetricMonitorRequestType) Validate() error {
-	switch m {
-	case MetricMonitorRequestTypeMetric:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MetricMonitorRequestType value, got: %v", m))
-	}
-}
-
-// ErrorMonitorRequestTrendAggFunc Aggregation function used to compute the trend baseline.
-type ErrorMonitorRequestTrendAggFunc string
-
-const (
-	ErrorMonitorRequestTrendAggFuncAvg    ErrorMonitorRequestTrendAggFunc = "avg"
-	ErrorMonitorRequestTrendAggFuncLast   ErrorMonitorRequestTrendAggFunc = "last"
-	ErrorMonitorRequestTrendAggFuncMedian ErrorMonitorRequestTrendAggFunc = "median"
-	ErrorMonitorRequestTrendAggFuncSum    ErrorMonitorRequestTrendAggFunc = "sum"
-)
-
-// Validate checks if the ErrorMonitorRequestTrendAggFunc value is valid
-func (e ErrorMonitorRequestTrendAggFunc) Validate() error {
-	switch e {
-	case ErrorMonitorRequestTrendAggFuncAvg, ErrorMonitorRequestTrendAggFuncLast, ErrorMonitorRequestTrendAggFuncMedian, ErrorMonitorRequestTrendAggFuncSum:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ErrorMonitorRequestTrendAggFunc value, got: %v", e))
-	}
-}
-
-// ErrorMonitorRequestTrendSensitivity Sensitivity level of the trend-based anomaly detector.
-type ErrorMonitorRequestTrendSensitivity string
-
-const (
-	ErrorMonitorRequestTrendSensitivityHigh   ErrorMonitorRequestTrendSensitivity = "high"
-	ErrorMonitorRequestTrendSensitivityLow    ErrorMonitorRequestTrendSensitivity = "low"
-	ErrorMonitorRequestTrendSensitivityMedium ErrorMonitorRequestTrendSensitivity = "medium"
-)
-
-// Validate checks if the ErrorMonitorRequestTrendSensitivity value is valid
-func (e ErrorMonitorRequestTrendSensitivity) Validate() error {
-	switch e {
-	case ErrorMonitorRequestTrendSensitivityHigh, ErrorMonitorRequestTrendSensitivityLow, ErrorMonitorRequestTrendSensitivityMedium:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ErrorMonitorRequestTrendSensitivity value, got: %v", e))
-	}
-}
-
-type ErrorMonitorRequestType string
-
-const (
-	ErrorMonitorRequestTypeError ErrorMonitorRequestType = "error"
-)
-
-// Validate checks if the ErrorMonitorRequestType value is valid
-func (e ErrorMonitorRequestType) Validate() error {
-	switch e {
-	case ErrorMonitorRequestTypeError:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ErrorMonitorRequestType value, got: %v", e))
-	}
-}
-
-type MetricMonitorParamsAbsentPoints string
-
-const (
-	Ignore                               MetricMonitorParamsAbsentPoints = "ignore"
-	MetricMonitorParamsAbsentPointsAlert MetricMonitorParamsAbsentPoints = "alert"
-	Zero                                 MetricMonitorParamsAbsentPoints = "zero"
-)
-
-// Validate checks if the MetricMonitorParamsAbsentPoints value is valid
-func (m MetricMonitorParamsAbsentPoints) Validate() error {
-	switch m {
-	case Ignore, MetricMonitorParamsAbsentPointsAlert, Zero:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MetricMonitorParamsAbsentPoints value, got: %v", m))
-	}
-}
-
-type DetectorConfigType string
-
-const (
-	Auto   DetectorConfigType = "auto"
-	Manual DetectorConfigType = "manual"
-)
-
-// Validate checks if the DetectorConfigType value is valid
-func (d DetectorConfigType) Validate() error {
-	switch d {
-	case Auto, Manual:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid DetectorConfigType value, got: %v", d))
-	}
-}
-
-type AutoDetectorParamsTolerance string
-
-const (
-	AutoDetectorParamsToleranceHigh   AutoDetectorParamsTolerance = "high"
-	AutoDetectorParamsToleranceLow    AutoDetectorParamsTolerance = "low"
-	AutoDetectorParamsToleranceMedium AutoDetectorParamsTolerance = "medium"
-)
-
-// Validate checks if the AutoDetectorParamsTolerance value is valid
-func (a AutoDetectorParamsTolerance) Validate() error {
-	switch a {
-	case AutoDetectorParamsToleranceHigh, AutoDetectorParamsToleranceLow, AutoDetectorParamsToleranceMedium:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AutoDetectorParamsTolerance value, got: %v", a))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MonitorType value, got: %v", m))
 	}
 }
 
 type DefaultRepeatIntervalStrategy string
 
 const (
-	Default DefaultRepeatIntervalStrategy = "default"
+	DefaultRepeatIntervalStrategyDefault DefaultRepeatIntervalStrategy = "default"
 )
 
 // Validate checks if the DefaultRepeatIntervalStrategy value is valid
 func (d DefaultRepeatIntervalStrategy) Validate() error {
 	switch d {
-	case Default:
+	case DefaultRepeatIntervalStrategyDefault:
 		return nil
 	default:
 		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid DefaultRepeatIntervalStrategy value, got: %v", d))
@@ -511,13 +226,13 @@ func (f FixedRepeatIntervalStrategy) Validate() error {
 type LinearRepeatIntervalStrategy string
 
 const (
-	Linear LinearRepeatIntervalStrategy = "linear"
+	LinearRepeatIntervalStrategyLinear LinearRepeatIntervalStrategy = "linear"
 )
 
 // Validate checks if the LinearRepeatIntervalStrategy value is valid
 func (l LinearRepeatIntervalStrategy) Validate() error {
 	switch l {
-	case Linear:
+	case LinearRepeatIntervalStrategyLinear:
 		return nil
 	default:
 		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid LinearRepeatIntervalStrategy value, got: %v", l))
@@ -527,465 +242,518 @@ func (l LinearRepeatIntervalStrategy) Validate() error {
 type ExponentialRepeatIntervalStrategy string
 
 const (
-	Exponential ExponentialRepeatIntervalStrategy = "exponential"
+	ExponentialRepeatIntervalStrategyExponential ExponentialRepeatIntervalStrategy = "exponential"
 )
 
 // Validate checks if the ExponentialRepeatIntervalStrategy value is valid
 func (e ExponentialRepeatIntervalStrategy) Validate() error {
 	switch e {
-	case Exponential:
+	case ExponentialRepeatIntervalStrategyExponential:
 		return nil
 	default:
 		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ExponentialRepeatIntervalStrategy value, got: %v", e))
 	}
 }
 
-type MonitorType string
+// TrendAggFunc Aggregation that folds an hourly trend to one value.
+type TrendAggFunc string
 
 const (
-	MonitorTypeError  MonitorType = "error"
-	MonitorTypeMetric MonitorType = "metric"
+	TrendAggFuncAvg    TrendAggFunc = "avg"
+	TrendAggFuncLast   TrendAggFunc = "last"
+	TrendAggFuncMedian TrendAggFunc = "median"
+	TrendAggFuncSum    TrendAggFunc = "sum"
 )
 
-// Validate checks if the MonitorType value is valid
-func (m MonitorType) Validate() error {
-	switch m {
-	case MonitorTypeError, MonitorTypeMetric:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MonitorType value, got: %v", m))
-	}
-}
-
-type MonitorStatus string
-
-const (
-	Active                MonitorStatus = "active"
-	Firing                MonitorStatus = "firing"
-	MonitorStatusDisabled MonitorStatus = "disabled"
-	NoData                MonitorStatus = "no_data"
-	Paused                MonitorStatus = "paused"
-)
-
-// Validate checks if the MonitorStatus value is valid
-func (m MonitorStatus) Validate() error {
-	switch m {
-	case Active, Firing, MonitorStatusDisabled, NoData, Paused:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MonitorStatus value, got: %v", m))
-	}
-}
-
-// MonitorTrendAggFunc Aggregation function used to compute the trend baseline.
-type MonitorTrendAggFunc string
-
-const (
-	MonitorTrendAggFuncAvg    MonitorTrendAggFunc = "avg"
-	MonitorTrendAggFuncLast   MonitorTrendAggFunc = "last"
-	MonitorTrendAggFuncMedian MonitorTrendAggFunc = "median"
-	MonitorTrendAggFuncSum    MonitorTrendAggFunc = "sum"
-)
-
-// Validate checks if the MonitorTrendAggFunc value is valid
-func (m MonitorTrendAggFunc) Validate() error {
-	switch m {
-	case MonitorTrendAggFuncAvg, MonitorTrendAggFuncLast, MonitorTrendAggFuncMedian, MonitorTrendAggFuncSum:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MonitorTrendAggFunc value, got: %v", m))
-	}
-}
-
-// MonitorTrendSensitivity Sensitivity level of the trend-based anomaly detector.
-type MonitorTrendSensitivity string
-
-const (
-	MonitorTrendSensitivityHigh   MonitorTrendSensitivity = "high"
-	MonitorTrendSensitivityLow    MonitorTrendSensitivity = "low"
-	MonitorTrendSensitivityMedium MonitorTrendSensitivity = "medium"
-)
-
-// Validate checks if the MonitorTrendSensitivity value is valid
-func (m MonitorTrendSensitivity) Validate() error {
-	switch m {
-	case MonitorTrendSensitivityHigh, MonitorTrendSensitivityLow, MonitorTrendSensitivityMedium:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MonitorTrendSensitivity value, got: %v", m))
-	}
-}
-
-type TableColumnAggFunc string
-
-const (
-	AvgZero                  TableColumnAggFunc = "avg_zero"
-	Max                      TableColumnAggFunc = "max"
-	Min                      TableColumnAggFunc = "min"
-	TableColumnAggFuncAvg    TableColumnAggFunc = "avg"
-	TableColumnAggFuncLast   TableColumnAggFunc = "last"
-	TableColumnAggFuncMedian TableColumnAggFunc = "median"
-	TableColumnAggFuncSum    TableColumnAggFunc = "sum"
-)
-
-// Validate checks if the TableColumnAggFunc value is valid
-func (t TableColumnAggFunc) Validate() error {
+// Validate checks if the TrendAggFunc value is valid
+func (t TrendAggFunc) Validate() error {
 	switch t {
-	case AvgZero, Max, Min, TableColumnAggFuncAvg, TableColumnAggFuncLast, TableColumnAggFuncMedian, TableColumnAggFuncSum:
+	case TrendAggFuncAvg, TrendAggFuncLast, TrendAggFuncMedian, TrendAggFuncSum:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid TableColumnAggFunc value, got: %v", t))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid TrendAggFunc value, got: %v", t))
 	}
 }
 
-type GridItemDashboardKind string
+// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
+type TrendSensitivity string
 
 const (
-	Grid  GridItemDashboardKind = "grid"
-	Table GridItemDashboardKind = "table"
+	TrendSensitivityHigh     TrendSensitivity = "high"
+	TrendSensitivityLow      TrendSensitivity = "low"
+	TrendSensitivityMedium   TrendSensitivity = "medium"
+	TrendSensitivityVeryHigh TrendSensitivity = "very_high"
+	TrendSensitivityVeryLow  TrendSensitivity = "very_low"
 )
 
-// Validate checks if the GridItemDashboardKind value is valid
-func (g GridItemDashboardKind) Validate() error {
-	switch g {
-	case Grid, Table:
+// Validate checks if the TrendSensitivity value is valid
+func (t TrendSensitivity) Validate() error {
+	switch t {
+	case TrendSensitivityHigh, TrendSensitivityLow, TrendSensitivityMedium, TrendSensitivityVeryHigh, TrendSensitivityVeryLow:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid GridItemDashboardKind value, got: %v", g))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid TrendSensitivity value, got: %v", t))
 	}
 }
 
-type GridItemType string
+// MetricWindowRule How a metric monitor's evaluation window collapses to one verdict. at_least is the one value that reads a companion figure, minBreachPoints.
+type MetricWindowRule string
 
 const (
-	Chart             GridItemType = "chart"
-	GridItemTypeGauge GridItemType = "gauge"
-	GridItemTypeTable GridItemType = "table"
-	Heatmap           GridItemType = "heatmap"
+	MetricWindowRuleAtAllTimes MetricWindowRule = "at_all_times"
+	MetricWindowRuleAtLeast    MetricWindowRule = "at_least"
+	MetricWindowRuleInTotal    MetricWindowRule = "in_total"
+	MetricWindowRuleOnAverage  MetricWindowRule = "on_average"
 )
 
-// Validate checks if the GridItemType value is valid
-func (g GridItemType) Validate() error {
-	switch g {
-	case Chart, GridItemTypeGauge, GridItemTypeTable, Heatmap:
+// Validate checks if the MetricWindowRule value is valid
+func (m MetricWindowRule) Validate() error {
+	switch m {
+	case MetricWindowRuleAtAllTimes, MetricWindowRuleAtLeast, MetricWindowRuleInTotal, MetricWindowRuleOnAverage:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid GridItemType value, got: %v", g))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MetricWindowRule value, got: %v", m))
 	}
 }
 
-type GridItemRequestDashboardKind string
+// AbsentPoints What a monitor does with a point its query reported no value for. zero reads it as a measured zero, ignore skips it, and alert treats it as a breach.
+type AbsentPoints string
 
 const (
-	GridItemRequestDashboardKindGrid  GridItemRequestDashboardKind = "grid"
-	GridItemRequestDashboardKindTable GridItemRequestDashboardKind = "table"
+	AbsentPointsAlert  AbsentPoints = "alert"
+	AbsentPointsIgnore AbsentPoints = "ignore"
+	AbsentPointsZero   AbsentPoints = "zero"
 )
 
-// Validate checks if the GridItemRequestDashboardKind value is valid
-func (g GridItemRequestDashboardKind) Validate() error {
-	switch g {
-	case GridItemRequestDashboardKindGrid, GridItemRequestDashboardKindTable:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid GridItemRequestDashboardKind value, got: %v", g))
-	}
-}
-
-type GridItemRequestType string
-
-const (
-	GridItemRequestTypeChart   GridItemRequestType = "chart"
-	GridItemRequestTypeGauge   GridItemRequestType = "gauge"
-	GridItemRequestTypeHeatmap GridItemRequestType = "heatmap"
-	GridItemRequestTypeTable   GridItemRequestType = "table"
-)
-
-// Validate checks if the GridItemRequestType value is valid
-func (g GridItemRequestType) Validate() error {
-	switch g {
-	case GridItemRequestTypeChart, GridItemRequestTypeGauge, GridItemRequestTypeHeatmap, GridItemRequestTypeTable:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid GridItemRequestType value, got: %v", g))
-	}
-}
-
-type SlackParamsAuthMethod string
-
-const (
-	Token   SlackParamsAuthMethod = "token"
-	Webhook SlackParamsAuthMethod = "webhook"
-)
-
-// Validate checks if the SlackParamsAuthMethod value is valid
-func (s SlackParamsAuthMethod) Validate() error {
-	switch s {
-	case Token, Webhook:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SlackParamsAuthMethod value, got: %v", s))
-	}
-}
-
-type PagerdutyParamsSeverity string
-
-const (
-	Critical                     PagerdutyParamsSeverity = "critical"
-	PagerdutyParamsSeverityError PagerdutyParamsSeverity = "error"
-	PagerdutyParamsSeverityInfo  PagerdutyParamsSeverity = "info"
-	Warning                      PagerdutyParamsSeverity = "warning"
-)
-
-// Validate checks if the PagerdutyParamsSeverity value is valid
-func (p PagerdutyParamsSeverity) Validate() error {
-	switch p {
-	case Critical, PagerdutyParamsSeverityError, PagerdutyParamsSeverityInfo, Warning:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid PagerdutyParamsSeverity value, got: %v", p))
-	}
-}
-
-type ServicenowParamsImpact string
-
-const (
-	N1 ServicenowParamsImpact = "1"
-	N2 ServicenowParamsImpact = "2"
-	N3 ServicenowParamsImpact = "3"
-)
-
-// Validate checks if the ServicenowParamsImpact value is valid
-func (s ServicenowParamsImpact) Validate() error {
-	switch s {
-	case N1, N2, N3:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ServicenowParamsImpact value, got: %v", s))
-	}
-}
-
-type ServicenowParamsUrgency string
-
-const (
-	ServicenowParamsUrgencyN1 ServicenowParamsUrgency = "1"
-	ServicenowParamsUrgencyN2 ServicenowParamsUrgency = "2"
-	ServicenowParamsUrgencyN3 ServicenowParamsUrgency = "3"
-)
-
-// Validate checks if the ServicenowParamsUrgency value is valid
-func (s ServicenowParamsUrgency) Validate() error {
-	switch s {
-	case ServicenowParamsUrgencyN1, ServicenowParamsUrgencyN2, ServicenowParamsUrgencyN3:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ServicenowParamsUrgency value, got: %v", s))
-	}
-}
-
-type ServicenowParamsSeverity string
-
-const (
-	N4                         ServicenowParamsSeverity = "4"
-	N5                         ServicenowParamsSeverity = "5"
-	ServicenowParamsSeverityN1 ServicenowParamsSeverity = "1"
-	ServicenowParamsSeverityN2 ServicenowParamsSeverity = "2"
-	ServicenowParamsSeverityN3 ServicenowParamsSeverity = "3"
-)
-
-// Validate checks if the ServicenowParamsSeverity value is valid
-func (s ServicenowParamsSeverity) Validate() error {
-	switch s {
-	case N4, N5, ServicenowParamsSeverityN1, ServicenowParamsSeverityN2, ServicenowParamsSeverityN3:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ServicenowParamsSeverity value, got: %v", s))
-	}
-}
-
-type ServicenowParamsNotify string
-
-const (
-	ServicenowParamsNotifyN1 ServicenowParamsNotify = "1"
-	ServicenowParamsNotifyN2 ServicenowParamsNotify = "2"
-)
-
-// Validate checks if the ServicenowParamsNotify value is valid
-func (s ServicenowParamsNotify) Validate() error {
-	switch s {
-	case ServicenowParamsNotifyN1, ServicenowParamsNotifyN2:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ServicenowParamsNotify value, got: %v", s))
-	}
-}
-
-type OpsgenieParamsPriority string
-
-const (
-	P1 OpsgenieParamsPriority = "P1"
-	P2 OpsgenieParamsPriority = "P2"
-	P3 OpsgenieParamsPriority = "P3"
-	P4 OpsgenieParamsPriority = "P4"
-	P5 OpsgenieParamsPriority = "P5"
-)
-
-// Validate checks if the OpsgenieParamsPriority value is valid
-func (o OpsgenieParamsPriority) Validate() error {
-	switch o {
-	case P1, P2, P3, P4, P5:
-		return nil
-	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid OpsgenieParamsPriority value, got: %v", o))
-	}
-}
-
-// AlertmanagerParamsAuthMethod Authentication method.
-type AlertmanagerParamsAuthMethod string
-
-const (
-	AlertmanagerParamsAuthMethodNone AlertmanagerParamsAuthMethod = "none"
-	BasicAuth                        AlertmanagerParamsAuthMethod = "basic_auth"
-	Bearer                           AlertmanagerParamsAuthMethod = "bearer"
-)
-
-// Validate checks if the AlertmanagerParamsAuthMethod value is valid
-func (a AlertmanagerParamsAuthMethod) Validate() error {
+// Validate checks if the AbsentPoints value is valid
+func (a AbsentPoints) Validate() error {
 	switch a {
-	case AlertmanagerParamsAuthMethodNone, BasicAuth, Bearer:
+	case AbsentPointsAlert, AbsentPointsIgnore, AbsentPointsZero:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AlertmanagerParamsAuthMethod value, got: %v", a))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AbsentPoints value, got: %v", a))
 	}
 }
 
-type NotificationChannelType string
+// ThresholdMonitorSummaryType The monitor kind this member is selected by.
+type ThresholdMonitorSummaryType string
 
 const (
-	Alertmanager                   NotificationChannelType = "alertmanager"
-	GoogleChat                     NotificationChannelType = "google_chat"
-	Incidentio                     NotificationChannelType = "incidentio"
-	Mattermost                     NotificationChannelType = "mattermost"
-	NotificationChannelTypeWebhook NotificationChannelType = "webhook"
-	Opsgenie                       NotificationChannelType = "opsgenie"
-	Pagerduty                      NotificationChannelType = "pagerduty"
-	Pushover                       NotificationChannelType = "pushover"
-	Servicenow                     NotificationChannelType = "servicenow"
-	Slack                          NotificationChannelType = "slack"
-	Teams                          NotificationChannelType = "teams"
-	Telegram                       NotificationChannelType = "telegram"
+	ThresholdMonitorSummaryTypeThreshold ThresholdMonitorSummaryType = "threshold"
 )
 
-// Validate checks if the NotificationChannelType value is valid
-func (n NotificationChannelType) Validate() error {
-	switch n {
-	case Alertmanager, GoogleChat, Incidentio, Mattermost, NotificationChannelTypeWebhook, Opsgenie, Pagerduty, Pushover, Servicenow, Slack, Teams, Telegram:
+// Validate checks if the ThresholdMonitorSummaryType value is valid
+func (t ThresholdMonitorSummaryType) Validate() error {
+	switch t {
+	case ThresholdMonitorSummaryTypeThreshold:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid NotificationChannelType value, got: %v", n))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ThresholdMonitorSummaryType value, got: %v", t))
 	}
 }
 
-type NotificationChannelStatus string
+// DiagnosticKind What the statement contributes, so a client can group, order or drop clauses without parsing their text. The blocked kind never appears in an alert event's explanation — only on a series or a monitor check.
+type DiagnosticKind string
 
 const (
-	Delivering                        NotificationChannelStatus = "delivering"
-	Draft                             NotificationChannelStatus = "draft"
-	NotificationChannelStatusDisabled NotificationChannelStatus = "disabled"
-	NotificationChannelStatusPaused   NotificationChannelStatus = "paused"
+	DiagnosticKindBlocked    DiagnosticKind = "blocked"
+	DiagnosticKindCompared   DiagnosticKind = "compared"
+	DiagnosticKindDecided    DiagnosticKind = "decided"
+	DiagnosticKindMeasured   DiagnosticKind = "measured"
+	DiagnosticKindProvenance DiagnosticKind = "provenance"
+	DiagnosticKindQualified  DiagnosticKind = "qualified"
 )
 
-// Validate checks if the NotificationChannelStatus value is valid
-func (n NotificationChannelStatus) Validate() error {
-	switch n {
-	case Delivering, Draft, NotificationChannelStatusDisabled, NotificationChannelStatusPaused:
+// Validate checks if the DiagnosticKind value is valid
+func (d DiagnosticKind) Validate() error {
+	switch d {
+	case DiagnosticKindBlocked, DiagnosticKindCompared, DiagnosticKindDecided, DiagnosticKindMeasured, DiagnosticKindProvenance, DiagnosticKindQualified:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid NotificationChannelStatus value, got: %v", n))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid DiagnosticKind value, got: %v", d))
 	}
 }
 
-type NotificationChannelPriorities string
+// DiagnosticDisposition What a blocked statement means for the series it is about: warming means more data cures the cause and the check is still waiting, not_firing means a real verdict that waiting will not change. Set only on the blocked kind.
+type DiagnosticDisposition string
 
 const (
-	NotificationChannelPrioritiesHigh   NotificationChannelPriorities = "high"
-	NotificationChannelPrioritiesInfo   NotificationChannelPriorities = "info"
-	NotificationChannelPrioritiesLow    NotificationChannelPriorities = "low"
-	NotificationChannelPrioritiesMedium NotificationChannelPriorities = "medium"
+	DiagnosticDispositionNotFiring DiagnosticDisposition = "not_firing"
+	DiagnosticDispositionWarming   DiagnosticDisposition = "warming"
 )
 
-// Validate checks if the NotificationChannelPriorities value is valid
-func (n NotificationChannelPriorities) Validate() error {
-	switch n {
-	case NotificationChannelPrioritiesHigh, NotificationChannelPrioritiesInfo, NotificationChannelPrioritiesLow, NotificationChannelPrioritiesMedium:
+// Validate checks if the DiagnosticDisposition value is valid
+func (d DiagnosticDisposition) Validate() error {
+	switch d {
+	case DiagnosticDispositionNotFiring, DiagnosticDispositionWarming:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid NotificationChannelPriorities value, got: %v", n))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid DiagnosticDisposition value, got: %v", d))
 	}
 }
 
-type NotificationChannelRequestType string
+// AnomalyPreset The anomaly model preset. general supports every metric shape.
+type AnomalyPreset string
 
 const (
-	NotificationChannelRequestTypeAlertmanager NotificationChannelRequestType = "alertmanager"
-	NotificationChannelRequestTypeGoogleChat   NotificationChannelRequestType = "google_chat"
-	NotificationChannelRequestTypeIncidentio   NotificationChannelRequestType = "incidentio"
-	NotificationChannelRequestTypeMattermost   NotificationChannelRequestType = "mattermost"
-	NotificationChannelRequestTypeOpsgenie     NotificationChannelRequestType = "opsgenie"
-	NotificationChannelRequestTypePagerduty    NotificationChannelRequestType = "pagerduty"
-	NotificationChannelRequestTypePushover     NotificationChannelRequestType = "pushover"
-	NotificationChannelRequestTypeServicenow   NotificationChannelRequestType = "servicenow"
-	NotificationChannelRequestTypeSlack        NotificationChannelRequestType = "slack"
-	NotificationChannelRequestTypeTeams        NotificationChannelRequestType = "teams"
-	NotificationChannelRequestTypeTelegram     NotificationChannelRequestType = "telegram"
-	NotificationChannelRequestTypeWebhook      NotificationChannelRequestType = "webhook"
+	AnomalyPresetGeneral AnomalyPreset = "general"
 )
 
-// Validate checks if the NotificationChannelRequestType value is valid
-func (n NotificationChannelRequestType) Validate() error {
-	switch n {
-	case NotificationChannelRequestTypeAlertmanager, NotificationChannelRequestTypeGoogleChat, NotificationChannelRequestTypeIncidentio, NotificationChannelRequestTypeMattermost, NotificationChannelRequestTypeOpsgenie, NotificationChannelRequestTypePagerduty, NotificationChannelRequestTypePushover, NotificationChannelRequestTypeServicenow, NotificationChannelRequestTypeSlack, NotificationChannelRequestTypeTeams, NotificationChannelRequestTypeTelegram, NotificationChannelRequestTypeWebhook:
+// Validate checks if the AnomalyPreset value is valid
+func (a AnomalyPreset) Validate() error {
+	switch a {
+	case AnomalyPresetGeneral:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid NotificationChannelRequestType value, got: %v", n))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AnomalyPreset value, got: %v", a))
 	}
 }
 
-type NotificationChannelRequestPriorities string
+// DetectorSensitivity How readily the anomaly and outlier kinds fire. very_low is strict, which is the widest expected range and the fewest alerts; very_high is lenient. It is a monitor param, and is not TrendSensitivity, which shares this vocabulary and drives an alert's lifecycle instead.
+type DetectorSensitivity string
 
 const (
-	NotificationChannelRequestPrioritiesHigh   NotificationChannelRequestPriorities = "high"
-	NotificationChannelRequestPrioritiesInfo   NotificationChannelRequestPriorities = "info"
-	NotificationChannelRequestPrioritiesLow    NotificationChannelRequestPriorities = "low"
-	NotificationChannelRequestPrioritiesMedium NotificationChannelRequestPriorities = "medium"
+	DetectorSensitivityHigh     DetectorSensitivity = "high"
+	DetectorSensitivityLow      DetectorSensitivity = "low"
+	DetectorSensitivityMedium   DetectorSensitivity = "medium"
+	DetectorSensitivityVeryHigh DetectorSensitivity = "very_high"
+	DetectorSensitivityVeryLow  DetectorSensitivity = "very_low"
 )
 
-// Validate checks if the NotificationChannelRequestPriorities value is valid
-func (n NotificationChannelRequestPriorities) Validate() error {
-	switch n {
-	case NotificationChannelRequestPrioritiesHigh, NotificationChannelRequestPrioritiesInfo, NotificationChannelRequestPrioritiesLow, NotificationChannelRequestPrioritiesMedium:
+// Validate checks if the DetectorSensitivity value is valid
+func (d DetectorSensitivity) Validate() error {
+	switch d {
+	case DetectorSensitivityHigh, DetectorSensitivityLow, DetectorSensitivityMedium, DetectorSensitivityVeryHigh, DetectorSensitivityVeryLow:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid NotificationChannelRequestPriorities value, got: %v", n))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid DetectorSensitivity value, got: %v", d))
 	}
 }
 
-// PermLevel Project-level permission override (empty when unset).
-type PermLevel string
+// DirectionFilter Which side of the expected range a monitor fires on.
+type DirectionFilter string
 
 const (
-	Edit           PermLevel = "edit"
-	PermLevelAdmin PermLevel = "admin"
-	PermLevelNone  PermLevel = "none"
-	PermLevelView  PermLevel = "view"
+	DirectionFilterAbove DirectionFilter = "above"
+	DirectionFilterBelow DirectionFilter = "below"
+	DirectionFilterBoth  DirectionFilter = "both"
 )
 
-// Validate checks if the PermLevel value is valid
-func (p PermLevel) Validate() error {
+// Validate checks if the DirectionFilter value is valid
+func (d DirectionFilter) Validate() error {
+	switch d {
+	case DirectionFilterAbove, DirectionFilterBelow, DirectionFilterBoth:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid DirectionFilter value, got: %v", d))
+	}
+}
+
+// DetectorSeasonality Whether the anomaly and forecast models fit a repeating cycle. auto fits the cycles the training window supports; off adds no seasonal detector.
+type DetectorSeasonality string
+
+const (
+	DetectorSeasonalityAuto DetectorSeasonality = "auto"
+	DetectorSeasonalityOff  DetectorSeasonality = "off"
+)
+
+// Validate checks if the DetectorSeasonality value is valid
+func (d DetectorSeasonality) Validate() error {
+	switch d {
+	case DetectorSeasonalityAuto, DetectorSeasonalityOff:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid DetectorSeasonality value, got: %v", d))
+	}
+}
+
+// AnomalyMonitorSummaryType The monitor kind this member is selected by.
+type AnomalyMonitorSummaryType string
+
+const (
+	AnomalyMonitorSummaryTypeAnomaly AnomalyMonitorSummaryType = "anomaly"
+)
+
+// Validate checks if the AnomalyMonitorSummaryType value is valid
+func (a AnomalyMonitorSummaryType) Validate() error {
+	switch a {
+	case AnomalyMonitorSummaryTypeAnomaly:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AnomalyMonitorSummaryType value, got: %v", a))
+	}
+}
+
+// OutlierMonitorSummaryType The monitor kind this member is selected by.
+type OutlierMonitorSummaryType string
+
+const (
+	OutlierMonitorSummaryTypeOutlier OutlierMonitorSummaryType = "outlier"
+)
+
+// Validate checks if the OutlierMonitorSummaryType value is valid
+func (o OutlierMonitorSummaryType) Validate() error {
+	switch o {
+	case OutlierMonitorSummaryTypeOutlier:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid OutlierMonitorSummaryType value, got: %v", o))
+	}
+}
+
+// ForecastMonitorSummaryType The monitor kind this member is selected by.
+type ForecastMonitorSummaryType string
+
+const (
+	ForecastMonitorSummaryTypeForecast ForecastMonitorSummaryType = "forecast"
+)
+
+// Validate checks if the ForecastMonitorSummaryType value is valid
+func (f ForecastMonitorSummaryType) Validate() error {
+	switch f {
+	case ForecastMonitorSummaryTypeForecast:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ForecastMonitorSummaryType value, got: %v", f))
+	}
+}
+
+// ErrorMonitorSummaryType The monitor kind this member is selected by.
+type ErrorMonitorSummaryType string
+
+const (
+	ErrorMonitorSummaryTypeError ErrorMonitorSummaryType = "error"
+)
+
+// Validate checks if the ErrorMonitorSummaryType value is valid
+func (e ErrorMonitorSummaryType) Validate() error {
+	switch e {
+	case ErrorMonitorSummaryTypeError:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ErrorMonitorSummaryType value, got: %v", e))
+	}
+}
+
+type SloEventSliType string
+
+const (
+	SloEventSliTypeEvent SloEventSliType = "event"
+)
+
+// Validate checks if the SloEventSliType value is valid
+func (s SloEventSliType) Validate() error {
+	switch s {
+	case SloEventSliTypeEvent:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloEventSliType value, got: %v", s))
+	}
+}
+
+// SloSliType What an SLI counts, and so the unit an SLO's good, total and bad counts are in. It is the tag that selects a member of SloSli, and the value a reader words a count with.
+type SloSliType string
+
+const (
+	SloSliTypeEvent SloSliType = "event"
+)
+
+// Validate checks if the SloSliType value is valid
+func (s SloSliType) Validate() error {
+	switch s {
+	case SloSliTypeEvent:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloSliType value, got: %v", s))
+	}
+}
+
+// SloBudgetWindowKind How an SLO's budget window is bounded. It does not affect rule evaluation, which is always rolling by construction, because every rule states its own windows.
+type SloBudgetWindowKind string
+
+const (
+	SloBudgetWindowKindCalendarMonth   SloBudgetWindowKind = "calendar_month"
+	SloBudgetWindowKindCalendarQuarter SloBudgetWindowKind = "calendar_quarter"
+	SloBudgetWindowKindCalendarWeek    SloBudgetWindowKind = "calendar_week"
+	SloBudgetWindowKindRolling         SloBudgetWindowKind = "rolling"
+)
+
+// Validate checks if the SloBudgetWindowKind value is valid
+func (s SloBudgetWindowKind) Validate() error {
+	switch s {
+	case SloBudgetWindowKindCalendarMonth, SloBudgetWindowKindCalendarQuarter, SloBudgetWindowKindCalendarWeek, SloBudgetWindowKindRolling:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloBudgetWindowKind value, got: %v", s))
+	}
+}
+
+// AlertPriority Alert priority level.
+type AlertPriority string
+
+const (
+	AlertPriorityHigh   AlertPriority = "high"
+	AlertPriorityInfo   AlertPriority = "info"
+	AlertPriorityLow    AlertPriority = "low"
+	AlertPriorityMedium AlertPriority = "medium"
+)
+
+// Validate checks if the AlertPriority value is valid
+func (a AlertPriority) Validate() error {
+	switch a {
+	case AlertPriorityHigh, AlertPriorityInfo, AlertPriorityLow, AlertPriorityMedium:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AlertPriority value, got: %v", a))
+	}
+}
+
+type SloBurnRateRuleType string
+
+const (
+	SloBurnRateRuleTypeBurnRate SloBurnRateRuleType = "burn_rate"
+)
+
+// Validate checks if the SloBurnRateRuleType value is valid
+func (s SloBurnRateRuleType) Validate() error {
+	switch s {
+	case SloBurnRateRuleTypeBurnRate:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloBurnRateRuleType value, got: %v", s))
+	}
+}
+
+type SloBudgetConsumedRuleType string
+
+const (
+	SloBudgetConsumedRuleTypeBudgetConsumed SloBudgetConsumedRuleType = "budget_consumed"
+)
+
+// Validate checks if the SloBudgetConsumedRuleType value is valid
+func (s SloBudgetConsumedRuleType) Validate() error {
+	switch s {
+	case SloBudgetConsumedRuleTypeBudgetConsumed:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloBudgetConsumedRuleType value, got: %v", s))
+	}
+}
+
+// SloRuleType Which kind an SLO rule is, and so which quantity it reads. It is the tag that selects a member of SloRule, and the tag that selects a member of SloReading: a reading names the kind that took it, so a reader of a check has the kind without the rule beside it.
+// Both kinds read the error budget. A third, sli, is retired: it read the SLI over one window instead, and a rule naming it is refused.
+type SloRuleType string
+
+const (
+	SloRuleTypeBudgetConsumed SloRuleType = "budget_consumed"
+	SloRuleTypeBurnRate       SloRuleType = "burn_rate"
+)
+
+// Validate checks if the SloRuleType value is valid
+func (s SloRuleType) Validate() error {
+	switch s {
+	case SloRuleTypeBudgetConsumed, SloRuleTypeBurnRate:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloRuleType value, got: %v", s))
+	}
+}
+
+// SloMonitorSummaryType The monitor kind this member is selected by.
+type SloMonitorSummaryType string
+
+const (
+	SloMonitorSummaryTypeSlo SloMonitorSummaryType = "slo"
+)
+
+// Validate checks if the SloMonitorSummaryType value is valid
+func (s SloMonitorSummaryType) Validate() error {
+	switch s {
+	case SloMonitorSummaryTypeSlo:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloMonitorSummaryType value, got: %v", s))
+	}
+}
+
+// OrgStatus Billing status of an organization. active is a paying or self-hosted org. trialing and trial_ended bracket the trial. overbudget and payment_failed are the two ways a subscription stops covering the org.
+type OrgStatus string
+
+const (
+	OrgStatusActive        OrgStatus = "active"
+	OrgStatusOverbudget    OrgStatus = "overbudget"
+	OrgStatusPaymentFailed OrgStatus = "payment_failed"
+	OrgStatusTrialEnded    OrgStatus = "trial_ended"
+	OrgStatusTrialing      OrgStatus = "trialing"
+)
+
+// Validate checks if the OrgStatus value is valid
+func (o OrgStatus) Validate() error {
+	switch o {
+	case OrgStatusActive, OrgStatusOverbudget, OrgStatusPaymentFailed, OrgStatusTrialEnded, OrgStatusTrialing:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid OrgStatus value, got: %v", o))
+	}
+}
+
+// SamplingMode How a project samples ingested traces. org_wide follows the organization's own mode, dynamic lets the server pick the fraction from the budget, fixed pins the fraction the project states, and disabled keeps everything.
+type SamplingMode string
+
+const (
+	SamplingModeDisabled SamplingMode = "disabled"
+	SamplingModeDynamic  SamplingMode = "dynamic"
+	SamplingModeFixed    SamplingMode = "fixed"
+	SamplingModeOrgWide  SamplingMode = "org_wide"
+)
+
+// Validate checks if the SamplingMode value is valid
+func (s SamplingMode) Validate() error {
+	switch s {
+	case SamplingModeDisabled, SamplingModeDynamic, SamplingModeFixed, SamplingModeOrgWide:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SamplingMode value, got: %v", s))
+	}
+}
+
+// SemconvVersion OpenTelemetry semantic-convention version a project normalizes incoming attributes to. none applies no normalization.
+type SemconvVersion string
+
+const (
+	SemconvVersionNone  SemconvVersion = "none"
+	SemconvVersionV1250 SemconvVersion = "v1.25.0"
+	SemconvVersionV1330 SemconvVersion = "v1.33.0"
+)
+
+// Validate checks if the SemconvVersion value is valid
+func (s SemconvVersion) Validate() error {
+	switch s {
+	case SemconvVersionNone, SemconvVersionV1250, SemconvVersionV1330:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SemconvVersion value, got: %v", s))
+	}
+}
+
+// ProjectPermLevel The project-scoped grant the requester's access was resolved from — a team's level or a direct override. Empty when access comes from an org role alone, in which case the project's own permission fields still hold. The non-empty values are PermLevel.
+type ProjectPermLevel string
+
+const (
+	ProjectPermLevelAdmin ProjectPermLevel = "admin"
+	ProjectPermLevelEdit  ProjectPermLevel = "edit"
+	ProjectPermLevelNone  ProjectPermLevel = "none"
+	ProjectPermLevelUnset ProjectPermLevel = ""
+	ProjectPermLevelView  ProjectPermLevel = "view"
+)
+
+// Validate checks if the ProjectPermLevel value is valid
+func (p ProjectPermLevel) Validate() error {
 	switch p {
-	case Edit, PermLevelAdmin, PermLevelNone, PermLevelView:
+	case ProjectPermLevelAdmin, ProjectPermLevelEdit, ProjectPermLevelNone, ProjectPermLevelUnset, ProjectPermLevelView:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid PermLevel value, got: %v", p))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ProjectPermLevel value, got: %v", p))
 	}
 }
 
@@ -1011,22 +779,751 @@ func (u UserRole) Validate() error {
 	}
 }
 
+// UserKind What kind of principal a user row holds.
+type UserKind string
+
+const (
+	UserKindHuman          UserKind = "human"
+	UserKindServiceAccount UserKind = "service_account"
+)
+
+// Validate checks if the UserKind value is valid
+func (u UserKind) Validate() error {
+	switch u {
+	case UserKindHuman, UserKindServiceAccount:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid UserKind value, got: %v", u))
+	}
+}
+
+// PermLevel Project-level permission override (empty when unset).
+type PermLevel string
+
+const (
+	PermLevelAdmin PermLevel = "admin"
+	PermLevelEdit  PermLevel = "edit"
+	PermLevelNone  PermLevel = "none"
+	PermLevelView  PermLevel = "view"
+)
+
+// Validate checks if the PermLevel value is valid
+func (p PermLevel) Validate() error {
+	switch p {
+	case PermLevelAdmin, PermLevelEdit, PermLevelNone, PermLevelView:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid PermLevel value, got: %v", p))
+	}
+}
+
 // InviteStatus Lifecycle status of an organization invitation.
 type InviteStatus string
 
 const (
-	Accepted InviteStatus = "accepted"
-	Canceled InviteStatus = "canceled"
-	Expired  InviteStatus = "expired"
-	Sent     InviteStatus = "sent"
+	InviteStatusAccepted InviteStatus = "accepted"
+	InviteStatusCanceled InviteStatus = "canceled"
+	InviteStatusExpired  InviteStatus = "expired"
+	InviteStatusSent     InviteStatus = "sent"
 )
 
 // Validate checks if the InviteStatus value is valid
 func (i InviteStatus) Validate() error {
 	switch i {
-	case Accepted, Canceled, Expired, Sent:
+	case InviteStatusAccepted, InviteStatusCanceled, InviteStatusExpired, InviteStatusSent:
 		return nil
 	default:
 		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid InviteStatus value, got: %v", i))
+	}
+}
+
+// NotificationChannelType Which transport a notification channel delivers over. email addresses people — its params name an audience of users and teams, resolved at delivery time. The other twelve address a vendor, and their params carry that vendor's endpoint or credential.
+type NotificationChannelType string
+
+const (
+	NotificationChannelTypeAlertmanager NotificationChannelType = "alertmanager"
+	NotificationChannelTypeEmail        NotificationChannelType = "email"
+	NotificationChannelTypeGoogleChat   NotificationChannelType = "google_chat"
+	NotificationChannelTypeIncidentIO   NotificationChannelType = "incidentio"
+	NotificationChannelTypeMattermost   NotificationChannelType = "mattermost"
+	NotificationChannelTypeOpsgenie     NotificationChannelType = "opsgenie"
+	NotificationChannelTypePagerDuty    NotificationChannelType = "pagerduty"
+	NotificationChannelTypePushover     NotificationChannelType = "pushover"
+	NotificationChannelTypeServiceNow   NotificationChannelType = "servicenow"
+	NotificationChannelTypeSlack        NotificationChannelType = "slack"
+	NotificationChannelTypeTeams        NotificationChannelType = "teams"
+	NotificationChannelTypeTelegram     NotificationChannelType = "telegram"
+	NotificationChannelTypeWebhook      NotificationChannelType = "webhook"
+)
+
+// Validate checks if the NotificationChannelType value is valid
+func (n NotificationChannelType) Validate() error {
+	switch n {
+	case NotificationChannelTypeAlertmanager, NotificationChannelTypeEmail, NotificationChannelTypeGoogleChat, NotificationChannelTypeIncidentIO, NotificationChannelTypeMattermost, NotificationChannelTypeOpsgenie, NotificationChannelTypePagerDuty, NotificationChannelTypePushover, NotificationChannelTypeServiceNow, NotificationChannelTypeSlack, NotificationChannelTypeTeams, NotificationChannelTypeTelegram, NotificationChannelTypeWebhook:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid NotificationChannelType value, got: %v", n))
+	}
+}
+
+// NotificationChannelStatus Delivery status of a notification channel. draft is configured but not yet delivering, delivering is live, paused is stopped by a person, and disabled is stopped by a delivery failure the channel records in its error field.
+type NotificationChannelStatus string
+
+const (
+	NotificationChannelStatusDelivering NotificationChannelStatus = "delivering"
+	NotificationChannelStatusDisabled   NotificationChannelStatus = "disabled"
+	NotificationChannelStatusDraft      NotificationChannelStatus = "draft"
+	NotificationChannelStatusPaused     NotificationChannelStatus = "paused"
+)
+
+// Validate checks if the NotificationChannelStatus value is valid
+func (n NotificationChannelStatus) Validate() error {
+	switch n {
+	case NotificationChannelStatusDelivering, NotificationChannelStatusDisabled, NotificationChannelStatusDraft, NotificationChannelStatusPaused:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid NotificationChannelStatus value, got: %v", n))
+	}
+}
+
+// EmailChannelType The transport this member is selected by.
+type EmailChannelType string
+
+const (
+	EmailChannelTypeEmail EmailChannelType = "email"
+)
+
+// Validate checks if the EmailChannelType value is valid
+func (e EmailChannelType) Validate() error {
+	switch e {
+	case EmailChannelTypeEmail:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid EmailChannelType value, got: %v", e))
+	}
+}
+
+// SlackAuthMethod How a Slack channel authenticates. webhook posts to a stored incoming-webhook URL; token posts through the Slack API to a named channel.
+type SlackAuthMethod string
+
+const (
+	SlackAuthMethodToken   SlackAuthMethod = "token"
+	SlackAuthMethodWebhook SlackAuthMethod = "webhook"
+)
+
+// Validate checks if the SlackAuthMethod value is valid
+func (s SlackAuthMethod) Validate() error {
+	switch s {
+	case SlackAuthMethodToken, SlackAuthMethodWebhook:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SlackAuthMethod value, got: %v", s))
+	}
+}
+
+// SlackChannelType The transport this member is selected by.
+type SlackChannelType string
+
+const (
+	SlackChannelTypeSlack SlackChannelType = "slack"
+)
+
+// Validate checks if the SlackChannelType value is valid
+func (s SlackChannelType) Validate() error {
+	switch s {
+	case SlackChannelTypeSlack:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SlackChannelType value, got: %v", s))
+	}
+}
+
+// GoogleChatChannelType The transport this member is selected by.
+type GoogleChatChannelType string
+
+const (
+	GoogleChatChannelTypeGoogleChat GoogleChatChannelType = "google_chat"
+)
+
+// Validate checks if the GoogleChatChannelType value is valid
+func (g GoogleChatChannelType) Validate() error {
+	switch g {
+	case GoogleChatChannelTypeGoogleChat:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid GoogleChatChannelType value, got: %v", g))
+	}
+}
+
+// MattermostChannelType The transport this member is selected by.
+type MattermostChannelType string
+
+const (
+	MattermostChannelTypeMattermost MattermostChannelType = "mattermost"
+)
+
+// Validate checks if the MattermostChannelType value is valid
+func (m MattermostChannelType) Validate() error {
+	switch m {
+	case MattermostChannelTypeMattermost:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MattermostChannelType value, got: %v", m))
+	}
+}
+
+// PagerdutySeverity How bad the event is, as PagerDuty's Events API grades it.
+type PagerdutySeverity string
+
+const (
+	PagerdutySeverityCritical PagerdutySeverity = "critical"
+	PagerdutySeverityError    PagerdutySeverity = "error"
+	PagerdutySeverityInfo     PagerdutySeverity = "info"
+	PagerdutySeverityWarning  PagerdutySeverity = "warning"
+)
+
+// Validate checks if the PagerdutySeverity value is valid
+func (p PagerdutySeverity) Validate() error {
+	switch p {
+	case PagerdutySeverityCritical, PagerdutySeverityError, PagerdutySeverityInfo, PagerdutySeverityWarning:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid PagerdutySeverity value, got: %v", p))
+	}
+}
+
+// PagerdutyChannelType The transport this member is selected by.
+type PagerdutyChannelType string
+
+const (
+	PagerdutyChannelTypePagerduty PagerdutyChannelType = "pagerduty"
+)
+
+// Validate checks if the PagerdutyChannelType value is valid
+func (p PagerdutyChannelType) Validate() error {
+	switch p {
+	case PagerdutyChannelTypePagerduty:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid PagerdutyChannelType value, got: %v", p))
+	}
+}
+
+// ServicenowImpact How wide the effect of the incident is, as ServiceNow grades it. ServiceNow reads the value as a digit, and it derives the incident priority from the impact and the urgency together.
+type ServicenowImpact string
+
+const (
+	ServicenowImpactHigh   ServicenowImpact = "1"
+	ServicenowImpactLow    ServicenowImpact = "3"
+	ServicenowImpactMedium ServicenowImpact = "2"
+)
+
+// Validate checks if the ServicenowImpact value is valid
+func (s ServicenowImpact) Validate() error {
+	switch s {
+	case ServicenowImpactHigh, ServicenowImpactLow, ServicenowImpactMedium:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ServicenowImpact value, got: %v", s))
+	}
+}
+
+// ServicenowUrgency How soon the incident must be answered, as ServiceNow grades it. ServiceNow reads the value as a digit, and it derives the incident priority from the impact and the urgency together.
+type ServicenowUrgency string
+
+const (
+	ServicenowUrgencyHigh   ServicenowUrgency = "1"
+	ServicenowUrgencyLow    ServicenowUrgency = "3"
+	ServicenowUrgencyMedium ServicenowUrgency = "2"
+)
+
+// Validate checks if the ServicenowUrgency value is valid
+func (s ServicenowUrgency) Validate() error {
+	switch s {
+	case ServicenowUrgencyHigh, ServicenowUrgencyLow, ServicenowUrgencyMedium:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ServicenowUrgency value, got: %v", s))
+	}
+}
+
+// ServicenowSeverity How bad the incident is, as ServiceNow grades it. ServiceNow reads the value as a digit, and it keeps the severity apart from the priority the impact and the urgency derive.
+type ServicenowSeverity string
+
+const (
+	ServicenowSeverityCritical ServicenowSeverity = "1"
+	ServicenowSeverityHigh     ServicenowSeverity = "2"
+	ServicenowSeverityInfo     ServicenowSeverity = "5"
+	ServicenowSeverityLow      ServicenowSeverity = "4"
+	ServicenowSeverityMedium   ServicenowSeverity = "3"
+)
+
+// Validate checks if the ServicenowSeverity value is valid
+func (s ServicenowSeverity) Validate() error {
+	switch s {
+	case ServicenowSeverityCritical, ServicenowSeverityHigh, ServicenowSeverityInfo, ServicenowSeverityLow, ServicenowSeverityMedium:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ServicenowSeverity value, got: %v", s))
+	}
+}
+
+// ServicenowNotify Whether ServiceNow tells the incident's users about it. ServiceNow reads the value as a digit.
+type ServicenowNotify string
+
+const (
+	ServicenowNotifyNone  ServicenowNotify = "2"
+	ServicenowNotifyUsers ServicenowNotify = "1"
+)
+
+// Validate checks if the ServicenowNotify value is valid
+func (s ServicenowNotify) Validate() error {
+	switch s {
+	case ServicenowNotifyNone, ServicenowNotifyUsers:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ServicenowNotify value, got: %v", s))
+	}
+}
+
+// ServicenowChannelType The transport this member is selected by.
+type ServicenowChannelType string
+
+const (
+	ServicenowChannelTypeServicenow ServicenowChannelType = "servicenow"
+)
+
+// Validate checks if the ServicenowChannelType value is valid
+func (s ServicenowChannelType) Validate() error {
+	switch s {
+	case ServicenowChannelTypeServicenow:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ServicenowChannelType value, got: %v", s))
+	}
+}
+
+// OpsgeniePriority Priority an Opsgenie alert is raised at, P1 the highest.
+type OpsgeniePriority string
+
+const (
+	OpsgeniePriorityP1 OpsgeniePriority = "P1"
+	OpsgeniePriorityP2 OpsgeniePriority = "P2"
+	OpsgeniePriorityP3 OpsgeniePriority = "P3"
+	OpsgeniePriorityP4 OpsgeniePriority = "P4"
+	OpsgeniePriorityP5 OpsgeniePriority = "P5"
+)
+
+// Validate checks if the OpsgeniePriority value is valid
+func (o OpsgeniePriority) Validate() error {
+	switch o {
+	case OpsgeniePriorityP1, OpsgeniePriorityP2, OpsgeniePriorityP3, OpsgeniePriorityP4, OpsgeniePriorityP5:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid OpsgeniePriority value, got: %v", o))
+	}
+}
+
+// OpsgenieProvider Alert API an Opsgenie channel targets. jsm is Jira Service Management, opsgenie is Opsgenie itself and is deprecated, and custom is the URL given in endpoint.
+type OpsgenieProvider string
+
+const (
+	OpsgenieProviderCustom   OpsgenieProvider = "custom"
+	OpsgenieProviderJSM      OpsgenieProvider = "jsm"
+	OpsgenieProviderOpsgenie OpsgenieProvider = "opsgenie"
+)
+
+// Validate checks if the OpsgenieProvider value is valid
+func (o OpsgenieProvider) Validate() error {
+	switch o {
+	case OpsgenieProviderCustom, OpsgenieProviderJSM, OpsgenieProviderOpsgenie:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid OpsgenieProvider value, got: %v", o))
+	}
+}
+
+// OpsgenieChannelType The transport this member is selected by.
+type OpsgenieChannelType string
+
+const (
+	OpsgenieChannelTypeOpsgenie OpsgenieChannelType = "opsgenie"
+)
+
+// Validate checks if the OpsgenieChannelType value is valid
+func (o OpsgenieChannelType) Validate() error {
+	switch o {
+	case OpsgenieChannelTypeOpsgenie:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid OpsgenieChannelType value, got: %v", o))
+	}
+}
+
+// TelegramChannelType The transport this member is selected by.
+type TelegramChannelType string
+
+const (
+	TelegramChannelTypeTelegram TelegramChannelType = "telegram"
+)
+
+// Validate checks if the TelegramChannelType value is valid
+func (t TelegramChannelType) Validate() error {
+	switch t {
+	case TelegramChannelTypeTelegram:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid TelegramChannelType value, got: %v", t))
+	}
+}
+
+// TeamsChannelType The transport this member is selected by.
+type TeamsChannelType string
+
+const (
+	TeamsChannelTypeTeams TeamsChannelType = "teams"
+)
+
+// Validate checks if the TeamsChannelType value is valid
+func (t TeamsChannelType) Validate() error {
+	switch t {
+	case TeamsChannelTypeTeams:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid TeamsChannelType value, got: %v", t))
+	}
+}
+
+// PushoverChannelType The transport this member is selected by.
+type PushoverChannelType string
+
+const (
+	PushoverChannelTypePushover PushoverChannelType = "pushover"
+)
+
+// Validate checks if the PushoverChannelType value is valid
+func (p PushoverChannelType) Validate() error {
+	switch p {
+	case PushoverChannelTypePushover:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid PushoverChannelType value, got: %v", p))
+	}
+}
+
+// HTTPAuthMethod How a channel authenticates against a URL the user supplies.
+type HTTPAuthMethod string
+
+const (
+	HTTPAuthMethodBasicAuth HTTPAuthMethod = "basic_auth"
+	HTTPAuthMethodBearer    HTTPAuthMethod = "bearer"
+	HTTPAuthMethodNone      HTTPAuthMethod = "none"
+)
+
+// Validate checks if the HTTPAuthMethod value is valid
+func (h HTTPAuthMethod) Validate() error {
+	switch h {
+	case HTTPAuthMethodBasicAuth, HTTPAuthMethodBearer, HTTPAuthMethodNone:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid HTTPAuthMethod value, got: %v", h))
+	}
+}
+
+// WebhookChannelType The transport this member is selected by.
+type WebhookChannelType string
+
+const (
+	WebhookChannelTypeWebhook WebhookChannelType = "webhook"
+)
+
+// Validate checks if the WebhookChannelType value is valid
+func (w WebhookChannelType) Validate() error {
+	switch w {
+	case WebhookChannelTypeWebhook:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid WebhookChannelType value, got: %v", w))
+	}
+}
+
+// AlertmanagerChannelType The transport this member is selected by.
+type AlertmanagerChannelType string
+
+const (
+	AlertmanagerChannelTypeAlertmanager AlertmanagerChannelType = "alertmanager"
+)
+
+// Validate checks if the AlertmanagerChannelType value is valid
+func (a AlertmanagerChannelType) Validate() error {
+	switch a {
+	case AlertmanagerChannelTypeAlertmanager:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AlertmanagerChannelType value, got: %v", a))
+	}
+}
+
+// IncidentioChannelType The transport this member is selected by.
+type IncidentioChannelType string
+
+const (
+	IncidentioChannelTypeIncidentio IncidentioChannelType = "incidentio"
+)
+
+// Validate checks if the IncidentioChannelType value is valid
+func (i IncidentioChannelType) Validate() error {
+	switch i {
+	case IncidentioChannelTypeIncidentio:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid IncidentioChannelType value, got: %v", i))
+	}
+}
+
+// EmailChannelRequestType The transport this member is selected by.
+type EmailChannelRequestType string
+
+const (
+	EmailChannelRequestTypeEmail EmailChannelRequestType = "email"
+)
+
+// Validate checks if the EmailChannelRequestType value is valid
+func (e EmailChannelRequestType) Validate() error {
+	switch e {
+	case EmailChannelRequestTypeEmail:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid EmailChannelRequestType value, got: %v", e))
+	}
+}
+
+// SlackChannelRequestType The transport this member is selected by.
+type SlackChannelRequestType string
+
+const (
+	SlackChannelRequestTypeSlack SlackChannelRequestType = "slack"
+)
+
+// Validate checks if the SlackChannelRequestType value is valid
+func (s SlackChannelRequestType) Validate() error {
+	switch s {
+	case SlackChannelRequestTypeSlack:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SlackChannelRequestType value, got: %v", s))
+	}
+}
+
+// GoogleChatChannelRequestType The transport this member is selected by.
+type GoogleChatChannelRequestType string
+
+const (
+	GoogleChatChannelRequestTypeGoogleChat GoogleChatChannelRequestType = "google_chat"
+)
+
+// Validate checks if the GoogleChatChannelRequestType value is valid
+func (g GoogleChatChannelRequestType) Validate() error {
+	switch g {
+	case GoogleChatChannelRequestTypeGoogleChat:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid GoogleChatChannelRequestType value, got: %v", g))
+	}
+}
+
+// MattermostChannelRequestType The transport this member is selected by.
+type MattermostChannelRequestType string
+
+const (
+	MattermostChannelRequestTypeMattermost MattermostChannelRequestType = "mattermost"
+)
+
+// Validate checks if the MattermostChannelRequestType value is valid
+func (m MattermostChannelRequestType) Validate() error {
+	switch m {
+	case MattermostChannelRequestTypeMattermost:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid MattermostChannelRequestType value, got: %v", m))
+	}
+}
+
+// PagerdutyChannelRequestType The transport this member is selected by.
+type PagerdutyChannelRequestType string
+
+const (
+	PagerdutyChannelRequestTypePagerduty PagerdutyChannelRequestType = "pagerduty"
+)
+
+// Validate checks if the PagerdutyChannelRequestType value is valid
+func (p PagerdutyChannelRequestType) Validate() error {
+	switch p {
+	case PagerdutyChannelRequestTypePagerduty:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid PagerdutyChannelRequestType value, got: %v", p))
+	}
+}
+
+// ServicenowChannelRequestType The transport this member is selected by.
+type ServicenowChannelRequestType string
+
+const (
+	ServicenowChannelRequestTypeServicenow ServicenowChannelRequestType = "servicenow"
+)
+
+// Validate checks if the ServicenowChannelRequestType value is valid
+func (s ServicenowChannelRequestType) Validate() error {
+	switch s {
+	case ServicenowChannelRequestTypeServicenow:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ServicenowChannelRequestType value, got: %v", s))
+	}
+}
+
+// OpsgenieChannelRequestType The transport this member is selected by.
+type OpsgenieChannelRequestType string
+
+const (
+	OpsgenieChannelRequestTypeOpsgenie OpsgenieChannelRequestType = "opsgenie"
+)
+
+// Validate checks if the OpsgenieChannelRequestType value is valid
+func (o OpsgenieChannelRequestType) Validate() error {
+	switch o {
+	case OpsgenieChannelRequestTypeOpsgenie:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid OpsgenieChannelRequestType value, got: %v", o))
+	}
+}
+
+// TelegramChannelRequestType The transport this member is selected by.
+type TelegramChannelRequestType string
+
+const (
+	TelegramChannelRequestTypeTelegram TelegramChannelRequestType = "telegram"
+)
+
+// Validate checks if the TelegramChannelRequestType value is valid
+func (t TelegramChannelRequestType) Validate() error {
+	switch t {
+	case TelegramChannelRequestTypeTelegram:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid TelegramChannelRequestType value, got: %v", t))
+	}
+}
+
+// TeamsChannelRequestType The transport this member is selected by.
+type TeamsChannelRequestType string
+
+const (
+	TeamsChannelRequestTypeTeams TeamsChannelRequestType = "teams"
+)
+
+// Validate checks if the TeamsChannelRequestType value is valid
+func (t TeamsChannelRequestType) Validate() error {
+	switch t {
+	case TeamsChannelRequestTypeTeams:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid TeamsChannelRequestType value, got: %v", t))
+	}
+}
+
+// PushoverChannelRequestType The transport this member is selected by.
+type PushoverChannelRequestType string
+
+const (
+	PushoverChannelRequestTypePushover PushoverChannelRequestType = "pushover"
+)
+
+// Validate checks if the PushoverChannelRequestType value is valid
+func (p PushoverChannelRequestType) Validate() error {
+	switch p {
+	case PushoverChannelRequestTypePushover:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid PushoverChannelRequestType value, got: %v", p))
+	}
+}
+
+// WebhookChannelRequestType The transport this member is selected by.
+type WebhookChannelRequestType string
+
+const (
+	WebhookChannelRequestTypeWebhook WebhookChannelRequestType = "webhook"
+)
+
+// Validate checks if the WebhookChannelRequestType value is valid
+func (w WebhookChannelRequestType) Validate() error {
+	switch w {
+	case WebhookChannelRequestTypeWebhook:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid WebhookChannelRequestType value, got: %v", w))
+	}
+}
+
+// AlertmanagerChannelRequestType The transport this member is selected by.
+type AlertmanagerChannelRequestType string
+
+const (
+	AlertmanagerChannelRequestTypeAlertmanager AlertmanagerChannelRequestType = "alertmanager"
+)
+
+// Validate checks if the AlertmanagerChannelRequestType value is valid
+func (a AlertmanagerChannelRequestType) Validate() error {
+	switch a {
+	case AlertmanagerChannelRequestTypeAlertmanager:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid AlertmanagerChannelRequestType value, got: %v", a))
+	}
+}
+
+// IncidentioChannelRequestType The transport this member is selected by.
+type IncidentioChannelRequestType string
+
+const (
+	IncidentioChannelRequestTypeIncidentio IncidentioChannelRequestType = "incidentio"
+)
+
+// Validate checks if the IncidentioChannelRequestType value is valid
+func (i IncidentioChannelRequestType) Validate() error {
+	switch i {
+	case IncidentioChannelRequestTypeIncidentio:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid IncidentioChannelRequestType value, got: %v", i))
+	}
+}
+
+// SsoErrorCode Why a single sign-on attempt stopped. A failed login sends the browser to the login page with this code in the error query parameter. The code names the class of the failure, which is what tells the person whether to try again, to correct something, or to ask an administrator.
+type SsoErrorCode string
+
+const (
+	SsoErrorCodeAssertionExpired    SsoErrorCode = "assertion_expired"
+	SsoErrorCodeAudienceMismatch    SsoErrorCode = "audience_mismatch"
+	SsoErrorCodeEmailMissing        SsoErrorCode = "email_missing"
+	SsoErrorCodeEmailNotAllowed     SsoErrorCode = "email_not_allowed"
+	SsoErrorCodeLinkRequired        SsoErrorCode = "link_required"
+	SsoErrorCodeLoginExpired        SsoErrorCode = "login_expired"
+	SsoErrorCodeLoginFailed         SsoErrorCode = "login_failed"
+	SsoErrorCodeProviderRefused     SsoErrorCode = "provider_refused"
+	SsoErrorCodeProviderUnreachable SsoErrorCode = "provider_unreachable"
+	SsoErrorCodeResponseInvalid     SsoErrorCode = "response_invalid"
+)
+
+// Validate checks if the SsoErrorCode value is valid
+func (s SsoErrorCode) Validate() error {
+	switch s {
+	case SsoErrorCodeAssertionExpired, SsoErrorCodeAudienceMismatch, SsoErrorCodeEmailMissing, SsoErrorCodeEmailNotAllowed, SsoErrorCodeLinkRequired, SsoErrorCodeLoginExpired, SsoErrorCodeLoginFailed, SsoErrorCodeProviderRefused, SsoErrorCodeProviderUnreachable, SsoErrorCodeResponseInvalid:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SsoErrorCode value, got: %v", s))
 	}
 }

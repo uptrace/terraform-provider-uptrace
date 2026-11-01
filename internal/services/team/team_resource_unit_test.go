@@ -11,7 +11,7 @@ import (
 
 func TestTeamToModel_basic(t *testing.T) {
 	pl := generated.PermLevel("admin")
-	team := &generated.Team{ID: 7, OrgID: 42, Name: "ops", PermLevel: &pl}
+	team := &generated.Team{ID: 7, OrgID: 42, Name: "ops", PermLevel: pl}
 	var m teamModel
 
 	teamToModel(team, &m)
@@ -36,7 +36,7 @@ func TestTeamToModel_emptyPermLevelStaysNull(t *testing.T) {
 	empty := generated.PermLevel("")
 	m := teamModel{}
 
-	teamToModel(&generated.Team{ID: 1, OrgID: 2, Name: "x", PermLevel: &empty}, &m)
+	teamToModel(&generated.Team{ID: 1, OrgID: 2, Name: "x", PermLevel: empty}, &m)
 
 	require.True(t, m.PermLevel.IsNull(), "empty-string API permLevel must surface as null")
 }
@@ -50,7 +50,7 @@ func TestTeamToModel_overwritesExisting(t *testing.T) {
 		PermLevel: types.StringValue("admin"),
 	}
 
-	teamToModel(&generated.Team{ID: 1, OrgID: 2, Name: "new", PermLevel: &pl}, &m)
+	teamToModel(&generated.Team{ID: 1, OrgID: 2, Name: "new", PermLevel: pl}, &m)
 
 	require.Equal(t, types.StringValue("1"), m.ID)
 	require.Equal(t, types.StringValue("2"), m.OrgID)

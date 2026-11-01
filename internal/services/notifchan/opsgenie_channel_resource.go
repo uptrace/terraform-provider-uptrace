@@ -2,11 +2,13 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
@@ -44,6 +46,8 @@ type opsgenieChannelModel struct {
 
 	APIKey   types.String `tfsdk:"api_key"`
 	Priority types.String `tfsdk:"priority"`
+	Provider types.String `tfsdk:"api_provider"`
+	Endpoint types.String `tfsdk:"endpoint"`
 }
 
 var opsgenieCRUD = channelCRUD[opsgenieChannelModel]{
@@ -72,6 +76,23 @@ func (r *OpsgenieChannelResource) Schema(_ context.Context, _ resource.SchemaReq
 		Validators: []validator.String{
 			stringvalidator.OneOf(opsgeniePriorities...),
 		},
+	}
+	attrs["api_provider"] = schema.StringAttribute{
+		Optional:    true,
+		Computed:    true,
+		Default:     stringdefault.StaticString(string(generated.OpsgenieProviderOpsgenie)),
+		Description: "Alert API that receives the alerts: opsgenie (the default), jsm (Jira Service Management), or custom.",
+		Validators: []validator.String{
+			stringvalidator.OneOf(
+				string(generated.OpsgenieProviderOpsgenie),
+				string(generated.OpsgenieProviderJSM),
+				string(generated.OpsgenieProviderCustom),
+			),
+		},
+	}
+	attrs["endpoint"] = schema.StringAttribute{
+		Optional:    true,
+		Description: "Alert API URL. Required when api_provider is custom; leave unset for opsgenie and jsm.",
 	}
 	resp.Schema = schema.Schema{
 		Description: "Manages an Uptrace Opsgenie notification channel.",
@@ -147,16 +168,13 @@ func (r *OpsgenieChannelResource) Delete(ctx context.Context, req resource.Delet
 
 // ImportState accepts "<project_id>:<channel_id>".
 func (r *OpsgenieChannelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tfutil.ImportStateCompoundID(ctx, req, resp,
-		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
-		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseInt64},
-	)
+	importChannel(ctx, req, resp)
 }
 
-func buildOpsgenieRequest(ctx context.Context, m *opsgenieChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildOpsgenieRequest(ctx context.Context, m *opsgenieChannelModel) (*channelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	body := &generated.NotificationChannelRequest{Type: generated.NotificationChannelRequestTypeOpsgenie}
+	body := &channelRequest{Type: "opsgenie"}
 	diags.Append(buildSharedRequest(ctx, sharedFields{
 		Name: &m.Name, MatchAll: &m.MatchAll, Condition: &m.Condition,
 		Priorities: &m.Priorities, MonitorIDs: &m.MonitorIDs,
@@ -165,23 +183,20 @@ func buildOpsgenieRequest(ctx context.Context, m *opsgenieChannelModel) (*genera
 		return nil, diags
 	}
 
-	oneOf := &generated.NotificationChannelRequest_Params_OneOf{}
-	if err := oneOf.FromOpsgenieParams(generated.OpsgenieParams{
+	body.Params = generated.OpsgenieParams{
 		APIKey:   m.APIKey.ValueString(),
-		Priority: generated.OpsgenieParamsPriority(m.Priority.ValueString()),
-	}); err != nil {
-		diags.AddError("failed to set opsgenie params", err.Error())
-		return nil, diags
+		Priority: generated.OpsgeniePriority(m.Priority.ValueString()),
+		Provider: generated.OpsgenieProvider(m.Provider.ValueString()),
+		Endpoint: m.Endpoint.ValueString(),
 	}
-	body.Params = generated.NotificationChannelRequest_Params{NotificationChannelRequest_Params_OneOf: oneOf}
 
 	return body, diags
 }
 
-func applyOpsgenieToModel(ctx context.Context, ch *generated.NotificationChannel, dst *opsgenieChannelModel) diag.Diagnostics {
+func applyOpsgenieToModel(ctx context.Context, ch *channelResponse, dst *opsgenieChannelModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rejectChannelType(generated.Opsgenie, ch, &diags)
+	rejectChannelType("opsgenie", ch, &diags)
 	if diags.HasError() {
 		return diags
 	}
@@ -195,16 +210,21 @@ func applyOpsgenieToModel(ctx context.Context, ch *generated.NotificationChannel
 		return diags
 	}
 
-	if ch.Params.NotificationChannel_Params_OneOf == nil {
-		return diags
-	}
-	p, err := ch.Params.NotificationChannel_Params_OneOf.AsOpsgenieParams()
-	if err != nil {
+	var p generated.OpsgenieParams
+	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode opsgenie params", err.Error())
 		return diags
 	}
 	dst.APIKey = tfutil.PreserveIfEmpty(p.APIKey, dst.APIKey)
 	dst.Priority = types.StringValue(string(p.Priority))
+	if p.Provider != "" {
+		dst.Provider = types.StringValue(string(p.Provider))
+	}
+	if p.Endpoint != "" {
+		dst.Endpoint = types.StringValue(p.Endpoint)
+	} else {
+		dst.Endpoint = types.StringNull()
+	}
 
 	return diags
 }

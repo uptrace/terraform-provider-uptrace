@@ -23,7 +23,7 @@ func testAccCheckChannelDestroy(t *testing.T, resourceType string) resource.Test
 			if rs.Type != resourceType {
 				continue
 			}
-			channelID, err := strconv.ParseInt(rs.Primary.ID, 10, 64)
+			channelID, err := strconv.ParseUint(rs.Primary.ID, 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid channel ID %q: %w", rs.Primary.ID, err)
 			}
@@ -57,7 +57,7 @@ func deleteChannelOutOfBand(t *testing.T, projectIDStr, channelIDStr string) {
 	if err != nil {
 		t.Fatalf("invalid project ID %q: %v", projectIDStr, err)
 	}
-	channelID, err := strconv.ParseInt(channelIDStr, 10, 64)
+	channelID, err := strconv.ParseUint(channelIDStr, 10, 64)
 	if err != nil {
 		t.Fatalf("invalid channel ID %q: %v", channelIDStr, err)
 	}

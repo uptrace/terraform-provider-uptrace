@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
@@ -41,16 +42,19 @@ type projectModel struct {
 	GroupFuncsByService types.Bool `tfsdk:"group_funcs_by_service"`
 
 	SemconvVersion types.String `tfsdk:"semconv_version"`
-	CountDistinct  types.Bool   `tfsdk:"count_distinct"`
+
+	SkipMonitorStatusEmails   types.Bool `tfsdk:"skip_monitor_status_emails"`
+	SkipMonitorDisabledEmails types.Bool `tfsdk:"skip_monitor_disabled_emails"`
 
 	SpanTimeRange  types.String `tfsdk:"span_time_range"`
 	LogTimeRange   types.String `tfsdk:"log_time_range"`
 	EventTimeRange types.String `tfsdk:"event_time_range"`
 
-	SpanRetention   types.String `tfsdk:"span_retention"`
-	LogRetention    types.String `tfsdk:"log_retention"`
-	EventRetention  types.String `tfsdk:"event_retention"`
-	MetricRetention types.String `tfsdk:"metric_retention"`
+	SpanRetention    types.String `tfsdk:"span_retention"`
+	LogRetention     types.String `tfsdk:"log_retention"`
+	EventRetention   types.String `tfsdk:"event_retention"`
+	MetricRetention  types.String `tfsdk:"metric_retention"`
+	ProfileRetention types.String `tfsdk:"profile_retention"`
 }
 
 func NewProjectResource() resource.Resource {
@@ -115,19 +119,21 @@ func (r *ProjectResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 					stringvalidator.UTF8LengthBetween(1, 255),
 				},
 			},
-			"group_by_env":           optionalComputedBool("Group spans by deployment environment."),
-			"group_funcs_by_service": optionalComputedBool("Group functions by service name."),
-			"semconv_version":        semconvVersionAttr,
-			"count_distinct":         optionalComputedBool("Enable count distinct aggregations."),
+			"group_by_env":                 optionalComputedBool("Group spans by deployment environment."),
+			"group_funcs_by_service":       optionalComputedBool("Group functions by service name."),
+			"semconv_version":              semconvVersionAttr,
+			"skip_monitor_status_emails":   optionalComputedBool("Send no email when a monitor of the project changes status."),
+			"skip_monitor_disabled_emails": optionalComputedBool("Send no email when the server disables a monitor of the project."),
 
 			"span_time_range":  optionalDuration("Default span query time range. Omit to use the server default."),
 			"log_time_range":   optionalDuration("Default log query time range. Omit to use the server default."),
 			"event_time_range": optionalDuration("Default event query time range. Omit to use the server default."),
 
-			"span_retention":   optionalDuration("Span retention duration. Omit to use the server default."),
-			"log_retention":    optionalDuration("Log retention duration. Omit to use the server default."),
-			"event_retention":  optionalDuration("Event retention duration. Omit to use the server default."),
-			"metric_retention": optionalDuration("Metric retention duration. Omit to use the server default."),
+			"span_retention":    optionalDuration("Span retention duration. Omit to use the server default."),
+			"log_retention":     optionalDuration("Log retention duration. Omit to use the server default."),
+			"event_retention":   optionalDuration("Event retention duration. Omit to use the server default."),
+			"metric_retention":  optionalDuration("Metric retention duration. Omit to use the server default."),
+			"profile_retention": optionalDuration("Profile retention duration. Omit to use the server default."),
 		},
 	}
 }
@@ -154,21 +160,30 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 		"name":   plan.Name.ValueString(),
 	})
 
-	body, err := projectRequestBody(&plan)
+	fields, err := projectRequestFields(&plan)
 	if err != nil {
 		resp.Diagnostics.AddError("invalid project configuration", err.Error())
 		return
 	}
+	body := generated.ProjectCreateRequest(fields)
 	out, err := r.client.API.CreateProject(ctx, &generated.CreateProjectRequestOptions{
 		PathParams: &generated.CreateProjectPath{OrgID: orgID},
-		Body:       body,
+		Body:       &body,
 	})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "create project failed", err)
 		return
 	}
+	project := out.Project
 
-	projectToModel(&out.Project, &plan)
+	if !r.patchViewSettings(ctx, project.ID, &plan, &project, &resp.Diagnostics) {
+		// The project exists: keep it in state so the next apply retries the patch.
+		projectToModel(&project, &plan)
+		resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+		return
+	}
+
+	projectToModel(&project, &plan)
 	// Preserve the org_id supplied in config in case the API omits it in the response.
 	plan.OrgID = types.StringValue(strconv.FormatUint(orgID, 10))
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
@@ -224,22 +239,39 @@ func (r *ProjectResource) Update(ctx context.Context, req resource.UpdateRequest
 
 	tflog.Info(ctx, "updating project", map[string]any{"id": plan.ID.ValueString()})
 
-	body, err := projectRequestBody(&plan)
+	fields, err := projectRequestFields(&plan)
 	if err != nil {
 		resp.Diagnostics.AddError("invalid project configuration", err.Error())
 		return
 	}
+	body := generated.ProjectUpdateRequest{
+		Name:                      fields.Name,
+		GroupByEnv:                fields.GroupByEnv,
+		GroupFuncsByService:       fields.GroupFuncsByService,
+		SkipMonitorStatusEmails:   fields.SkipMonitorStatusEmails,
+		SkipMonitorDisabledEmails: fields.SkipMonitorDisabledEmails,
+		SemconvVersion:            fields.SemconvVersion,
+		SpanRetention:             fields.SpanRetention,
+		LogRetention:              fields.LogRetention,
+		EventRetention:            fields.EventRetention,
+		MetricRetention:           fields.MetricRetention,
+		ProfileRetention:          fields.ProfileRetention,
+	}
 	out, err := r.client.API.UpdateProject(ctx, &generated.UpdateProjectRequestOptions{
 		PathParams: &generated.UpdateProjectPath{ProjectID: projectID},
-		Body:       body,
+		Body:       &body,
 	})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "update project failed", err)
 		return
 	}
+	project := out.Project
+	if !r.patchViewSettings(ctx, projectID, &plan, &project, &resp.Diagnostics) {
+		return
+	}
 
 	prevOrgID := plan.OrgID
-	projectToModel(&out.Project, &plan)
+	projectToModel(&project, &plan)
 	if plan.OrgID.IsNull() {
 		plan.OrgID = prevOrgID
 	}
@@ -279,66 +311,109 @@ func (r *ProjectResource) ImportState(ctx context.Context, req resource.ImportSt
 	)
 }
 
-func projectRequestBody(m *projectModel) (*generated.ProjectCreateRequest, error) {
-	body := &generated.ProjectCreateRequest{
+// projectRequestFields builds the fields a project create and a project update
+// share. The server refuses a key its request does not list, so every field
+// here exists in both.
+func projectRequestFields(m *projectModel) (generated.ProjectCreateRequest, error) {
+	body := generated.ProjectCreateRequest{
 		Name: m.Name.ValueString(),
 	}
 
-	if !m.GroupByEnv.IsNull() && !m.GroupByEnv.IsUnknown() {
-		v := m.GroupByEnv.ValueBool()
-		body.GroupByEnv = &v
-	}
-	if !m.GroupFuncsByService.IsNull() && !m.GroupFuncsByService.IsUnknown() {
-		v := m.GroupFuncsByService.ValueBool()
-		body.GroupFuncsByService = &v
-	}
+	body.GroupByEnv = boolPtrIfSet(m.GroupByEnv)
+	body.GroupFuncsByService = boolPtrIfSet(m.GroupFuncsByService)
+	body.SkipMonitorStatusEmails = boolPtrIfSet(m.SkipMonitorStatusEmails)
+	body.SkipMonitorDisabledEmails = boolPtrIfSet(m.SkipMonitorDisabledEmails)
 
 	if !m.SemconvVersion.IsNull() && !m.SemconvVersion.IsUnknown() {
-		v := generated.ProjectCreateRequestSemconvVersion(m.SemconvVersion.ValueString())
+		v := generated.SemconvVersion(m.SemconvVersion.ValueString())
 		body.SemconvVersion = &v
 	}
-	if !m.CountDistinct.IsNull() && !m.CountDistinct.IsUnknown() {
-		v := m.CountDistinct.ValueBool()
-		body.CountDistinct = &v
-	}
 
-	setDuration := func(field string, src types.String, dst **float64) error {
-		v, err := durationMillisPtrIfSet(src)
+	for _, f := range []struct {
+		name string
+		src  types.String
+		dst  **int64
+	}{
+		{"span_retention", m.SpanRetention, &body.SpanRetention},
+		{"log_retention", m.LogRetention, &body.LogRetention},
+		{"event_retention", m.EventRetention, &body.EventRetention},
+		{"metric_retention", m.MetricRetention, &body.MetricRetention},
+		{"profile_retention", m.ProfileRetention, &body.ProfileRetention},
+	} {
+		v, err := durationMillisPtrIfSet(f.src)
 		if err != nil {
-			return fmt.Errorf("%s: %w", field, err)
+			return body, fmt.Errorf("%s: %w", f.name, err)
 		}
-		if v != nil {
-			*dst = v
-		}
-		return nil
-	}
-
-	if err := setDuration("span_time_range", m.SpanTimeRange, &body.SpanTimeRange); err != nil {
-		return nil, err
-	}
-	if err := setDuration("log_time_range", m.LogTimeRange, &body.LogTimeRange); err != nil {
-		return nil, err
-	}
-	if err := setDuration("event_time_range", m.EventTimeRange, &body.EventTimeRange); err != nil {
-		return nil, err
-	}
-	if err := setDuration("span_retention", m.SpanRetention, &body.SpanRetention); err != nil {
-		return nil, err
-	}
-	if err := setDuration("log_retention", m.LogRetention, &body.LogRetention); err != nil {
-		return nil, err
-	}
-	if err := setDuration("event_retention", m.EventRetention, &body.EventRetention); err != nil {
-		return nil, err
-	}
-	if err := setDuration("metric_retention", m.MetricRetention, &body.MetricRetention); err != nil {
-		return nil, err
+		*f.dst = v
 	}
 
 	return body, nil
 }
 
-func durationMillisPtrIfSet(v types.String) (*float64, error) {
+// viewSettingsRequest returns the PATCH body for the default query time
+// ranges, or nil when the config sets none of them. They are view settings,
+// which the server keeps apart from the project's create and update requests.
+func viewSettingsRequest(m *projectModel) (*generated.ProjectViewSettingsRequest, error) {
+	body := &generated.ProjectViewSettingsRequest{}
+	set := false
+	for _, f := range []struct {
+		name string
+		src  types.String
+		dst  **int64
+	}{
+		{"span_time_range", m.SpanTimeRange, &body.SpanTimeRange},
+		{"log_time_range", m.LogTimeRange, &body.LogTimeRange},
+		{"event_time_range", m.EventTimeRange, &body.EventTimeRange},
+	} {
+		v, err := durationMillisPtrIfSet(f.src)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", f.name, err)
+		}
+		if v != nil {
+			*f.dst = v
+			set = true
+		}
+	}
+	if !set {
+		return nil, nil
+	}
+	return body, nil
+}
+
+// patchViewSettings applies the configured time ranges to the project and
+// refreshes project from the answer. It reports false after adding an error.
+func (r *ProjectResource) patchViewSettings(
+	ctx context.Context, projectID uint32, m *projectModel, project *generated.Project, diags *diag.Diagnostics,
+) bool {
+	body, err := viewSettingsRequest(m)
+	if err != nil {
+		diags.AddError("invalid project configuration", err.Error())
+		return false
+	}
+	if body == nil {
+		return true
+	}
+	out, err := r.client.API.PatchProject(ctx, &generated.PatchProjectRequestOptions{
+		PathParams: &generated.PatchProjectPath{ProjectID: projectID},
+		Body:       body,
+	})
+	if err != nil {
+		tfutil.AddAPIError(diags, "update project time ranges failed", err)
+		return false
+	}
+	*project = out.Project
+	return true
+}
+
+func boolPtrIfSet(v types.Bool) *bool {
+	if v.IsNull() || v.IsUnknown() {
+		return nil
+	}
+	b := v.ValueBool()
+	return &b
+}
+
+func durationMillisPtrIfSet(v types.String) (*int64, error) {
 	if v.IsNull() || v.IsUnknown() {
 		return nil, nil
 	}
@@ -346,7 +421,7 @@ func durationMillisPtrIfSet(v types.String) (*float64, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid duration %q: %w", v.ValueString(), err)
 	}
-	ms := float64(d.Milliseconds())
+	ms := d.Milliseconds()
 	return &ms, nil
 }
 
@@ -379,33 +454,17 @@ func (durationStringValidator) ValidateString(_ context.Context, req validator.S
 func projectToModel(p *generated.Project, m *projectModel) {
 	m.ID = types.StringValue(strconv.FormatInt(int64(p.ID), 10))
 	m.Name = types.StringValue(p.Name)
+	m.OrgID = types.StringValue(strconv.FormatUint(p.OrgID, 10))
 
-	if p.OrgID != nil {
-		m.OrgID = types.StringValue(strconv.FormatUint(*p.OrgID, 10))
-	} else {
-		m.OrgID = types.StringNull()
-	}
+	m.GroupByEnv = types.BoolValue(p.GroupByEnv)
+	m.GroupFuncsByService = types.BoolValue(p.GroupFuncsByService)
+	m.SkipMonitorStatusEmails = types.BoolValue(p.SkipMonitorStatusEmails)
+	m.SkipMonitorDisabledEmails = types.BoolValue(p.SkipMonitorDisabledEmails)
+	m.SemconvVersion = types.StringValue(string(p.SemconvVersion))
 
-	m.GroupByEnv = boolFromPtr(p.GroupByEnv)
-	m.GroupFuncsByService = boolFromPtr(p.GroupFuncsByService)
-
-	if p.SemconvVersion != nil {
-		m.SemconvVersion = types.StringValue(string(*p.SemconvVersion))
-	} else {
-		m.SemconvVersion = types.StringNull()
-	}
-	m.CountDistinct = boolFromPtr(p.CountDistinct)
-
-	// Intentionally do NOT populate SpanTimeRange/.../MetricRetention from the
+	// Intentionally do NOT populate the time ranges and retentions from the
 	// API response. Those attributes are Optional-only in the schema (no
 	// Computed), so the user's HCL is the source of truth. Leaving them
 	// untouched here preserves whatever the caller already put in the model
 	// and sidesteps CE's SelectByID retention override.
-}
-
-func boolFromPtr(v *bool) types.Bool {
-	if v == nil {
-		return types.BoolNull()
-	}
-	return types.BoolValue(*v)
 }

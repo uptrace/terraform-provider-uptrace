@@ -13,10 +13,11 @@ func (Registration) Name() string {
 }
 
 func (Registration) Resources() []func() resource.Resource {
-	return []func() resource.Resource{
-		NewErrorMonitorResource,
-		NewMetricMonitorResource,
+	out := make([]func() resource.Resource, len(kinds))
+	for i, k := range kinds {
+		out[i] = newResource(k)
 	}
+	return out
 }
 
 func (Registration) DataSources() []func() datasource.DataSource {

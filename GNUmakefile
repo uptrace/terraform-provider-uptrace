@@ -10,12 +10,14 @@ GOFMT_FILES := $(shell find . -name '*.go' -not -path './vendor/*' -not -path '.
 .PHONY: default
 default: build
 
+# Vendor the API spec from an uptrace/app checkout at a ref, for example
+# make sync-spec APP_DIR=../app APP_REF=origin/prod. Then run make generate.
+.PHONY: sync-spec
+sync-spec:
+	scripts/sync-spec.sh $(APP_DIR) $(APP_REF)
+
 .PHONY: generate
 generate:
-	@if [ ! -f openapi/openapi.yaml ]; then \
-		echo "Error: openapi/openapi.yaml not found. Run 'git submodule update --init' first." >&2; \
-		exit 1; \
-	fi
 	rm -f internal/generated/*.go
 	$(GO) tool oapi-codegen \
 		-config oapi-codegen.yaml openapi/openapi.yaml

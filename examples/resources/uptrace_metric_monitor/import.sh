@@ -1,1 +1,0 @@
-terraform import uptrace_metric_monitor.http_latency 1:123

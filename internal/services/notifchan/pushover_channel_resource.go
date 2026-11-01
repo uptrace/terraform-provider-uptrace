@@ -2,6 +2,7 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -156,16 +157,13 @@ func (r *PushoverChannelResource) Delete(ctx context.Context, req resource.Delet
 
 // ImportState accepts "<project_id>:<channel_id>".
 func (r *PushoverChannelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tfutil.ImportStateCompoundID(ctx, req, resp,
-		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
-		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseInt64},
-	)
+	importChannel(ctx, req, resp)
 }
 
-func buildPushoverRequest(ctx context.Context, m *pushoverChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildPushoverRequest(ctx context.Context, m *pushoverChannelModel) (*channelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	body := &generated.NotificationChannelRequest{Type: generated.NotificationChannelRequestTypePushover}
+	body := &channelRequest{Type: "pushover"}
 	diags.Append(buildSharedRequest(ctx, sharedFields{
 		Name: &m.Name, MatchAll: &m.MatchAll, Condition: &m.Condition,
 		Priorities: &m.Priorities, MonitorIDs: &m.MonitorIDs,
@@ -178,29 +176,24 @@ func buildPushoverRequest(ctx context.Context, m *pushoverChannelModel) (*genera
 		Token:   m.Token.ValueString(),
 		UserKey: m.UserKey.ValueString(),
 	}
+	// The server requires both keys; an unset one goes as its zero value,
+	// which Pushover reads as normal priority and the user's default sound.
 	if !m.Priority.IsNull() && !m.Priority.IsUnknown() {
-		v := int(m.Priority.ValueInt64())
-		p.Priority = &v
+		p.Priority = int(m.Priority.ValueInt64())
 	}
 	if !m.Sound.IsNull() && !m.Sound.IsUnknown() {
-		v := m.Sound.ValueString()
-		p.Sound = &v
+		p.Sound = m.Sound.ValueString()
 	}
 
-	oneOf := &generated.NotificationChannelRequest_Params_OneOf{}
-	if err := oneOf.FromPushoverParams(p); err != nil {
-		diags.AddError("failed to set pushover params", err.Error())
-		return nil, diags
-	}
-	body.Params = generated.NotificationChannelRequest_Params{NotificationChannelRequest_Params_OneOf: oneOf}
+	body.Params = p
 
 	return body, diags
 }
 
-func applyPushoverToModel(ctx context.Context, ch *generated.NotificationChannel, dst *pushoverChannelModel) diag.Diagnostics {
+func applyPushoverToModel(ctx context.Context, ch *channelResponse, dst *pushoverChannelModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rejectChannelType(generated.Pushover, ch, &diags)
+	rejectChannelType("pushover", ch, &diags)
 	if diags.HasError() {
 		return diags
 	}
@@ -214,18 +207,21 @@ func applyPushoverToModel(ctx context.Context, ch *generated.NotificationChannel
 		return diags
 	}
 
-	if ch.Params.NotificationChannel_Params_OneOf == nil {
-		return diags
-	}
-	p, err := ch.Params.NotificationChannel_Params_OneOf.AsPushoverParams()
-	if err != nil {
+	var p generated.PushoverParams
+	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode pushover params", err.Error())
 		return diags
 	}
 	dst.Token = tfutil.PreserveIfEmpty(p.Token, dst.Token)
 	dst.UserKey = tfutil.PreserveIfEmpty(p.UserKey, dst.UserKey)
-	dst.Priority = tfutil.IntPtrToValue(p.Priority, dst.Priority)
-	dst.Sound = tfutil.StringFromPtr(p.Sound)
+	if p.Priority != 0 || !dst.Priority.IsNull() {
+		dst.Priority = types.Int64Value(int64(p.Priority))
+	}
+	if p.Sound != "" {
+		dst.Sound = types.StringValue(p.Sound)
+	} else {
+		dst.Sound = types.StringNull()
+	}
 
 	return diags
 }

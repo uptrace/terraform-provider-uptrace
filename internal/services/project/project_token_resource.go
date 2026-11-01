@@ -105,9 +105,8 @@ func (r *ProjectTokenResource) Create(ctx context.Context, req resource.CreateRe
 		"project_id": plan.ProjectID.ValueString(),
 	})
 
-	name := plan.Name.ValueString()
 	body := &generated.ProjectTokenCreateRequest{
-		Name: &name,
+		Name: plan.Name.ValueString(),
 	}
 
 	out, err := r.client.API.CreateProjectToken(ctx, &generated.CreateProjectTokenRequestOptions{
@@ -252,13 +251,6 @@ func projectTokenToModel(t *generated.ProjectToken, m *projectTokenModel) {
 	m.ID = types.StringValue(strconv.FormatUint(t.ID, 10))
 	m.Token = types.StringValue(t.Token)
 
-	if t.Name != nil {
-		m.Name = types.StringValue(*t.Name)
-	}
-
-	if t.Dsn != nil {
-		m.DSN = types.StringValue(*t.Dsn)
-	} else {
-		m.DSN = types.StringNull()
-	}
+	m.Name = types.StringValue(t.Name)
+	m.DSN = types.StringValue(t.Dsn)
 }

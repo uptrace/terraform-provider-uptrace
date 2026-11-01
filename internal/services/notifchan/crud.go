@@ -2,6 +2,7 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -21,8 +22,80 @@ type channelCRUD[M any] struct {
 	ProjectID func(*M) types.String
 	ID        func(*M) types.String
 	Name      func(*M) types.String
-	Build     func(context.Context, *M) (*generated.NotificationChannelRequest, diag.Diagnostics)
-	Apply     func(context.Context, *generated.NotificationChannel, *M) diag.Diagnostics
+	Build     func(context.Context, *M) (*channelRequest, diag.Diagnostics)
+	Apply     func(context.Context, *channelResponse, *M) diag.Diagnostics
+}
+
+// channelRequest is a channel create or update body: the fields every type
+// shares, the type, and that type's params. Each resource fills Params with
+// its generated params struct, so the body names only keys the spec lists.
+type channelRequest struct {
+	generated.BaseNotificationChannelRequest
+	Type   string `json:"type"`
+	Params any    `json:"params"`
+}
+
+// channelResponse is a channel as the server returns it: the shared fields,
+// the type, and the type's params left raw for the resource to decode.
+type channelResponse struct {
+	generated.BaseNotificationChannel
+	Type   string          `json:"type"`
+	Params json.RawMessage `json:"params"`
+}
+
+// toAPI converts the body to the generated union through its JSON form. The
+// generated From* constructors validate every params key as non-empty, while
+// the server accepts an empty value for some of them (a Slack token next to a
+// webhook URL), so they cannot build the body.
+func (r *channelRequest) toAPI() (*generated.NotificationChannelRequest, error) {
+	b, err := json.Marshal(r)
+	if err != nil {
+		return nil, err
+	}
+	out := new(generated.NotificationChannelRequest)
+	if err := json.Unmarshal(b, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// channelFromAPI decodes the union the server answered with.
+func channelFromAPI(ch *generated.NotificationChannel) (*channelResponse, error) {
+	b, err := json.Marshal(ch)
+	if err != nil {
+		return nil, err
+	}
+	out := new(channelResponse)
+	if err := json.Unmarshal(b, out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// applyAPI decodes ch and hands it to the resource's Apply hook.
+func applyAPI[M any](ctx context.Context, h channelCRUD[M], ch *generated.NotificationChannel, m *M) diag.Diagnostics {
+	var diags diag.Diagnostics
+	resp, err := channelFromAPI(ch)
+	if err != nil {
+		diags.AddError("failed to decode "+h.TypeName, err.Error())
+		return diags
+	}
+	diags.Append(h.Apply(ctx, resp, m)...)
+	return diags
+}
+
+// buildAPI runs the resource's Build hook and converts its body.
+func buildAPI[M any](ctx context.Context, h channelCRUD[M], m *M) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+	body, diags := h.Build(ctx, m)
+	if diags.HasError() {
+		return nil, diags
+	}
+	out, err := body.toAPI()
+	if err != nil {
+		diags.AddError("failed to encode "+h.TypeName, err.Error())
+		return nil, diags
+	}
+	return out, diags
 }
 
 func channelCreate[M any](ctx context.Context, c *client.Client, plan *M, h channelCRUD[M]) diag.Diagnostics {
@@ -35,7 +108,7 @@ func channelCreate[M any](ctx context.Context, c *client.Client, plan *M, h chan
 	}
 	projectID := uint32(projectID64)
 
-	body, d := h.Build(ctx, plan)
+	body, d := buildAPI(ctx, h, plan)
 	diags.Append(d...)
 	if diags.HasError() {
 		return diags
@@ -55,7 +128,7 @@ func channelCreate[M any](ctx context.Context, c *client.Client, plan *M, h chan
 		return diags
 	}
 
-	diags.Append(h.Apply(ctx, &out.Channel, plan)...)
+	diags.Append(applyAPI(ctx, h, &out.Channel, plan)...)
 	return diags
 }
 
@@ -68,7 +141,7 @@ func channelRead[M any](ctx context.Context, c *client.Client, state *M, h chann
 		return false, diags
 	}
 	projectID := uint32(projectID64)
-	channelID, err := strconv.ParseInt(h.ID(state).ValueString(), 10, 64)
+	channelID, err := strconv.ParseUint(h.ID(state).ValueString(), 10, 64)
 	if err != nil {
 		diags.AddError("invalid channel ID", err.Error())
 		return false, diags
@@ -85,7 +158,7 @@ func channelRead[M any](ctx context.Context, c *client.Client, state *M, h chann
 		return false, diags
 	}
 
-	diags.Append(h.Apply(ctx, &out.Channel, state)...)
+	diags.Append(applyAPI(ctx, h, &out.Channel, state)...)
 	return false, diags
 }
 
@@ -98,13 +171,13 @@ func channelUpdate[M any](ctx context.Context, c *client.Client, plan *M, h chan
 		return diags
 	}
 	projectID := uint32(projectID64)
-	channelID, err := strconv.ParseInt(h.ID(plan).ValueString(), 10, 64)
+	channelID, err := strconv.ParseUint(h.ID(plan).ValueString(), 10, 64)
 	if err != nil {
 		diags.AddError("invalid channel ID", err.Error())
 		return diags
 	}
 
-	body, d := h.Build(ctx, plan)
+	body, d := buildAPI(ctx, h, plan)
 	diags.Append(d...)
 	if diags.HasError() {
 		return diags
@@ -121,7 +194,7 @@ func channelUpdate[M any](ctx context.Context, c *client.Client, plan *M, h chan
 		return diags
 	}
 
-	diags.Append(h.Apply(ctx, &out.Channel, plan)...)
+	diags.Append(applyAPI(ctx, h, &out.Channel, plan)...)
 	return diags
 }
 
@@ -134,7 +207,7 @@ func channelDelete[M any](ctx context.Context, c *client.Client, state *M, h cha
 		return diags
 	}
 	projectID := uint32(projectID64)
-	channelID, err := strconv.ParseInt(h.ID(state).ValueString(), 10, 64)
+	channelID, err := strconv.ParseUint(h.ID(state).ValueString(), 10, 64)
 	if err != nil {
 		diags.AddError("invalid channel ID", err.Error())
 		return diags

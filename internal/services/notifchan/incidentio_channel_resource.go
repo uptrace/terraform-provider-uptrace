@@ -2,6 +2,7 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -140,16 +141,13 @@ func (r *IncidentioChannelResource) Delete(ctx context.Context, req resource.Del
 
 // ImportState accepts "<project_id>:<channel_id>".
 func (r *IncidentioChannelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tfutil.ImportStateCompoundID(ctx, req, resp,
-		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
-		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseInt64},
-	)
+	importChannel(ctx, req, resp)
 }
 
-func buildIncidentioRequest(ctx context.Context, m *incidentioChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildIncidentioRequest(ctx context.Context, m *incidentioChannelModel) (*channelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	body := &generated.NotificationChannelRequest{Type: generated.NotificationChannelRequestTypeIncidentio}
+	body := &channelRequest{Type: "incidentio"}
 	diags.Append(buildSharedRequest(ctx, sharedFields{
 		Name: &m.Name, MatchAll: &m.MatchAll, Condition: &m.Condition,
 		Priorities: &m.Priorities, MonitorIDs: &m.MonitorIDs,
@@ -158,23 +156,18 @@ func buildIncidentioRequest(ctx context.Context, m *incidentioChannelModel) (*ge
 		return nil, diags
 	}
 
-	oneOf := &generated.NotificationChannelRequest_Params_OneOf{}
-	if err := oneOf.FromIncidentioParams(generated.IncidentioParams{
+	body.Params = generated.IncidentioParams{
 		URL:    m.URL.ValueString(),
 		APIKey: m.APIKey.ValueString(),
-	}); err != nil {
-		diags.AddError("failed to set incidentio params", err.Error())
-		return nil, diags
 	}
-	body.Params = generated.NotificationChannelRequest_Params{NotificationChannelRequest_Params_OneOf: oneOf}
 
 	return body, diags
 }
 
-func applyIncidentioToModel(ctx context.Context, ch *generated.NotificationChannel, dst *incidentioChannelModel) diag.Diagnostics {
+func applyIncidentioToModel(ctx context.Context, ch *channelResponse, dst *incidentioChannelModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rejectChannelType(generated.Incidentio, ch, &diags)
+	rejectChannelType("incidentio", ch, &diags)
 	if diags.HasError() {
 		return diags
 	}
@@ -188,11 +181,8 @@ func applyIncidentioToModel(ctx context.Context, ch *generated.NotificationChann
 		return diags
 	}
 
-	if ch.Params.NotificationChannel_Params_OneOf == nil {
-		return diags
-	}
-	p, err := ch.Params.NotificationChannel_Params_OneOf.AsIncidentioParams()
-	if err != nil {
+	var p generated.IncidentioParams
+	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode incidentio params", err.Error())
 		return diags
 	}

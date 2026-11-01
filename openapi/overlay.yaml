@@ -1,0 +1,37 @@
+# Applied by oapi-codegen (oapi-codegen.yaml overlay) before generation.
+#
+# The generator maps a number with no format, or with a format it does not know,
+# to float32. A duration-milli (a resolution, a retention) is set in whole
+# milliseconds, so it becomes int64. A unix-milli is a timestamp, which the
+# server sends with a fraction of a millisecond (1793551942308.137), so it stays
+# a float64 like every other number; float64 also keeps a threshold such as 0.91
+# unchanged through Terraform state.
+overlay: 1.0.0
+info:
+  title: Uptrace provider type fixes
+  version: 1.0.0
+actions:
+  - target: $..[?(@.format == 'duration-milli')]
+    update: { type: integer, format: int64 }
+  - target: $..[?(@.format == 'unix-milli')]
+    update: { format: double }
+  - target: $..[?(@.type == 'number')]
+    update: { format: double }
+  - target: $..[?(@.type[0] == 'number')]
+    update: { format: double }
+  # A recovery states both bounds, each null when unset: the server refuses a
+  # recovery that omits either key, so a nil bound must marshal as null.
+  - target: $.components.schemas.MonitorRecovery.properties.minValue
+    update: { x-omitempty: false }
+  - target: $.components.schemas.MonitorRecovery.properties.maxValue
+    update: { x-omitempty: false }
+  # An omitted link list keeps the stored links and only [] clears them, so a
+  # resource that drops every link must send []: never omit the key.
+  - target: $.components.schemas.BaseMonitorRequest.properties.channelIds
+    update: { x-omitempty: false }
+  - target: $.components.schemas.BaseNotificationChannelRequest.properties.monitorIds
+    update: { x-omitempty: false }
+  # The payload is a free-form template the server stores as given; the
+  # generator would otherwise type it struct{} and drop its content.
+  - target: $.components.schemas.WebhookParams.allOf[1].properties.payload
+    update: { x-go-type: "map[string]any" }
