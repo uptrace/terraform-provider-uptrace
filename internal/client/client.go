@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 
 	retryablehttp "github.com/hashicorp/go-retryablehttp"
@@ -100,27 +101,44 @@ func IsForbidden(err error) bool {
 }
 
 // APIErrorMessage returns the server-side message from an API error, or
-// err.Error() otherwise. Needed because the generated Error.Error() is a
-// stub that returns "unmapped client error" for every API response.
+// err.Error() otherwise. Needed because the generated ProblemDetails.Error()
+// is a stub that returns "unmapped client error" for every API response.
+//
+// The server answers every error with an RFC 9457 problem: detail holds the
+// whole message, and errors names each invalid input of a validation problem.
 func APIErrorMessage(err error) string {
 	if err == nil {
 		return ""
 	}
-	if apiErr, ok := apiError(err); ok && apiErr.ErrorData.Message != "" {
-		return apiErr.ErrorData.Message
+	problem, ok := apiProblem(err)
+	if !ok {
+		return err.Error()
 	}
-	return err.Error()
+	msg := problem.Detail
+	if msg == "" {
+		msg = problem.Title
+	}
+	if msg == "" {
+		return err.Error()
+	}
+	for _, fe := range problem.Errors {
+		if fe.Field == "" || strings.Contains(msg, fe.Field) {
+			continue
+		}
+		msg += "; " + fe.Field + ": " + fe.Detail
+	}
+	return msg
 }
 
-// apiError unwraps the ClientAPIError envelope to the decoded generated.Error
-// value. The runtime wraps the decoded error as a value (not pointer), so we
-// match on the value type.
-func apiError(err error) (generated.Error, bool) {
+// apiProblem unwraps the ClientAPIError envelope to the decoded problem. The
+// runtime wraps the decoded error as a value (not pointer), so we match on the
+// value type.
+func apiProblem(err error) (generated.ProblemDetails, bool) {
 	clientErr, ok := errors.AsType[*runtime.ClientAPIError](err)
 	if !ok {
-		return generated.Error{}, false
+		return generated.ProblemDetails{}, false
 	}
-	return errors.AsType[generated.Error](clientErr.Unwrap())
+	return errors.AsType[generated.ProblemDetails](clientErr.Unwrap())
 }
 
 func hasStatusCode(err error, code int) bool {

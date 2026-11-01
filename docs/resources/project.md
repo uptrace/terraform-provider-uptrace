@@ -36,7 +36,6 @@ resource "uptrace_project" "example" {
 
 ### Optional
 
-- `count_distinct` (Boolean) Enable count distinct aggregations.
 - `event_retention` (String) Event retention duration. Omit to use the server default. Duration string; stdlib units (ns, us, ms, s, m, h) plus d (day) and w (week).
 - `event_time_range` (String) Default event query time range. Omit to use the server default. Duration string; stdlib units (ns, us, ms, s, m, h) plus d (day) and w (week).
 - `group_by_env` (Boolean) Group spans by deployment environment.
@@ -44,7 +43,10 @@ resource "uptrace_project" "example" {
 - `log_retention` (String) Log retention duration. Omit to use the server default. Duration string; stdlib units (ns, us, ms, s, m, h) plus d (day) and w (week).
 - `log_time_range` (String) Default log query time range. Omit to use the server default. Duration string; stdlib units (ns, us, ms, s, m, h) plus d (day) and w (week).
 - `metric_retention` (String) Metric retention duration. Omit to use the server default. Duration string; stdlib units (ns, us, ms, s, m, h) plus d (day) and w (week).
+- `profile_retention` (String) Profile retention duration. Omit to use the server default. Duration string; stdlib units (ns, us, ms, s, m, h) plus d (day) and w (week).
 - `semconv_version` (String) Semantic conventions version. One of: none, v1.25.0, v1.33.0.
+- `skip_monitor_disabled_emails` (Boolean) Send no email when the server disables a monitor of the project.
+- `skip_monitor_status_emails` (Boolean) Send no email when a monitor of the project changes status.
 - `span_retention` (String) Span retention duration. Omit to use the server default. Duration string; stdlib units (ns, us, ms, s, m, h) plus d (day) and w (week).
 - `span_time_range` (String) Default span query time range. Omit to use the server default. Duration string; stdlib units (ns, us, ms, s, m, h) plus d (day) and w (week).
 

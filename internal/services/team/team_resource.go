@@ -242,5 +242,5 @@ func teamToModel(t *generated.Team, m *teamModel) {
 	m.ID = types.StringValue(strconv.FormatUint(t.ID, 10))
 	m.OrgID = types.StringValue(strconv.FormatUint(t.OrgID, 10))
 	m.Name = types.StringValue(t.Name)
-	m.PermLevel = tfutil.EnumToValue(t.PermLevel)
+	m.PermLevel = tfutil.EnumToValue(&t.PermLevel)
 }

@@ -4,27 +4,10 @@ package generated
 
 import (
 	"encoding/json"
+	"errors"
 
 	"github.com/uptrace/oapi-codegen-dd/v3/pkg/runtime"
 )
-
-type DetectorConfig_Params_OneOf struct {
-	runtime.Either[ManualDetectorParams, AutoDetectorParams]
-}
-
-func (d *DetectorConfig_Params_OneOf) Validate() error {
-	if d.IsA() {
-		if v, ok := any(d.A).(runtime.Validator); ok {
-			return v.Validate()
-		}
-	}
-	if d.IsB() {
-		if v, ok := any(d.B).(runtime.Validator); ok {
-			return v.Validate()
-		}
-	}
-	return nil
-}
 
 type RepeatInterval_OneOf struct {
 	union json.RawMessage
@@ -194,6 +177,35 @@ func (r *RepeatInterval_OneOf) validateExponentialRepeatInterval(val Exponential
 	return nil
 }
 
+func (r RepeatInterval_OneOf) discriminator(data []byte) (string, error) {
+	var discriminator struct {
+		Value string `json:"strategy"`
+	}
+	if err := json.Unmarshal(data, &discriminator); err != nil {
+		return "", err
+	}
+	return discriminator.Value, nil
+}
+
+func (r RepeatInterval_OneOf) ValueByDiscriminator() (any, error) {
+	discriminator, err := r.discriminator(r.union)
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "default":
+		return r.AsDefaultRepeatInterval()
+	case "exponential":
+		return r.AsExponentialRepeatInterval()
+	case "fixed":
+		return r.AsFixedRepeatInterval()
+	case "linear":
+		return r.AsLinearRepeatInterval()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
 func (r RepeatInterval_OneOf) MarshalJSON() ([]byte, error) {
 	bts, err := r.union.MarshalJSON()
 
@@ -206,529 +218,787 @@ func (r *RepeatInterval_OneOf) UnmarshalJSON(bts []byte) error {
 	return err
 }
 
-type NotificationChannel_Params_OneOf struct {
+type SloSli_OneOf struct {
 	union json.RawMessage
 }
 
-func (n *NotificationChannel_Params_OneOf) Validate() error {
+func (s *SloSli_OneOf) Validate() error {
 	// NOTE: Validation is not supported for unions with more than 2 elements.
 	// Validating would require unmarshaling against each possible type, which is inefficient.
 	// Use AsValidated<Type>() methods to validate after retrieving the specific type.
 	return nil
 }
 
-// Raw returns the union data inside the NotificationChannel_Params_OneOf as bytes
-func (n *NotificationChannel_Params_OneOf) Raw() json.RawMessage {
-	return n.union
+// Raw returns the union data inside the SloSli_OneOf as bytes
+func (s *SloSli_OneOf) Raw() json.RawMessage {
+	return s.union
 }
 
-// AsSlackParams returns the union data inside the NotificationChannel_Params_OneOf as a SlackParams
-func (n *NotificationChannel_Params_OneOf) AsSlackParams() (SlackParams, error) {
-	return runtime.UnmarshalAs[SlackParams](n.union)
+// AsSloEventSli returns the union data inside the SloSli_OneOf as a SloEventSli
+func (s *SloSli_OneOf) AsSloEventSli() (SloEventSli, error) {
+	return runtime.UnmarshalAs[SloEventSli](s.union)
 }
 
-// AsValidatedSlackParams returns the union data inside the NotificationChannel_Params_OneOf as a validated SlackParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedSlackParams() (SlackParams, error) {
-	val, err := n.AsSlackParams()
+// AsValidatedSloEventSli returns the union data inside the SloSli_OneOf as a validated SloEventSli
+func (s *SloSli_OneOf) AsValidatedSloEventSli() (SloEventSli, error) {
+	val, err := s.AsSloEventSli()
 	if err != nil {
-		var zero SlackParams
+		var zero SloEventSli
 		return zero, err
 	}
-	if err := n.validateSlackParams(val); err != nil {
-		var zero SlackParams
+	if err := s.validateSloEventSli(val); err != nil {
+		var zero SloEventSli
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromSlackParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided SlackParams
-func (n *NotificationChannel_Params_OneOf) FromSlackParams(val SlackParams) error {
+// FromSloEventSli overwrites any union data inside the SloSli_OneOf as the provided SloEventSli
+func (s *SloSli_OneOf) FromSloEventSli(val SloEventSli) error {
 	// Validate before storing
-	if err := n.validateSlackParams(val); err != nil {
+	if err := s.validateSloEventSli(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
-	n.union = bts
+	s.union = bts
 	return err
 }
 
-// AsGoogleChatParams returns the union data inside the NotificationChannel_Params_OneOf as a GoogleChatParams
-func (n *NotificationChannel_Params_OneOf) AsGoogleChatParams() (GoogleChatParams, error) {
-	return runtime.UnmarshalAs[GoogleChatParams](n.union)
-}
-
-// AsValidatedGoogleChatParams returns the union data inside the NotificationChannel_Params_OneOf as a validated GoogleChatParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedGoogleChatParams() (GoogleChatParams, error) {
-	val, err := n.AsGoogleChatParams()
-	if err != nil {
-		var zero GoogleChatParams
-		return zero, err
-	}
-	if err := n.validateGoogleChatParams(val); err != nil {
-		var zero GoogleChatParams
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromGoogleChatParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided GoogleChatParams
-func (n *NotificationChannel_Params_OneOf) FromGoogleChatParams(val GoogleChatParams) error {
-	// Validate before storing
-	if err := n.validateGoogleChatParams(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	n.union = bts
-	return err
-}
-
-// AsMattermostParams returns the union data inside the NotificationChannel_Params_OneOf as a MattermostParams
-func (n *NotificationChannel_Params_OneOf) AsMattermostParams() (MattermostParams, error) {
-	return runtime.UnmarshalAs[MattermostParams](n.union)
-}
-
-// AsValidatedMattermostParams returns the union data inside the NotificationChannel_Params_OneOf as a validated MattermostParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedMattermostParams() (MattermostParams, error) {
-	val, err := n.AsMattermostParams()
-	if err != nil {
-		var zero MattermostParams
-		return zero, err
-	}
-	if err := n.validateMattermostParams(val); err != nil {
-		var zero MattermostParams
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromMattermostParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided MattermostParams
-func (n *NotificationChannel_Params_OneOf) FromMattermostParams(val MattermostParams) error {
-	// Validate before storing
-	if err := n.validateMattermostParams(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	n.union = bts
-	return err
-}
-
-// AsPagerdutyParams returns the union data inside the NotificationChannel_Params_OneOf as a PagerdutyParams
-func (n *NotificationChannel_Params_OneOf) AsPagerdutyParams() (PagerdutyParams, error) {
-	return runtime.UnmarshalAs[PagerdutyParams](n.union)
-}
-
-// AsValidatedPagerdutyParams returns the union data inside the NotificationChannel_Params_OneOf as a validated PagerdutyParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedPagerdutyParams() (PagerdutyParams, error) {
-	val, err := n.AsPagerdutyParams()
-	if err != nil {
-		var zero PagerdutyParams
-		return zero, err
-	}
-	if err := n.validatePagerdutyParams(val); err != nil {
-		var zero PagerdutyParams
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromPagerdutyParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided PagerdutyParams
-func (n *NotificationChannel_Params_OneOf) FromPagerdutyParams(val PagerdutyParams) error {
-	// Validate before storing
-	if err := n.validatePagerdutyParams(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	n.union = bts
-	return err
-}
-
-// AsServicenowParams returns the union data inside the NotificationChannel_Params_OneOf as a ServicenowParams
-func (n *NotificationChannel_Params_OneOf) AsServicenowParams() (ServicenowParams, error) {
-	return runtime.UnmarshalAs[ServicenowParams](n.union)
-}
-
-// AsValidatedServicenowParams returns the union data inside the NotificationChannel_Params_OneOf as a validated ServicenowParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedServicenowParams() (ServicenowParams, error) {
-	val, err := n.AsServicenowParams()
-	if err != nil {
-		var zero ServicenowParams
-		return zero, err
-	}
-	if err := n.validateServicenowParams(val); err != nil {
-		var zero ServicenowParams
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromServicenowParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided ServicenowParams
-func (n *NotificationChannel_Params_OneOf) FromServicenowParams(val ServicenowParams) error {
-	// Validate before storing
-	if err := n.validateServicenowParams(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	n.union = bts
-	return err
-}
-
-// AsOpsgenieParams returns the union data inside the NotificationChannel_Params_OneOf as a OpsgenieParams
-func (n *NotificationChannel_Params_OneOf) AsOpsgenieParams() (OpsgenieParams, error) {
-	return runtime.UnmarshalAs[OpsgenieParams](n.union)
-}
-
-// AsValidatedOpsgenieParams returns the union data inside the NotificationChannel_Params_OneOf as a validated OpsgenieParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedOpsgenieParams() (OpsgenieParams, error) {
-	val, err := n.AsOpsgenieParams()
-	if err != nil {
-		var zero OpsgenieParams
-		return zero, err
-	}
-	if err := n.validateOpsgenieParams(val); err != nil {
-		var zero OpsgenieParams
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromOpsgenieParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided OpsgenieParams
-func (n *NotificationChannel_Params_OneOf) FromOpsgenieParams(val OpsgenieParams) error {
-	// Validate before storing
-	if err := n.validateOpsgenieParams(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	n.union = bts
-	return err
-}
-
-// AsTelegramParams returns the union data inside the NotificationChannel_Params_OneOf as a TelegramParams
-func (n *NotificationChannel_Params_OneOf) AsTelegramParams() (TelegramParams, error) {
-	return runtime.UnmarshalAs[TelegramParams](n.union)
-}
-
-// AsValidatedTelegramParams returns the union data inside the NotificationChannel_Params_OneOf as a validated TelegramParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedTelegramParams() (TelegramParams, error) {
-	val, err := n.AsTelegramParams()
-	if err != nil {
-		var zero TelegramParams
-		return zero, err
-	}
-	if err := n.validateTelegramParams(val); err != nil {
-		var zero TelegramParams
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromTelegramParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided TelegramParams
-func (n *NotificationChannel_Params_OneOf) FromTelegramParams(val TelegramParams) error {
-	// Validate before storing
-	if err := n.validateTelegramParams(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	n.union = bts
-	return err
-}
-
-// AsTeamsParams returns the union data inside the NotificationChannel_Params_OneOf as a TeamsParams
-func (n *NotificationChannel_Params_OneOf) AsTeamsParams() (TeamsParams, error) {
-	return runtime.UnmarshalAs[TeamsParams](n.union)
-}
-
-// AsValidatedTeamsParams returns the union data inside the NotificationChannel_Params_OneOf as a validated TeamsParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedTeamsParams() (TeamsParams, error) {
-	val, err := n.AsTeamsParams()
-	if err != nil {
-		var zero TeamsParams
-		return zero, err
-	}
-	if err := n.validateTeamsParams(val); err != nil {
-		var zero TeamsParams
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromTeamsParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided TeamsParams
-func (n *NotificationChannel_Params_OneOf) FromTeamsParams(val TeamsParams) error {
-	// Validate before storing
-	if err := n.validateTeamsParams(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	n.union = bts
-	return err
-}
-
-// AsPushoverParams returns the union data inside the NotificationChannel_Params_OneOf as a PushoverParams
-func (n *NotificationChannel_Params_OneOf) AsPushoverParams() (PushoverParams, error) {
-	return runtime.UnmarshalAs[PushoverParams](n.union)
-}
-
-// AsValidatedPushoverParams returns the union data inside the NotificationChannel_Params_OneOf as a validated PushoverParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedPushoverParams() (PushoverParams, error) {
-	val, err := n.AsPushoverParams()
-	if err != nil {
-		var zero PushoverParams
-		return zero, err
-	}
-	if err := n.validatePushoverParams(val); err != nil {
-		var zero PushoverParams
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromPushoverParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided PushoverParams
-func (n *NotificationChannel_Params_OneOf) FromPushoverParams(val PushoverParams) error {
-	// Validate before storing
-	if err := n.validatePushoverParams(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	n.union = bts
-	return err
-}
-
-// AsWebhookParams returns the union data inside the NotificationChannel_Params_OneOf as a WebhookParams
-func (n *NotificationChannel_Params_OneOf) AsWebhookParams() (WebhookParams, error) {
-	return runtime.UnmarshalAs[WebhookParams](n.union)
-}
-
-// AsValidatedWebhookParams returns the union data inside the NotificationChannel_Params_OneOf as a validated WebhookParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedWebhookParams() (WebhookParams, error) {
-	val, err := n.AsWebhookParams()
-	if err != nil {
-		var zero WebhookParams
-		return zero, err
-	}
-	if err := n.validateWebhookParams(val); err != nil {
-		var zero WebhookParams
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromWebhookParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided WebhookParams
-func (n *NotificationChannel_Params_OneOf) FromWebhookParams(val WebhookParams) error {
-	// Validate before storing
-	if err := n.validateWebhookParams(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	n.union = bts
-	return err
-}
-
-// AsAlertmanagerParams returns the union data inside the NotificationChannel_Params_OneOf as a AlertmanagerParams
-func (n *NotificationChannel_Params_OneOf) AsAlertmanagerParams() (AlertmanagerParams, error) {
-	return runtime.UnmarshalAs[AlertmanagerParams](n.union)
-}
-
-// AsValidatedAlertmanagerParams returns the union data inside the NotificationChannel_Params_OneOf as a validated AlertmanagerParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedAlertmanagerParams() (AlertmanagerParams, error) {
-	val, err := n.AsAlertmanagerParams()
-	if err != nil {
-		var zero AlertmanagerParams
-		return zero, err
-	}
-	if err := n.validateAlertmanagerParams(val); err != nil {
-		var zero AlertmanagerParams
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromAlertmanagerParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided AlertmanagerParams
-func (n *NotificationChannel_Params_OneOf) FromAlertmanagerParams(val AlertmanagerParams) error {
-	// Validate before storing
-	if err := n.validateAlertmanagerParams(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	n.union = bts
-	return err
-}
-
-// AsIncidentioParams returns the union data inside the NotificationChannel_Params_OneOf as a IncidentioParams
-func (n *NotificationChannel_Params_OneOf) AsIncidentioParams() (IncidentioParams, error) {
-	return runtime.UnmarshalAs[IncidentioParams](n.union)
-}
-
-// AsValidatedIncidentioParams returns the union data inside the NotificationChannel_Params_OneOf as a validated IncidentioParams
-func (n *NotificationChannel_Params_OneOf) AsValidatedIncidentioParams() (IncidentioParams, error) {
-	val, err := n.AsIncidentioParams()
-	if err != nil {
-		var zero IncidentioParams
-		return zero, err
-	}
-	if err := n.validateIncidentioParams(val); err != nil {
-		var zero IncidentioParams
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromIncidentioParams overwrites any union data inside the NotificationChannel_Params_OneOf as the provided IncidentioParams
-func (n *NotificationChannel_Params_OneOf) FromIncidentioParams(val IncidentioParams) error {
-	// Validate before storing
-	if err := n.validateIncidentioParams(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	n.union = bts
-	return err
-}
-
-// validateSlackParams validates a SlackParams value
-func (n *NotificationChannel_Params_OneOf) validateSlackParams(val SlackParams) error {
+// validateSloEventSli validates a SloEventSli value
+func (s *SloSli_OneOf) validateSloEventSli(val SloEventSli) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validateGoogleChatParams validates a GoogleChatParams value
-func (n *NotificationChannel_Params_OneOf) validateGoogleChatParams(val GoogleChatParams) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
+func (s SloSli_OneOf) discriminator(data []byte) (string, error) {
+	var discriminator struct {
+		Value string `json:"type"`
 	}
-	return nil
+	if err := json.Unmarshal(data, &discriminator); err != nil {
+		return "", err
+	}
+	return discriminator.Value, nil
 }
 
-// validateMattermostParams validates a MattermostParams value
-func (n *NotificationChannel_Params_OneOf) validateMattermostParams(val MattermostParams) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
+func (s SloSli_OneOf) ValueByDiscriminator() (any, error) {
+	discriminator, err := s.discriminator(s.union)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	switch discriminator {
+	case "event":
+		return s.AsSloEventSli()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
 }
 
-// validatePagerdutyParams validates a PagerdutyParams value
-func (n *NotificationChannel_Params_OneOf) validatePagerdutyParams(val PagerdutyParams) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
-	}
-	return nil
-}
-
-// validateServicenowParams validates a ServicenowParams value
-func (n *NotificationChannel_Params_OneOf) validateServicenowParams(val ServicenowParams) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
-	}
-	return nil
-}
-
-// validateOpsgenieParams validates a OpsgenieParams value
-func (n *NotificationChannel_Params_OneOf) validateOpsgenieParams(val OpsgenieParams) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
-	}
-	return nil
-}
-
-// validateTelegramParams validates a TelegramParams value
-func (n *NotificationChannel_Params_OneOf) validateTelegramParams(val TelegramParams) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
-	}
-	return nil
-}
-
-// validateTeamsParams validates a TeamsParams value
-func (n *NotificationChannel_Params_OneOf) validateTeamsParams(val TeamsParams) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
-	}
-	return nil
-}
-
-// validatePushoverParams validates a PushoverParams value
-func (n *NotificationChannel_Params_OneOf) validatePushoverParams(val PushoverParams) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
-	}
-	return nil
-}
-
-// validateWebhookParams validates a WebhookParams value
-func (n *NotificationChannel_Params_OneOf) validateWebhookParams(val WebhookParams) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
-	}
-	return nil
-}
-
-// validateAlertmanagerParams validates a AlertmanagerParams value
-func (n *NotificationChannel_Params_OneOf) validateAlertmanagerParams(val AlertmanagerParams) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
-	}
-	return nil
-}
-
-// validateIncidentioParams validates a IncidentioParams value
-func (n *NotificationChannel_Params_OneOf) validateIncidentioParams(val IncidentioParams) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
-	}
-	return nil
-}
-
-func (n NotificationChannel_Params_OneOf) MarshalJSON() ([]byte, error) {
-	bts, err := n.union.MarshalJSON()
+func (s SloSli_OneOf) MarshalJSON() ([]byte, error) {
+	bts, err := s.union.MarshalJSON()
 
 	return bts, err
 }
 
-func (n *NotificationChannel_Params_OneOf) UnmarshalJSON(bts []byte) error {
-	err := n.union.UnmarshalJSON(bts)
+func (s *SloSli_OneOf) UnmarshalJSON(bts []byte) error {
+	err := s.union.UnmarshalJSON(bts)
 
 	return err
 }
 
-type NotificationChannelRequest_Params_OneOf struct {
+type SloRule_OneOf struct {
+	runtime.Either[SloBurnRateRule, SloBudgetConsumedRule]
+}
+
+func (s *SloRule_OneOf) Validate() error {
+	if s.IsA() {
+		if v, ok := any(s.A).(runtime.Validator); ok {
+			return v.Validate()
+		}
+	}
+	if s.IsB() {
+		if v, ok := any(s.B).(runtime.Validator); ok {
+			return v.Validate()
+		}
+	}
+	return nil
+}
+
+func (s SloRule_OneOf) discriminator(data []byte) (string, error) {
+	var discriminator struct {
+		Value string `json:"type"`
+	}
+	if err := json.Unmarshal(data, &discriminator); err != nil {
+		return "", err
+	}
+	return discriminator.Value, nil
+}
+
+func (s *SloRule_OneOf) MarshalJSON() ([]byte, error) {
+	data := s.Value()
+	if data == nil {
+		return []byte("null"), nil
+	}
+
+	obj, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+
+	disc, err := s.discriminator(obj)
+	if err != nil {
+		return nil, err
+	}
+	return runtime.MarshalEitherWithDiscriminator(obj, "type", disc)
+}
+
+func (s *SloRule_OneOf) UnmarshalJSON(data []byte) error {
+	discriminator, err := s.discriminator(data)
+	if err != nil {
+		return err
+	}
+
+	switch discriminator {
+	case "budget_consumed":
+		var res SloBudgetConsumedRule
+		if err = json.Unmarshal(data, &res); err != nil {
+			return err
+		}
+
+		s.B = res
+		s.N = 2
+	case "burn_rate":
+		var res SloBurnRateRule
+		if err = json.Unmarshal(data, &res); err != nil {
+			return err
+		}
+
+		s.A = res
+		s.N = 1
+	default:
+		return errors.New("unknown discriminator value: " + discriminator)
+	}
+	return nil
+}
+
+type Monitor_OneOf struct {
 	union json.RawMessage
 }
 
-func (n *NotificationChannelRequest_Params_OneOf) Validate() error {
+func (m *Monitor_OneOf) Validate() error {
 	// NOTE: Validation is not supported for unions with more than 2 elements.
 	// Validating would require unmarshaling against each possible type, which is inefficient.
 	// Use AsValidated<Type>() methods to validate after retrieving the specific type.
 	return nil
 }
 
-// Raw returns the union data inside the NotificationChannelRequest_Params_OneOf as bytes
-func (n *NotificationChannelRequest_Params_OneOf) Raw() json.RawMessage {
+// Raw returns the union data inside the Monitor_OneOf as bytes
+func (m *Monitor_OneOf) Raw() json.RawMessage {
+	return m.union
+}
+
+// AsThresholdMonitor returns the union data inside the Monitor_OneOf as a ThresholdMonitor
+func (m *Monitor_OneOf) AsThresholdMonitor() (ThresholdMonitor, error) {
+	return runtime.UnmarshalAs[ThresholdMonitor](m.union)
+}
+
+// AsValidatedThresholdMonitor returns the union data inside the Monitor_OneOf as a validated ThresholdMonitor
+func (m *Monitor_OneOf) AsValidatedThresholdMonitor() (ThresholdMonitor, error) {
+	val, err := m.AsThresholdMonitor()
+	if err != nil {
+		var zero ThresholdMonitor
+		return zero, err
+	}
+	if err := m.validateThresholdMonitor(val); err != nil {
+		var zero ThresholdMonitor
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromThresholdMonitor overwrites any union data inside the Monitor_OneOf as the provided ThresholdMonitor
+func (m *Monitor_OneOf) FromThresholdMonitor(val ThresholdMonitor) error {
+	// Validate before storing
+	if err := m.validateThresholdMonitor(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// AsAnomalyMonitor returns the union data inside the Monitor_OneOf as a AnomalyMonitor
+func (m *Monitor_OneOf) AsAnomalyMonitor() (AnomalyMonitor, error) {
+	return runtime.UnmarshalAs[AnomalyMonitor](m.union)
+}
+
+// AsValidatedAnomalyMonitor returns the union data inside the Monitor_OneOf as a validated AnomalyMonitor
+func (m *Monitor_OneOf) AsValidatedAnomalyMonitor() (AnomalyMonitor, error) {
+	val, err := m.AsAnomalyMonitor()
+	if err != nil {
+		var zero AnomalyMonitor
+		return zero, err
+	}
+	if err := m.validateAnomalyMonitor(val); err != nil {
+		var zero AnomalyMonitor
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromAnomalyMonitor overwrites any union data inside the Monitor_OneOf as the provided AnomalyMonitor
+func (m *Monitor_OneOf) FromAnomalyMonitor(val AnomalyMonitor) error {
+	// Validate before storing
+	if err := m.validateAnomalyMonitor(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// AsOutlierMonitor returns the union data inside the Monitor_OneOf as a OutlierMonitor
+func (m *Monitor_OneOf) AsOutlierMonitor() (OutlierMonitor, error) {
+	return runtime.UnmarshalAs[OutlierMonitor](m.union)
+}
+
+// AsValidatedOutlierMonitor returns the union data inside the Monitor_OneOf as a validated OutlierMonitor
+func (m *Monitor_OneOf) AsValidatedOutlierMonitor() (OutlierMonitor, error) {
+	val, err := m.AsOutlierMonitor()
+	if err != nil {
+		var zero OutlierMonitor
+		return zero, err
+	}
+	if err := m.validateOutlierMonitor(val); err != nil {
+		var zero OutlierMonitor
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromOutlierMonitor overwrites any union data inside the Monitor_OneOf as the provided OutlierMonitor
+func (m *Monitor_OneOf) FromOutlierMonitor(val OutlierMonitor) error {
+	// Validate before storing
+	if err := m.validateOutlierMonitor(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// AsForecastMonitor returns the union data inside the Monitor_OneOf as a ForecastMonitor
+func (m *Monitor_OneOf) AsForecastMonitor() (ForecastMonitor, error) {
+	return runtime.UnmarshalAs[ForecastMonitor](m.union)
+}
+
+// AsValidatedForecastMonitor returns the union data inside the Monitor_OneOf as a validated ForecastMonitor
+func (m *Monitor_OneOf) AsValidatedForecastMonitor() (ForecastMonitor, error) {
+	val, err := m.AsForecastMonitor()
+	if err != nil {
+		var zero ForecastMonitor
+		return zero, err
+	}
+	if err := m.validateForecastMonitor(val); err != nil {
+		var zero ForecastMonitor
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromForecastMonitor overwrites any union data inside the Monitor_OneOf as the provided ForecastMonitor
+func (m *Monitor_OneOf) FromForecastMonitor(val ForecastMonitor) error {
+	// Validate before storing
+	if err := m.validateForecastMonitor(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// AsErrorMonitor returns the union data inside the Monitor_OneOf as a ErrorMonitor
+func (m *Monitor_OneOf) AsErrorMonitor() (ErrorMonitor, error) {
+	return runtime.UnmarshalAs[ErrorMonitor](m.union)
+}
+
+// AsValidatedErrorMonitor returns the union data inside the Monitor_OneOf as a validated ErrorMonitor
+func (m *Monitor_OneOf) AsValidatedErrorMonitor() (ErrorMonitor, error) {
+	val, err := m.AsErrorMonitor()
+	if err != nil {
+		var zero ErrorMonitor
+		return zero, err
+	}
+	if err := m.validateErrorMonitor(val); err != nil {
+		var zero ErrorMonitor
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromErrorMonitor overwrites any union data inside the Monitor_OneOf as the provided ErrorMonitor
+func (m *Monitor_OneOf) FromErrorMonitor(val ErrorMonitor) error {
+	// Validate before storing
+	if err := m.validateErrorMonitor(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// AsSloMonitor returns the union data inside the Monitor_OneOf as a SloMonitor
+func (m *Monitor_OneOf) AsSloMonitor() (SloMonitor, error) {
+	return runtime.UnmarshalAs[SloMonitor](m.union)
+}
+
+// AsValidatedSloMonitor returns the union data inside the Monitor_OneOf as a validated SloMonitor
+func (m *Monitor_OneOf) AsValidatedSloMonitor() (SloMonitor, error) {
+	val, err := m.AsSloMonitor()
+	if err != nil {
+		var zero SloMonitor
+		return zero, err
+	}
+	if err := m.validateSloMonitor(val); err != nil {
+		var zero SloMonitor
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromSloMonitor overwrites any union data inside the Monitor_OneOf as the provided SloMonitor
+func (m *Monitor_OneOf) FromSloMonitor(val SloMonitor) error {
+	// Validate before storing
+	if err := m.validateSloMonitor(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// validateThresholdMonitor validates a ThresholdMonitor value
+func (m *Monitor_OneOf) validateThresholdMonitor(val ThresholdMonitor) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateAnomalyMonitor validates a AnomalyMonitor value
+func (m *Monitor_OneOf) validateAnomalyMonitor(val AnomalyMonitor) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateOutlierMonitor validates a OutlierMonitor value
+func (m *Monitor_OneOf) validateOutlierMonitor(val OutlierMonitor) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateForecastMonitor validates a ForecastMonitor value
+func (m *Monitor_OneOf) validateForecastMonitor(val ForecastMonitor) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateErrorMonitor validates a ErrorMonitor value
+func (m *Monitor_OneOf) validateErrorMonitor(val ErrorMonitor) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateSloMonitor validates a SloMonitor value
+func (m *Monitor_OneOf) validateSloMonitor(val SloMonitor) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+func (m Monitor_OneOf) discriminator(data []byte) (string, error) {
+	var discriminator struct {
+		Value string `json:"type"`
+	}
+	if err := json.Unmarshal(data, &discriminator); err != nil {
+		return "", err
+	}
+	return discriminator.Value, nil
+}
+
+func (m Monitor_OneOf) ValueByDiscriminator() (any, error) {
+	discriminator, err := m.discriminator(m.union)
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "anomaly":
+		return m.AsAnomalyMonitor()
+	case "error":
+		return m.AsErrorMonitor()
+	case "forecast":
+		return m.AsForecastMonitor()
+	case "outlier":
+		return m.AsOutlierMonitor()
+	case "slo":
+		return m.AsSloMonitor()
+	case "threshold":
+		return m.AsThresholdMonitor()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (m Monitor_OneOf) MarshalJSON() ([]byte, error) {
+	bts, err := m.union.MarshalJSON()
+
+	return bts, err
+}
+
+func (m *Monitor_OneOf) UnmarshalJSON(bts []byte) error {
+	err := m.union.UnmarshalJSON(bts)
+
+	return err
+}
+
+type MonitorSummary_OneOf struct {
+	union json.RawMessage
+}
+
+func (m *MonitorSummary_OneOf) Validate() error {
+	// NOTE: Validation is not supported for unions with more than 2 elements.
+	// Validating would require unmarshaling against each possible type, which is inefficient.
+	// Use AsValidated<Type>() methods to validate after retrieving the specific type.
+	return nil
+}
+
+// Raw returns the union data inside the MonitorSummary_OneOf as bytes
+func (m *MonitorSummary_OneOf) Raw() json.RawMessage {
+	return m.union
+}
+
+// AsThresholdMonitorSummary returns the union data inside the MonitorSummary_OneOf as a ThresholdMonitorSummary
+func (m *MonitorSummary_OneOf) AsThresholdMonitorSummary() (ThresholdMonitorSummary, error) {
+	return runtime.UnmarshalAs[ThresholdMonitorSummary](m.union)
+}
+
+// AsValidatedThresholdMonitorSummary returns the union data inside the MonitorSummary_OneOf as a validated ThresholdMonitorSummary
+func (m *MonitorSummary_OneOf) AsValidatedThresholdMonitorSummary() (ThresholdMonitorSummary, error) {
+	val, err := m.AsThresholdMonitorSummary()
+	if err != nil {
+		var zero ThresholdMonitorSummary
+		return zero, err
+	}
+	if err := m.validateThresholdMonitorSummary(val); err != nil {
+		var zero ThresholdMonitorSummary
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromThresholdMonitorSummary overwrites any union data inside the MonitorSummary_OneOf as the provided ThresholdMonitorSummary
+func (m *MonitorSummary_OneOf) FromThresholdMonitorSummary(val ThresholdMonitorSummary) error {
+	// Validate before storing
+	if err := m.validateThresholdMonitorSummary(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// AsAnomalyMonitorSummary returns the union data inside the MonitorSummary_OneOf as a AnomalyMonitorSummary
+func (m *MonitorSummary_OneOf) AsAnomalyMonitorSummary() (AnomalyMonitorSummary, error) {
+	return runtime.UnmarshalAs[AnomalyMonitorSummary](m.union)
+}
+
+// AsValidatedAnomalyMonitorSummary returns the union data inside the MonitorSummary_OneOf as a validated AnomalyMonitorSummary
+func (m *MonitorSummary_OneOf) AsValidatedAnomalyMonitorSummary() (AnomalyMonitorSummary, error) {
+	val, err := m.AsAnomalyMonitorSummary()
+	if err != nil {
+		var zero AnomalyMonitorSummary
+		return zero, err
+	}
+	if err := m.validateAnomalyMonitorSummary(val); err != nil {
+		var zero AnomalyMonitorSummary
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromAnomalyMonitorSummary overwrites any union data inside the MonitorSummary_OneOf as the provided AnomalyMonitorSummary
+func (m *MonitorSummary_OneOf) FromAnomalyMonitorSummary(val AnomalyMonitorSummary) error {
+	// Validate before storing
+	if err := m.validateAnomalyMonitorSummary(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// AsOutlierMonitorSummary returns the union data inside the MonitorSummary_OneOf as a OutlierMonitorSummary
+func (m *MonitorSummary_OneOf) AsOutlierMonitorSummary() (OutlierMonitorSummary, error) {
+	return runtime.UnmarshalAs[OutlierMonitorSummary](m.union)
+}
+
+// AsValidatedOutlierMonitorSummary returns the union data inside the MonitorSummary_OneOf as a validated OutlierMonitorSummary
+func (m *MonitorSummary_OneOf) AsValidatedOutlierMonitorSummary() (OutlierMonitorSummary, error) {
+	val, err := m.AsOutlierMonitorSummary()
+	if err != nil {
+		var zero OutlierMonitorSummary
+		return zero, err
+	}
+	if err := m.validateOutlierMonitorSummary(val); err != nil {
+		var zero OutlierMonitorSummary
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromOutlierMonitorSummary overwrites any union data inside the MonitorSummary_OneOf as the provided OutlierMonitorSummary
+func (m *MonitorSummary_OneOf) FromOutlierMonitorSummary(val OutlierMonitorSummary) error {
+	// Validate before storing
+	if err := m.validateOutlierMonitorSummary(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// AsForecastMonitorSummary returns the union data inside the MonitorSummary_OneOf as a ForecastMonitorSummary
+func (m *MonitorSummary_OneOf) AsForecastMonitorSummary() (ForecastMonitorSummary, error) {
+	return runtime.UnmarshalAs[ForecastMonitorSummary](m.union)
+}
+
+// AsValidatedForecastMonitorSummary returns the union data inside the MonitorSummary_OneOf as a validated ForecastMonitorSummary
+func (m *MonitorSummary_OneOf) AsValidatedForecastMonitorSummary() (ForecastMonitorSummary, error) {
+	val, err := m.AsForecastMonitorSummary()
+	if err != nil {
+		var zero ForecastMonitorSummary
+		return zero, err
+	}
+	if err := m.validateForecastMonitorSummary(val); err != nil {
+		var zero ForecastMonitorSummary
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromForecastMonitorSummary overwrites any union data inside the MonitorSummary_OneOf as the provided ForecastMonitorSummary
+func (m *MonitorSummary_OneOf) FromForecastMonitorSummary(val ForecastMonitorSummary) error {
+	// Validate before storing
+	if err := m.validateForecastMonitorSummary(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// AsErrorMonitorSummary returns the union data inside the MonitorSummary_OneOf as a ErrorMonitorSummary
+func (m *MonitorSummary_OneOf) AsErrorMonitorSummary() (ErrorMonitorSummary, error) {
+	return runtime.UnmarshalAs[ErrorMonitorSummary](m.union)
+}
+
+// AsValidatedErrorMonitorSummary returns the union data inside the MonitorSummary_OneOf as a validated ErrorMonitorSummary
+func (m *MonitorSummary_OneOf) AsValidatedErrorMonitorSummary() (ErrorMonitorSummary, error) {
+	val, err := m.AsErrorMonitorSummary()
+	if err != nil {
+		var zero ErrorMonitorSummary
+		return zero, err
+	}
+	if err := m.validateErrorMonitorSummary(val); err != nil {
+		var zero ErrorMonitorSummary
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromErrorMonitorSummary overwrites any union data inside the MonitorSummary_OneOf as the provided ErrorMonitorSummary
+func (m *MonitorSummary_OneOf) FromErrorMonitorSummary(val ErrorMonitorSummary) error {
+	// Validate before storing
+	if err := m.validateErrorMonitorSummary(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// AsSloMonitorSummary returns the union data inside the MonitorSummary_OneOf as a SloMonitorSummary
+func (m *MonitorSummary_OneOf) AsSloMonitorSummary() (SloMonitorSummary, error) {
+	return runtime.UnmarshalAs[SloMonitorSummary](m.union)
+}
+
+// AsValidatedSloMonitorSummary returns the union data inside the MonitorSummary_OneOf as a validated SloMonitorSummary
+func (m *MonitorSummary_OneOf) AsValidatedSloMonitorSummary() (SloMonitorSummary, error) {
+	val, err := m.AsSloMonitorSummary()
+	if err != nil {
+		var zero SloMonitorSummary
+		return zero, err
+	}
+	if err := m.validateSloMonitorSummary(val); err != nil {
+		var zero SloMonitorSummary
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromSloMonitorSummary overwrites any union data inside the MonitorSummary_OneOf as the provided SloMonitorSummary
+func (m *MonitorSummary_OneOf) FromSloMonitorSummary(val SloMonitorSummary) error {
+	// Validate before storing
+	if err := m.validateSloMonitorSummary(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	m.union = bts
+	return err
+}
+
+// validateThresholdMonitorSummary validates a ThresholdMonitorSummary value
+func (m *MonitorSummary_OneOf) validateThresholdMonitorSummary(val ThresholdMonitorSummary) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateAnomalyMonitorSummary validates a AnomalyMonitorSummary value
+func (m *MonitorSummary_OneOf) validateAnomalyMonitorSummary(val AnomalyMonitorSummary) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateOutlierMonitorSummary validates a OutlierMonitorSummary value
+func (m *MonitorSummary_OneOf) validateOutlierMonitorSummary(val OutlierMonitorSummary) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateForecastMonitorSummary validates a ForecastMonitorSummary value
+func (m *MonitorSummary_OneOf) validateForecastMonitorSummary(val ForecastMonitorSummary) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateErrorMonitorSummary validates a ErrorMonitorSummary value
+func (m *MonitorSummary_OneOf) validateErrorMonitorSummary(val ErrorMonitorSummary) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateSloMonitorSummary validates a SloMonitorSummary value
+func (m *MonitorSummary_OneOf) validateSloMonitorSummary(val SloMonitorSummary) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+func (m MonitorSummary_OneOf) discriminator(data []byte) (string, error) {
+	var discriminator struct {
+		Value string `json:"type"`
+	}
+	if err := json.Unmarshal(data, &discriminator); err != nil {
+		return "", err
+	}
+	return discriminator.Value, nil
+}
+
+func (m MonitorSummary_OneOf) ValueByDiscriminator() (any, error) {
+	discriminator, err := m.discriminator(m.union)
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "anomaly":
+		return m.AsAnomalyMonitorSummary()
+	case "error":
+		return m.AsErrorMonitorSummary()
+	case "forecast":
+		return m.AsForecastMonitorSummary()
+	case "outlier":
+		return m.AsOutlierMonitorSummary()
+	case "slo":
+		return m.AsSloMonitorSummary()
+	case "threshold":
+		return m.AsThresholdMonitorSummary()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (m MonitorSummary_OneOf) MarshalJSON() ([]byte, error) {
+	bts, err := m.union.MarshalJSON()
+
+	return bts, err
+}
+
+func (m *MonitorSummary_OneOf) UnmarshalJSON(bts []byte) error {
+	err := m.union.UnmarshalJSON(bts)
+
+	return err
+}
+
+type NotificationChannelRequest_OneOf struct {
+	union json.RawMessage
+}
+
+func (n *NotificationChannelRequest_OneOf) Validate() error {
+	// NOTE: Validation is not supported for unions with more than 2 elements.
+	// Validating would require unmarshaling against each possible type, which is inefficient.
+	// Use AsValidated<Type>() methods to validate after retrieving the specific type.
+	return nil
+}
+
+// Raw returns the union data inside the NotificationChannelRequest_OneOf as bytes
+func (n *NotificationChannelRequest_OneOf) Raw() json.RawMessage {
 	return n.union
 }
 
-// AsSlackParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a SlackParams
-func (n *NotificationChannelRequest_Params_OneOf) AsSlackParams() (SlackParams, error) {
-	return runtime.UnmarshalAs[SlackParams](n.union)
+// AsEmailChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a EmailChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsEmailChannelRequest() (EmailChannelRequest, error) {
+	return runtime.UnmarshalAs[EmailChannelRequest](n.union)
 }
 
-// AsValidatedSlackParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated SlackParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedSlackParams() (SlackParams, error) {
-	val, err := n.AsSlackParams()
+// AsValidatedEmailChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated EmailChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedEmailChannelRequest() (EmailChannelRequest, error) {
+	val, err := n.AsEmailChannelRequest()
 	if err != nil {
-		var zero SlackParams
+		var zero EmailChannelRequest
 		return zero, err
 	}
-	if err := n.validateSlackParams(val); err != nil {
-		var zero SlackParams
+	if err := n.validateEmailChannelRequest(val); err != nil {
+		var zero EmailChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromSlackParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided SlackParams
-func (n *NotificationChannelRequest_Params_OneOf) FromSlackParams(val SlackParams) error {
+// FromEmailChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided EmailChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromEmailChannelRequest(val EmailChannelRequest) error {
 	// Validate before storing
-	if err := n.validateSlackParams(val); err != nil {
+	if err := n.validateEmailChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -736,29 +1006,29 @@ func (n *NotificationChannelRequest_Params_OneOf) FromSlackParams(val SlackParam
 	return err
 }
 
-// AsGoogleChatParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a GoogleChatParams
-func (n *NotificationChannelRequest_Params_OneOf) AsGoogleChatParams() (GoogleChatParams, error) {
-	return runtime.UnmarshalAs[GoogleChatParams](n.union)
+// AsSlackChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a SlackChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsSlackChannelRequest() (SlackChannelRequest, error) {
+	return runtime.UnmarshalAs[SlackChannelRequest](n.union)
 }
 
-// AsValidatedGoogleChatParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated GoogleChatParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedGoogleChatParams() (GoogleChatParams, error) {
-	val, err := n.AsGoogleChatParams()
+// AsValidatedSlackChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated SlackChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedSlackChannelRequest() (SlackChannelRequest, error) {
+	val, err := n.AsSlackChannelRequest()
 	if err != nil {
-		var zero GoogleChatParams
+		var zero SlackChannelRequest
 		return zero, err
 	}
-	if err := n.validateGoogleChatParams(val); err != nil {
-		var zero GoogleChatParams
+	if err := n.validateSlackChannelRequest(val); err != nil {
+		var zero SlackChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromGoogleChatParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided GoogleChatParams
-func (n *NotificationChannelRequest_Params_OneOf) FromGoogleChatParams(val GoogleChatParams) error {
+// FromSlackChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided SlackChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromSlackChannelRequest(val SlackChannelRequest) error {
 	// Validate before storing
-	if err := n.validateGoogleChatParams(val); err != nil {
+	if err := n.validateSlackChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -766,29 +1036,29 @@ func (n *NotificationChannelRequest_Params_OneOf) FromGoogleChatParams(val Googl
 	return err
 }
 
-// AsMattermostParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a MattermostParams
-func (n *NotificationChannelRequest_Params_OneOf) AsMattermostParams() (MattermostParams, error) {
-	return runtime.UnmarshalAs[MattermostParams](n.union)
+// AsGoogleChatChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a GoogleChatChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsGoogleChatChannelRequest() (GoogleChatChannelRequest, error) {
+	return runtime.UnmarshalAs[GoogleChatChannelRequest](n.union)
 }
 
-// AsValidatedMattermostParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated MattermostParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedMattermostParams() (MattermostParams, error) {
-	val, err := n.AsMattermostParams()
+// AsValidatedGoogleChatChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated GoogleChatChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedGoogleChatChannelRequest() (GoogleChatChannelRequest, error) {
+	val, err := n.AsGoogleChatChannelRequest()
 	if err != nil {
-		var zero MattermostParams
+		var zero GoogleChatChannelRequest
 		return zero, err
 	}
-	if err := n.validateMattermostParams(val); err != nil {
-		var zero MattermostParams
+	if err := n.validateGoogleChatChannelRequest(val); err != nil {
+		var zero GoogleChatChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromMattermostParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided MattermostParams
-func (n *NotificationChannelRequest_Params_OneOf) FromMattermostParams(val MattermostParams) error {
+// FromGoogleChatChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided GoogleChatChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromGoogleChatChannelRequest(val GoogleChatChannelRequest) error {
 	// Validate before storing
-	if err := n.validateMattermostParams(val); err != nil {
+	if err := n.validateGoogleChatChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -796,29 +1066,29 @@ func (n *NotificationChannelRequest_Params_OneOf) FromMattermostParams(val Matte
 	return err
 }
 
-// AsPagerdutyParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a PagerdutyParams
-func (n *NotificationChannelRequest_Params_OneOf) AsPagerdutyParams() (PagerdutyParams, error) {
-	return runtime.UnmarshalAs[PagerdutyParams](n.union)
+// AsMattermostChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a MattermostChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsMattermostChannelRequest() (MattermostChannelRequest, error) {
+	return runtime.UnmarshalAs[MattermostChannelRequest](n.union)
 }
 
-// AsValidatedPagerdutyParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated PagerdutyParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedPagerdutyParams() (PagerdutyParams, error) {
-	val, err := n.AsPagerdutyParams()
+// AsValidatedMattermostChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated MattermostChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedMattermostChannelRequest() (MattermostChannelRequest, error) {
+	val, err := n.AsMattermostChannelRequest()
 	if err != nil {
-		var zero PagerdutyParams
+		var zero MattermostChannelRequest
 		return zero, err
 	}
-	if err := n.validatePagerdutyParams(val); err != nil {
-		var zero PagerdutyParams
+	if err := n.validateMattermostChannelRequest(val); err != nil {
+		var zero MattermostChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromPagerdutyParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided PagerdutyParams
-func (n *NotificationChannelRequest_Params_OneOf) FromPagerdutyParams(val PagerdutyParams) error {
+// FromMattermostChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided MattermostChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromMattermostChannelRequest(val MattermostChannelRequest) error {
 	// Validate before storing
-	if err := n.validatePagerdutyParams(val); err != nil {
+	if err := n.validateMattermostChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -826,29 +1096,29 @@ func (n *NotificationChannelRequest_Params_OneOf) FromPagerdutyParams(val Pagerd
 	return err
 }
 
-// AsServicenowParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a ServicenowParams
-func (n *NotificationChannelRequest_Params_OneOf) AsServicenowParams() (ServicenowParams, error) {
-	return runtime.UnmarshalAs[ServicenowParams](n.union)
+// AsPagerdutyChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a PagerdutyChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsPagerdutyChannelRequest() (PagerdutyChannelRequest, error) {
+	return runtime.UnmarshalAs[PagerdutyChannelRequest](n.union)
 }
 
-// AsValidatedServicenowParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated ServicenowParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedServicenowParams() (ServicenowParams, error) {
-	val, err := n.AsServicenowParams()
+// AsValidatedPagerdutyChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated PagerdutyChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedPagerdutyChannelRequest() (PagerdutyChannelRequest, error) {
+	val, err := n.AsPagerdutyChannelRequest()
 	if err != nil {
-		var zero ServicenowParams
+		var zero PagerdutyChannelRequest
 		return zero, err
 	}
-	if err := n.validateServicenowParams(val); err != nil {
-		var zero ServicenowParams
+	if err := n.validatePagerdutyChannelRequest(val); err != nil {
+		var zero PagerdutyChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromServicenowParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided ServicenowParams
-func (n *NotificationChannelRequest_Params_OneOf) FromServicenowParams(val ServicenowParams) error {
+// FromPagerdutyChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided PagerdutyChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromPagerdutyChannelRequest(val PagerdutyChannelRequest) error {
 	// Validate before storing
-	if err := n.validateServicenowParams(val); err != nil {
+	if err := n.validatePagerdutyChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -856,29 +1126,29 @@ func (n *NotificationChannelRequest_Params_OneOf) FromServicenowParams(val Servi
 	return err
 }
 
-// AsOpsgenieParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a OpsgenieParams
-func (n *NotificationChannelRequest_Params_OneOf) AsOpsgenieParams() (OpsgenieParams, error) {
-	return runtime.UnmarshalAs[OpsgenieParams](n.union)
+// AsServicenowChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a ServicenowChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsServicenowChannelRequest() (ServicenowChannelRequest, error) {
+	return runtime.UnmarshalAs[ServicenowChannelRequest](n.union)
 }
 
-// AsValidatedOpsgenieParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated OpsgenieParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedOpsgenieParams() (OpsgenieParams, error) {
-	val, err := n.AsOpsgenieParams()
+// AsValidatedServicenowChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated ServicenowChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedServicenowChannelRequest() (ServicenowChannelRequest, error) {
+	val, err := n.AsServicenowChannelRequest()
 	if err != nil {
-		var zero OpsgenieParams
+		var zero ServicenowChannelRequest
 		return zero, err
 	}
-	if err := n.validateOpsgenieParams(val); err != nil {
-		var zero OpsgenieParams
+	if err := n.validateServicenowChannelRequest(val); err != nil {
+		var zero ServicenowChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromOpsgenieParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided OpsgenieParams
-func (n *NotificationChannelRequest_Params_OneOf) FromOpsgenieParams(val OpsgenieParams) error {
+// FromServicenowChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided ServicenowChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromServicenowChannelRequest(val ServicenowChannelRequest) error {
 	// Validate before storing
-	if err := n.validateOpsgenieParams(val); err != nil {
+	if err := n.validateServicenowChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -886,29 +1156,29 @@ func (n *NotificationChannelRequest_Params_OneOf) FromOpsgenieParams(val Opsgeni
 	return err
 }
 
-// AsTelegramParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a TelegramParams
-func (n *NotificationChannelRequest_Params_OneOf) AsTelegramParams() (TelegramParams, error) {
-	return runtime.UnmarshalAs[TelegramParams](n.union)
+// AsOpsgenieChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a OpsgenieChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsOpsgenieChannelRequest() (OpsgenieChannelRequest, error) {
+	return runtime.UnmarshalAs[OpsgenieChannelRequest](n.union)
 }
 
-// AsValidatedTelegramParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated TelegramParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedTelegramParams() (TelegramParams, error) {
-	val, err := n.AsTelegramParams()
+// AsValidatedOpsgenieChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated OpsgenieChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedOpsgenieChannelRequest() (OpsgenieChannelRequest, error) {
+	val, err := n.AsOpsgenieChannelRequest()
 	if err != nil {
-		var zero TelegramParams
+		var zero OpsgenieChannelRequest
 		return zero, err
 	}
-	if err := n.validateTelegramParams(val); err != nil {
-		var zero TelegramParams
+	if err := n.validateOpsgenieChannelRequest(val); err != nil {
+		var zero OpsgenieChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromTelegramParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided TelegramParams
-func (n *NotificationChannelRequest_Params_OneOf) FromTelegramParams(val TelegramParams) error {
+// FromOpsgenieChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided OpsgenieChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromOpsgenieChannelRequest(val OpsgenieChannelRequest) error {
 	// Validate before storing
-	if err := n.validateTelegramParams(val); err != nil {
+	if err := n.validateOpsgenieChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -916,29 +1186,29 @@ func (n *NotificationChannelRequest_Params_OneOf) FromTelegramParams(val Telegra
 	return err
 }
 
-// AsTeamsParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a TeamsParams
-func (n *NotificationChannelRequest_Params_OneOf) AsTeamsParams() (TeamsParams, error) {
-	return runtime.UnmarshalAs[TeamsParams](n.union)
+// AsTelegramChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a TelegramChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsTelegramChannelRequest() (TelegramChannelRequest, error) {
+	return runtime.UnmarshalAs[TelegramChannelRequest](n.union)
 }
 
-// AsValidatedTeamsParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated TeamsParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedTeamsParams() (TeamsParams, error) {
-	val, err := n.AsTeamsParams()
+// AsValidatedTelegramChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated TelegramChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedTelegramChannelRequest() (TelegramChannelRequest, error) {
+	val, err := n.AsTelegramChannelRequest()
 	if err != nil {
-		var zero TeamsParams
+		var zero TelegramChannelRequest
 		return zero, err
 	}
-	if err := n.validateTeamsParams(val); err != nil {
-		var zero TeamsParams
+	if err := n.validateTelegramChannelRequest(val); err != nil {
+		var zero TelegramChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromTeamsParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided TeamsParams
-func (n *NotificationChannelRequest_Params_OneOf) FromTeamsParams(val TeamsParams) error {
+// FromTelegramChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided TelegramChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromTelegramChannelRequest(val TelegramChannelRequest) error {
 	// Validate before storing
-	if err := n.validateTeamsParams(val); err != nil {
+	if err := n.validateTelegramChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -946,29 +1216,29 @@ func (n *NotificationChannelRequest_Params_OneOf) FromTeamsParams(val TeamsParam
 	return err
 }
 
-// AsPushoverParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a PushoverParams
-func (n *NotificationChannelRequest_Params_OneOf) AsPushoverParams() (PushoverParams, error) {
-	return runtime.UnmarshalAs[PushoverParams](n.union)
+// AsTeamsChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a TeamsChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsTeamsChannelRequest() (TeamsChannelRequest, error) {
+	return runtime.UnmarshalAs[TeamsChannelRequest](n.union)
 }
 
-// AsValidatedPushoverParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated PushoverParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedPushoverParams() (PushoverParams, error) {
-	val, err := n.AsPushoverParams()
+// AsValidatedTeamsChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated TeamsChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedTeamsChannelRequest() (TeamsChannelRequest, error) {
+	val, err := n.AsTeamsChannelRequest()
 	if err != nil {
-		var zero PushoverParams
+		var zero TeamsChannelRequest
 		return zero, err
 	}
-	if err := n.validatePushoverParams(val); err != nil {
-		var zero PushoverParams
+	if err := n.validateTeamsChannelRequest(val); err != nil {
+		var zero TeamsChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromPushoverParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided PushoverParams
-func (n *NotificationChannelRequest_Params_OneOf) FromPushoverParams(val PushoverParams) error {
+// FromTeamsChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided TeamsChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromTeamsChannelRequest(val TeamsChannelRequest) error {
 	// Validate before storing
-	if err := n.validatePushoverParams(val); err != nil {
+	if err := n.validateTeamsChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -976,29 +1246,29 @@ func (n *NotificationChannelRequest_Params_OneOf) FromPushoverParams(val Pushove
 	return err
 }
 
-// AsWebhookParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a WebhookParams
-func (n *NotificationChannelRequest_Params_OneOf) AsWebhookParams() (WebhookParams, error) {
-	return runtime.UnmarshalAs[WebhookParams](n.union)
+// AsPushoverChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a PushoverChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsPushoverChannelRequest() (PushoverChannelRequest, error) {
+	return runtime.UnmarshalAs[PushoverChannelRequest](n.union)
 }
 
-// AsValidatedWebhookParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated WebhookParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedWebhookParams() (WebhookParams, error) {
-	val, err := n.AsWebhookParams()
+// AsValidatedPushoverChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated PushoverChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedPushoverChannelRequest() (PushoverChannelRequest, error) {
+	val, err := n.AsPushoverChannelRequest()
 	if err != nil {
-		var zero WebhookParams
+		var zero PushoverChannelRequest
 		return zero, err
 	}
-	if err := n.validateWebhookParams(val); err != nil {
-		var zero WebhookParams
+	if err := n.validatePushoverChannelRequest(val); err != nil {
+		var zero PushoverChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromWebhookParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided WebhookParams
-func (n *NotificationChannelRequest_Params_OneOf) FromWebhookParams(val WebhookParams) error {
+// FromPushoverChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided PushoverChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromPushoverChannelRequest(val PushoverChannelRequest) error {
 	// Validate before storing
-	if err := n.validateWebhookParams(val); err != nil {
+	if err := n.validatePushoverChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -1006,29 +1276,29 @@ func (n *NotificationChannelRequest_Params_OneOf) FromWebhookParams(val WebhookP
 	return err
 }
 
-// AsAlertmanagerParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a AlertmanagerParams
-func (n *NotificationChannelRequest_Params_OneOf) AsAlertmanagerParams() (AlertmanagerParams, error) {
-	return runtime.UnmarshalAs[AlertmanagerParams](n.union)
+// AsWebhookChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a WebhookChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsWebhookChannelRequest() (WebhookChannelRequest, error) {
+	return runtime.UnmarshalAs[WebhookChannelRequest](n.union)
 }
 
-// AsValidatedAlertmanagerParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated AlertmanagerParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedAlertmanagerParams() (AlertmanagerParams, error) {
-	val, err := n.AsAlertmanagerParams()
+// AsValidatedWebhookChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated WebhookChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedWebhookChannelRequest() (WebhookChannelRequest, error) {
+	val, err := n.AsWebhookChannelRequest()
 	if err != nil {
-		var zero AlertmanagerParams
+		var zero WebhookChannelRequest
 		return zero, err
 	}
-	if err := n.validateAlertmanagerParams(val); err != nil {
-		var zero AlertmanagerParams
+	if err := n.validateWebhookChannelRequest(val); err != nil {
+		var zero WebhookChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromAlertmanagerParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided AlertmanagerParams
-func (n *NotificationChannelRequest_Params_OneOf) FromAlertmanagerParams(val AlertmanagerParams) error {
+// FromWebhookChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided WebhookChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromWebhookChannelRequest(val WebhookChannelRequest) error {
 	// Validate before storing
-	if err := n.validateAlertmanagerParams(val); err != nil {
+	if err := n.validateWebhookChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -1036,29 +1306,29 @@ func (n *NotificationChannelRequest_Params_OneOf) FromAlertmanagerParams(val Ale
 	return err
 }
 
-// AsIncidentioParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a IncidentioParams
-func (n *NotificationChannelRequest_Params_OneOf) AsIncidentioParams() (IncidentioParams, error) {
-	return runtime.UnmarshalAs[IncidentioParams](n.union)
+// AsAlertmanagerChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a AlertmanagerChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsAlertmanagerChannelRequest() (AlertmanagerChannelRequest, error) {
+	return runtime.UnmarshalAs[AlertmanagerChannelRequest](n.union)
 }
 
-// AsValidatedIncidentioParams returns the union data inside the NotificationChannelRequest_Params_OneOf as a validated IncidentioParams
-func (n *NotificationChannelRequest_Params_OneOf) AsValidatedIncidentioParams() (IncidentioParams, error) {
-	val, err := n.AsIncidentioParams()
+// AsValidatedAlertmanagerChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated AlertmanagerChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedAlertmanagerChannelRequest() (AlertmanagerChannelRequest, error) {
+	val, err := n.AsAlertmanagerChannelRequest()
 	if err != nil {
-		var zero IncidentioParams
+		var zero AlertmanagerChannelRequest
 		return zero, err
 	}
-	if err := n.validateIncidentioParams(val); err != nil {
-		var zero IncidentioParams
+	if err := n.validateAlertmanagerChannelRequest(val); err != nil {
+		var zero AlertmanagerChannelRequest
 		return zero, err
 	}
 	return val, nil
 }
 
-// FromIncidentioParams overwrites any union data inside the NotificationChannelRequest_Params_OneOf as the provided IncidentioParams
-func (n *NotificationChannelRequest_Params_OneOf) FromIncidentioParams(val IncidentioParams) error {
+// FromAlertmanagerChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided AlertmanagerChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromAlertmanagerChannelRequest(val AlertmanagerChannelRequest) error {
 	// Validate before storing
-	if err := n.validateIncidentioParams(val); err != nil {
+	if err := n.validateAlertmanagerChannelRequest(val); err != nil {
 		return err
 	}
 	bts, err := json.Marshal(val)
@@ -1066,146 +1336,764 @@ func (n *NotificationChannelRequest_Params_OneOf) FromIncidentioParams(val Incid
 	return err
 }
 
-// validateSlackParams validates a SlackParams value
-func (n *NotificationChannelRequest_Params_OneOf) validateSlackParams(val SlackParams) error {
+// AsIncidentioChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a IncidentioChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsIncidentioChannelRequest() (IncidentioChannelRequest, error) {
+	return runtime.UnmarshalAs[IncidentioChannelRequest](n.union)
+}
+
+// AsValidatedIncidentioChannelRequest returns the union data inside the NotificationChannelRequest_OneOf as a validated IncidentioChannelRequest
+func (n *NotificationChannelRequest_OneOf) AsValidatedIncidentioChannelRequest() (IncidentioChannelRequest, error) {
+	val, err := n.AsIncidentioChannelRequest()
+	if err != nil {
+		var zero IncidentioChannelRequest
+		return zero, err
+	}
+	if err := n.validateIncidentioChannelRequest(val); err != nil {
+		var zero IncidentioChannelRequest
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromIncidentioChannelRequest overwrites any union data inside the NotificationChannelRequest_OneOf as the provided IncidentioChannelRequest
+func (n *NotificationChannelRequest_OneOf) FromIncidentioChannelRequest(val IncidentioChannelRequest) error {
+	// Validate before storing
+	if err := n.validateIncidentioChannelRequest(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// validateEmailChannelRequest validates a EmailChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validateEmailChannelRequest(val EmailChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validateGoogleChatParams validates a GoogleChatParams value
-func (n *NotificationChannelRequest_Params_OneOf) validateGoogleChatParams(val GoogleChatParams) error {
+// validateSlackChannelRequest validates a SlackChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validateSlackChannelRequest(val SlackChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validateMattermostParams validates a MattermostParams value
-func (n *NotificationChannelRequest_Params_OneOf) validateMattermostParams(val MattermostParams) error {
+// validateGoogleChatChannelRequest validates a GoogleChatChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validateGoogleChatChannelRequest(val GoogleChatChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validatePagerdutyParams validates a PagerdutyParams value
-func (n *NotificationChannelRequest_Params_OneOf) validatePagerdutyParams(val PagerdutyParams) error {
+// validateMattermostChannelRequest validates a MattermostChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validateMattermostChannelRequest(val MattermostChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validateServicenowParams validates a ServicenowParams value
-func (n *NotificationChannelRequest_Params_OneOf) validateServicenowParams(val ServicenowParams) error {
+// validatePagerdutyChannelRequest validates a PagerdutyChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validatePagerdutyChannelRequest(val PagerdutyChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validateOpsgenieParams validates a OpsgenieParams value
-func (n *NotificationChannelRequest_Params_OneOf) validateOpsgenieParams(val OpsgenieParams) error {
+// validateServicenowChannelRequest validates a ServicenowChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validateServicenowChannelRequest(val ServicenowChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validateTelegramParams validates a TelegramParams value
-func (n *NotificationChannelRequest_Params_OneOf) validateTelegramParams(val TelegramParams) error {
+// validateOpsgenieChannelRequest validates a OpsgenieChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validateOpsgenieChannelRequest(val OpsgenieChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validateTeamsParams validates a TeamsParams value
-func (n *NotificationChannelRequest_Params_OneOf) validateTeamsParams(val TeamsParams) error {
+// validateTelegramChannelRequest validates a TelegramChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validateTelegramChannelRequest(val TelegramChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validatePushoverParams validates a PushoverParams value
-func (n *NotificationChannelRequest_Params_OneOf) validatePushoverParams(val PushoverParams) error {
+// validateTeamsChannelRequest validates a TeamsChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validateTeamsChannelRequest(val TeamsChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validateWebhookParams validates a WebhookParams value
-func (n *NotificationChannelRequest_Params_OneOf) validateWebhookParams(val WebhookParams) error {
+// validatePushoverChannelRequest validates a PushoverChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validatePushoverChannelRequest(val PushoverChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validateAlertmanagerParams validates a AlertmanagerParams value
-func (n *NotificationChannelRequest_Params_OneOf) validateAlertmanagerParams(val AlertmanagerParams) error {
+// validateWebhookChannelRequest validates a WebhookChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validateWebhookChannelRequest(val WebhookChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-// validateIncidentioParams validates a IncidentioParams value
-func (n *NotificationChannelRequest_Params_OneOf) validateIncidentioParams(val IncidentioParams) error {
+// validateAlertmanagerChannelRequest validates a AlertmanagerChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validateAlertmanagerChannelRequest(val AlertmanagerChannelRequest) error {
 	if v, ok := any(val).(runtime.Validator); ok {
 		return v.Validate()
 	}
 	return nil
 }
 
-func (n NotificationChannelRequest_Params_OneOf) MarshalJSON() ([]byte, error) {
+// validateIncidentioChannelRequest validates a IncidentioChannelRequest value
+func (n *NotificationChannelRequest_OneOf) validateIncidentioChannelRequest(val IncidentioChannelRequest) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+func (n NotificationChannelRequest_OneOf) discriminator(data []byte) (string, error) {
+	var discriminator struct {
+		Value string `json:"type"`
+	}
+	if err := json.Unmarshal(data, &discriminator); err != nil {
+		return "", err
+	}
+	return discriminator.Value, nil
+}
+
+func (n NotificationChannelRequest_OneOf) ValueByDiscriminator() (any, error) {
+	discriminator, err := n.discriminator(n.union)
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "alertmanager":
+		return n.AsAlertmanagerChannelRequest()
+	case "email":
+		return n.AsEmailChannelRequest()
+	case "google_chat":
+		return n.AsGoogleChatChannelRequest()
+	case "incidentio":
+		return n.AsIncidentioChannelRequest()
+	case "mattermost":
+		return n.AsMattermostChannelRequest()
+	case "opsgenie":
+		return n.AsOpsgenieChannelRequest()
+	case "pagerduty":
+		return n.AsPagerdutyChannelRequest()
+	case "pushover":
+		return n.AsPushoverChannelRequest()
+	case "servicenow":
+		return n.AsServicenowChannelRequest()
+	case "slack":
+		return n.AsSlackChannelRequest()
+	case "teams":
+		return n.AsTeamsChannelRequest()
+	case "telegram":
+		return n.AsTelegramChannelRequest()
+	case "webhook":
+		return n.AsWebhookChannelRequest()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (n NotificationChannelRequest_OneOf) MarshalJSON() ([]byte, error) {
 	bts, err := n.union.MarshalJSON()
 
 	return bts, err
 }
 
-func (n *NotificationChannelRequest_Params_OneOf) UnmarshalJSON(bts []byte) error {
+func (n *NotificationChannelRequest_OneOf) UnmarshalJSON(bts []byte) error {
 	err := n.union.UnmarshalJSON(bts)
 
 	return err
 }
 
-type CreateMonitorBody_OneOf struct {
-	runtime.Either[MetricMonitorRequest, ErrorMonitorRequest]
+type NotificationChannel_OneOf struct {
+	union json.RawMessage
 }
 
-func (c *CreateMonitorBody_OneOf) Validate() error {
-	if c.IsA() {
-		if v, ok := any(c.A).(runtime.Validator); ok {
-			return v.Validate()
-		}
+func (n *NotificationChannel_OneOf) Validate() error {
+	// NOTE: Validation is not supported for unions with more than 2 elements.
+	// Validating would require unmarshaling against each possible type, which is inefficient.
+	// Use AsValidated<Type>() methods to validate after retrieving the specific type.
+	return nil
+}
+
+// Raw returns the union data inside the NotificationChannel_OneOf as bytes
+func (n *NotificationChannel_OneOf) Raw() json.RawMessage {
+	return n.union
+}
+
+// AsEmailChannel returns the union data inside the NotificationChannel_OneOf as a EmailChannel
+func (n *NotificationChannel_OneOf) AsEmailChannel() (EmailChannel, error) {
+	return runtime.UnmarshalAs[EmailChannel](n.union)
+}
+
+// AsValidatedEmailChannel returns the union data inside the NotificationChannel_OneOf as a validated EmailChannel
+func (n *NotificationChannel_OneOf) AsValidatedEmailChannel() (EmailChannel, error) {
+	val, err := n.AsEmailChannel()
+	if err != nil {
+		var zero EmailChannel
+		return zero, err
 	}
-	if c.IsB() {
-		if v, ok := any(c.B).(runtime.Validator); ok {
-			return v.Validate()
-		}
+	if err := n.validateEmailChannel(val); err != nil {
+		var zero EmailChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromEmailChannel overwrites any union data inside the NotificationChannel_OneOf as the provided EmailChannel
+func (n *NotificationChannel_OneOf) FromEmailChannel(val EmailChannel) error {
+	// Validate before storing
+	if err := n.validateEmailChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsSlackChannel returns the union data inside the NotificationChannel_OneOf as a SlackChannel
+func (n *NotificationChannel_OneOf) AsSlackChannel() (SlackChannel, error) {
+	return runtime.UnmarshalAs[SlackChannel](n.union)
+}
+
+// AsValidatedSlackChannel returns the union data inside the NotificationChannel_OneOf as a validated SlackChannel
+func (n *NotificationChannel_OneOf) AsValidatedSlackChannel() (SlackChannel, error) {
+	val, err := n.AsSlackChannel()
+	if err != nil {
+		var zero SlackChannel
+		return zero, err
+	}
+	if err := n.validateSlackChannel(val); err != nil {
+		var zero SlackChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromSlackChannel overwrites any union data inside the NotificationChannel_OneOf as the provided SlackChannel
+func (n *NotificationChannel_OneOf) FromSlackChannel(val SlackChannel) error {
+	// Validate before storing
+	if err := n.validateSlackChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsGoogleChatChannel returns the union data inside the NotificationChannel_OneOf as a GoogleChatChannel
+func (n *NotificationChannel_OneOf) AsGoogleChatChannel() (GoogleChatChannel, error) {
+	return runtime.UnmarshalAs[GoogleChatChannel](n.union)
+}
+
+// AsValidatedGoogleChatChannel returns the union data inside the NotificationChannel_OneOf as a validated GoogleChatChannel
+func (n *NotificationChannel_OneOf) AsValidatedGoogleChatChannel() (GoogleChatChannel, error) {
+	val, err := n.AsGoogleChatChannel()
+	if err != nil {
+		var zero GoogleChatChannel
+		return zero, err
+	}
+	if err := n.validateGoogleChatChannel(val); err != nil {
+		var zero GoogleChatChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromGoogleChatChannel overwrites any union data inside the NotificationChannel_OneOf as the provided GoogleChatChannel
+func (n *NotificationChannel_OneOf) FromGoogleChatChannel(val GoogleChatChannel) error {
+	// Validate before storing
+	if err := n.validateGoogleChatChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsMattermostChannel returns the union data inside the NotificationChannel_OneOf as a MattermostChannel
+func (n *NotificationChannel_OneOf) AsMattermostChannel() (MattermostChannel, error) {
+	return runtime.UnmarshalAs[MattermostChannel](n.union)
+}
+
+// AsValidatedMattermostChannel returns the union data inside the NotificationChannel_OneOf as a validated MattermostChannel
+func (n *NotificationChannel_OneOf) AsValidatedMattermostChannel() (MattermostChannel, error) {
+	val, err := n.AsMattermostChannel()
+	if err != nil {
+		var zero MattermostChannel
+		return zero, err
+	}
+	if err := n.validateMattermostChannel(val); err != nil {
+		var zero MattermostChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromMattermostChannel overwrites any union data inside the NotificationChannel_OneOf as the provided MattermostChannel
+func (n *NotificationChannel_OneOf) FromMattermostChannel(val MattermostChannel) error {
+	// Validate before storing
+	if err := n.validateMattermostChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsPagerdutyChannel returns the union data inside the NotificationChannel_OneOf as a PagerdutyChannel
+func (n *NotificationChannel_OneOf) AsPagerdutyChannel() (PagerdutyChannel, error) {
+	return runtime.UnmarshalAs[PagerdutyChannel](n.union)
+}
+
+// AsValidatedPagerdutyChannel returns the union data inside the NotificationChannel_OneOf as a validated PagerdutyChannel
+func (n *NotificationChannel_OneOf) AsValidatedPagerdutyChannel() (PagerdutyChannel, error) {
+	val, err := n.AsPagerdutyChannel()
+	if err != nil {
+		var zero PagerdutyChannel
+		return zero, err
+	}
+	if err := n.validatePagerdutyChannel(val); err != nil {
+		var zero PagerdutyChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromPagerdutyChannel overwrites any union data inside the NotificationChannel_OneOf as the provided PagerdutyChannel
+func (n *NotificationChannel_OneOf) FromPagerdutyChannel(val PagerdutyChannel) error {
+	// Validate before storing
+	if err := n.validatePagerdutyChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsServicenowChannel returns the union data inside the NotificationChannel_OneOf as a ServicenowChannel
+func (n *NotificationChannel_OneOf) AsServicenowChannel() (ServicenowChannel, error) {
+	return runtime.UnmarshalAs[ServicenowChannel](n.union)
+}
+
+// AsValidatedServicenowChannel returns the union data inside the NotificationChannel_OneOf as a validated ServicenowChannel
+func (n *NotificationChannel_OneOf) AsValidatedServicenowChannel() (ServicenowChannel, error) {
+	val, err := n.AsServicenowChannel()
+	if err != nil {
+		var zero ServicenowChannel
+		return zero, err
+	}
+	if err := n.validateServicenowChannel(val); err != nil {
+		var zero ServicenowChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromServicenowChannel overwrites any union data inside the NotificationChannel_OneOf as the provided ServicenowChannel
+func (n *NotificationChannel_OneOf) FromServicenowChannel(val ServicenowChannel) error {
+	// Validate before storing
+	if err := n.validateServicenowChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsOpsgenieChannel returns the union data inside the NotificationChannel_OneOf as a OpsgenieChannel
+func (n *NotificationChannel_OneOf) AsOpsgenieChannel() (OpsgenieChannel, error) {
+	return runtime.UnmarshalAs[OpsgenieChannel](n.union)
+}
+
+// AsValidatedOpsgenieChannel returns the union data inside the NotificationChannel_OneOf as a validated OpsgenieChannel
+func (n *NotificationChannel_OneOf) AsValidatedOpsgenieChannel() (OpsgenieChannel, error) {
+	val, err := n.AsOpsgenieChannel()
+	if err != nil {
+		var zero OpsgenieChannel
+		return zero, err
+	}
+	if err := n.validateOpsgenieChannel(val); err != nil {
+		var zero OpsgenieChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromOpsgenieChannel overwrites any union data inside the NotificationChannel_OneOf as the provided OpsgenieChannel
+func (n *NotificationChannel_OneOf) FromOpsgenieChannel(val OpsgenieChannel) error {
+	// Validate before storing
+	if err := n.validateOpsgenieChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsTelegramChannel returns the union data inside the NotificationChannel_OneOf as a TelegramChannel
+func (n *NotificationChannel_OneOf) AsTelegramChannel() (TelegramChannel, error) {
+	return runtime.UnmarshalAs[TelegramChannel](n.union)
+}
+
+// AsValidatedTelegramChannel returns the union data inside the NotificationChannel_OneOf as a validated TelegramChannel
+func (n *NotificationChannel_OneOf) AsValidatedTelegramChannel() (TelegramChannel, error) {
+	val, err := n.AsTelegramChannel()
+	if err != nil {
+		var zero TelegramChannel
+		return zero, err
+	}
+	if err := n.validateTelegramChannel(val); err != nil {
+		var zero TelegramChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromTelegramChannel overwrites any union data inside the NotificationChannel_OneOf as the provided TelegramChannel
+func (n *NotificationChannel_OneOf) FromTelegramChannel(val TelegramChannel) error {
+	// Validate before storing
+	if err := n.validateTelegramChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsTeamsChannel returns the union data inside the NotificationChannel_OneOf as a TeamsChannel
+func (n *NotificationChannel_OneOf) AsTeamsChannel() (TeamsChannel, error) {
+	return runtime.UnmarshalAs[TeamsChannel](n.union)
+}
+
+// AsValidatedTeamsChannel returns the union data inside the NotificationChannel_OneOf as a validated TeamsChannel
+func (n *NotificationChannel_OneOf) AsValidatedTeamsChannel() (TeamsChannel, error) {
+	val, err := n.AsTeamsChannel()
+	if err != nil {
+		var zero TeamsChannel
+		return zero, err
+	}
+	if err := n.validateTeamsChannel(val); err != nil {
+		var zero TeamsChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromTeamsChannel overwrites any union data inside the NotificationChannel_OneOf as the provided TeamsChannel
+func (n *NotificationChannel_OneOf) FromTeamsChannel(val TeamsChannel) error {
+	// Validate before storing
+	if err := n.validateTeamsChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsPushoverChannel returns the union data inside the NotificationChannel_OneOf as a PushoverChannel
+func (n *NotificationChannel_OneOf) AsPushoverChannel() (PushoverChannel, error) {
+	return runtime.UnmarshalAs[PushoverChannel](n.union)
+}
+
+// AsValidatedPushoverChannel returns the union data inside the NotificationChannel_OneOf as a validated PushoverChannel
+func (n *NotificationChannel_OneOf) AsValidatedPushoverChannel() (PushoverChannel, error) {
+	val, err := n.AsPushoverChannel()
+	if err != nil {
+		var zero PushoverChannel
+		return zero, err
+	}
+	if err := n.validatePushoverChannel(val); err != nil {
+		var zero PushoverChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromPushoverChannel overwrites any union data inside the NotificationChannel_OneOf as the provided PushoverChannel
+func (n *NotificationChannel_OneOf) FromPushoverChannel(val PushoverChannel) error {
+	// Validate before storing
+	if err := n.validatePushoverChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsWebhookChannel returns the union data inside the NotificationChannel_OneOf as a WebhookChannel
+func (n *NotificationChannel_OneOf) AsWebhookChannel() (WebhookChannel, error) {
+	return runtime.UnmarshalAs[WebhookChannel](n.union)
+}
+
+// AsValidatedWebhookChannel returns the union data inside the NotificationChannel_OneOf as a validated WebhookChannel
+func (n *NotificationChannel_OneOf) AsValidatedWebhookChannel() (WebhookChannel, error) {
+	val, err := n.AsWebhookChannel()
+	if err != nil {
+		var zero WebhookChannel
+		return zero, err
+	}
+	if err := n.validateWebhookChannel(val); err != nil {
+		var zero WebhookChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromWebhookChannel overwrites any union data inside the NotificationChannel_OneOf as the provided WebhookChannel
+func (n *NotificationChannel_OneOf) FromWebhookChannel(val WebhookChannel) error {
+	// Validate before storing
+	if err := n.validateWebhookChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsAlertmanagerChannel returns the union data inside the NotificationChannel_OneOf as a AlertmanagerChannel
+func (n *NotificationChannel_OneOf) AsAlertmanagerChannel() (AlertmanagerChannel, error) {
+	return runtime.UnmarshalAs[AlertmanagerChannel](n.union)
+}
+
+// AsValidatedAlertmanagerChannel returns the union data inside the NotificationChannel_OneOf as a validated AlertmanagerChannel
+func (n *NotificationChannel_OneOf) AsValidatedAlertmanagerChannel() (AlertmanagerChannel, error) {
+	val, err := n.AsAlertmanagerChannel()
+	if err != nil {
+		var zero AlertmanagerChannel
+		return zero, err
+	}
+	if err := n.validateAlertmanagerChannel(val); err != nil {
+		var zero AlertmanagerChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromAlertmanagerChannel overwrites any union data inside the NotificationChannel_OneOf as the provided AlertmanagerChannel
+func (n *NotificationChannel_OneOf) FromAlertmanagerChannel(val AlertmanagerChannel) error {
+	// Validate before storing
+	if err := n.validateAlertmanagerChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// AsIncidentioChannel returns the union data inside the NotificationChannel_OneOf as a IncidentioChannel
+func (n *NotificationChannel_OneOf) AsIncidentioChannel() (IncidentioChannel, error) {
+	return runtime.UnmarshalAs[IncidentioChannel](n.union)
+}
+
+// AsValidatedIncidentioChannel returns the union data inside the NotificationChannel_OneOf as a validated IncidentioChannel
+func (n *NotificationChannel_OneOf) AsValidatedIncidentioChannel() (IncidentioChannel, error) {
+	val, err := n.AsIncidentioChannel()
+	if err != nil {
+		var zero IncidentioChannel
+		return zero, err
+	}
+	if err := n.validateIncidentioChannel(val); err != nil {
+		var zero IncidentioChannel
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromIncidentioChannel overwrites any union data inside the NotificationChannel_OneOf as the provided IncidentioChannel
+func (n *NotificationChannel_OneOf) FromIncidentioChannel(val IncidentioChannel) error {
+	// Validate before storing
+	if err := n.validateIncidentioChannel(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	n.union = bts
+	return err
+}
+
+// validateEmailChannel validates a EmailChannel value
+func (n *NotificationChannel_OneOf) validateEmailChannel(val EmailChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
 	}
 	return nil
 }
 
-type UpdateMonitorBody_OneOf struct {
-	runtime.Either[MetricMonitorRequest, ErrorMonitorRequest]
-}
-
-func (u *UpdateMonitorBody_OneOf) Validate() error {
-	if u.IsA() {
-		if v, ok := any(u.A).(runtime.Validator); ok {
-			return v.Validate()
-		}
-	}
-	if u.IsB() {
-		if v, ok := any(u.B).(runtime.Validator); ok {
-			return v.Validate()
-		}
+// validateSlackChannel validates a SlackChannel value
+func (n *NotificationChannel_OneOf) validateSlackChannel(val SlackChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
 	}
 	return nil
+}
+
+// validateGoogleChatChannel validates a GoogleChatChannel value
+func (n *NotificationChannel_OneOf) validateGoogleChatChannel(val GoogleChatChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateMattermostChannel validates a MattermostChannel value
+func (n *NotificationChannel_OneOf) validateMattermostChannel(val MattermostChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validatePagerdutyChannel validates a PagerdutyChannel value
+func (n *NotificationChannel_OneOf) validatePagerdutyChannel(val PagerdutyChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateServicenowChannel validates a ServicenowChannel value
+func (n *NotificationChannel_OneOf) validateServicenowChannel(val ServicenowChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateOpsgenieChannel validates a OpsgenieChannel value
+func (n *NotificationChannel_OneOf) validateOpsgenieChannel(val OpsgenieChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateTelegramChannel validates a TelegramChannel value
+func (n *NotificationChannel_OneOf) validateTelegramChannel(val TelegramChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateTeamsChannel validates a TeamsChannel value
+func (n *NotificationChannel_OneOf) validateTeamsChannel(val TeamsChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validatePushoverChannel validates a PushoverChannel value
+func (n *NotificationChannel_OneOf) validatePushoverChannel(val PushoverChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateWebhookChannel validates a WebhookChannel value
+func (n *NotificationChannel_OneOf) validateWebhookChannel(val WebhookChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateAlertmanagerChannel validates a AlertmanagerChannel value
+func (n *NotificationChannel_OneOf) validateAlertmanagerChannel(val AlertmanagerChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateIncidentioChannel validates a IncidentioChannel value
+func (n *NotificationChannel_OneOf) validateIncidentioChannel(val IncidentioChannel) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+func (n NotificationChannel_OneOf) discriminator(data []byte) (string, error) {
+	var discriminator struct {
+		Value string `json:"type"`
+	}
+	if err := json.Unmarshal(data, &discriminator); err != nil {
+		return "", err
+	}
+	return discriminator.Value, nil
+}
+
+func (n NotificationChannel_OneOf) ValueByDiscriminator() (any, error) {
+	discriminator, err := n.discriminator(n.union)
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "alertmanager":
+		return n.AsAlertmanagerChannel()
+	case "email":
+		return n.AsEmailChannel()
+	case "google_chat":
+		return n.AsGoogleChatChannel()
+	case "incidentio":
+		return n.AsIncidentioChannel()
+	case "mattermost":
+		return n.AsMattermostChannel()
+	case "opsgenie":
+		return n.AsOpsgenieChannel()
+	case "pagerduty":
+		return n.AsPagerdutyChannel()
+	case "pushover":
+		return n.AsPushoverChannel()
+	case "servicenow":
+		return n.AsServicenowChannel()
+	case "slack":
+		return n.AsSlackChannel()
+	case "teams":
+		return n.AsTeamsChannel()
+	case "telegram":
+		return n.AsTelegramChannel()
+	case "webhook":
+		return n.AsWebhookChannel()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (n NotificationChannel_OneOf) MarshalJSON() ([]byte, error) {
+	bts, err := n.union.MarshalJSON()
+
+	return bts, err
+}
+
+func (n *NotificationChannel_OneOf) UnmarshalJSON(bts []byte) error {
+	err := n.union.UnmarshalJSON(bts)
+
+	return err
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -19,10 +20,11 @@ func StringFromPtr(s *string) types.String {
 	return types.StringValue(*s)
 }
 
-// PreserveIfEmpty returns the API value, falling back to prior when empty.
-// Use for Sensitive fields the backend may redact on refresh.
+// PreserveIfEmpty returns the API value, falling back to prior when the API
+// redacted it. Use for Sensitive fields: the server answers a secret empty or
+// masked with bullets ("••••••"), never as it was set.
 func PreserveIfEmpty(api string, prior types.String) types.String {
-	if api == "" {
+	if Redacted(api) {
 		return prior
 	}
 	return types.StringValue(api)
@@ -30,10 +32,16 @@ func PreserveIfEmpty(api string, prior types.String) types.String {
 
 // PreserveIfEmptyPtr is PreserveIfEmpty for *string API fields.
 func PreserveIfEmptyPtr(api *string, prior types.String) types.String {
-	if api == nil || *api == "" {
+	if api == nil {
 		return prior
 	}
-	return types.StringValue(*api)
+	return PreserveIfEmpty(*api, prior)
+}
+
+// Redacted reports whether the server withheld a secret value: it sends an
+// empty string or a mask of bullets in its place.
+func Redacted(api string) bool {
+	return api == "" || strings.Contains(api, "\u2022")
 }
 
 // EnumToValue maps *Enum (string-backed) → types.String; nil or "" → Null.

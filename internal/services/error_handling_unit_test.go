@@ -8,8 +8,7 @@ import (
 
 func TestServiceAPIErrorHandlingUsesTFUtilHelpers(t *testing.T) {
 	files := []string{
-		"monitor/error_monitor_resource.go",
-		"monitor/metric_monitor_resource.go",
+		"monitor/resource.go",
 		"notifchan/crud.go",
 		"org/org_resource.go",
 		"project/project_resource.go",

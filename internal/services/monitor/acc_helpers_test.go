@@ -24,7 +24,7 @@ func testAccCheckMonitorDestroy(t *testing.T, resourceType string) resource.Test
 			if rs.Type != resourceType {
 				continue
 			}
-			monitorID, err := strconv.ParseInt(rs.Primary.ID, 10, 64)
+			monitorID, err := strconv.ParseUint(rs.Primary.ID, 10, 64)
 			if err != nil {
 				return fmt.Errorf("invalid monitor ID %q: %w", rs.Primary.ID, err)
 			}
@@ -58,7 +58,7 @@ func deleteMonitorOutOfBand(t *testing.T, projectIDStr, monitorIDStr string) {
 	if err != nil {
 		t.Fatalf("invalid project ID %q: %v", projectIDStr, err)
 	}
-	monitorID, err := strconv.ParseInt(monitorIDStr, 10, 64)
+	monitorID, err := strconv.ParseUint(monitorIDStr, 10, 64)
 	if err != nil {
 		t.Fatalf("invalid monitor ID %q: %v", monitorIDStr, err)
 	}

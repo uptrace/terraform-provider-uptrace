@@ -87,23 +87,32 @@ func (r *OrgResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	tflog.Info(ctx, "creating org", map[string]any{"name": plan.Name.ValueString()})
 
-	createReq := &generated.OrgCreateRequest{
-		Name: plan.Name.ValueString(),
-	}
-	if !plan.Budget.IsNull() && !plan.Budget.IsUnknown() {
-		b := plan.Budget.ValueFloat64()
-		createReq.Budget = &b
-	}
-
 	out, err := r.client.API.CreateOrg(ctx, &generated.CreateOrgRequestOptions{
-		Body: createReq,
+		Body: &generated.OrgCreateRequest{Name: plan.Name.ValueString()},
 	})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "create org failed", err)
 		return
 	}
+	org := out.Org
 
-	orgToModel(&out.Org, &plan)
+	// The create request takes no budget: a configured one is a second call.
+	if !plan.Budget.IsNull() && !plan.Budget.IsUnknown() {
+		budgetOut, err := r.client.API.UpdateOrgBudget(ctx, &generated.UpdateOrgBudgetRequestOptions{
+			PathParams: &generated.UpdateOrgBudgetPath{OrgID: org.ID},
+			Body:       &generated.OrgUpdateBudgetRequest{Budget: plan.Budget.ValueFloat64()},
+		})
+		if err != nil {
+			// The org exists: keep it in state so the next apply retries the budget.
+			orgToModel(&org, &plan)
+			resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+			tfutil.AddAPIError(&resp.Diagnostics, "set org budget failed", err)
+			return
+		}
+		org = budgetOut.Org
+	}
+
+	orgToModel(&org, &plan)
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 
@@ -212,9 +221,5 @@ func (r *OrgResource) ImportState(ctx context.Context, req resource.ImportStateR
 func orgToModel(org *generated.Org, m *orgModel) {
 	m.ID = types.StringValue(strconv.FormatUint(org.ID, 10))
 	m.Name = types.StringValue(org.Name)
-	if org.Budget != nil {
-		m.Budget = types.Float64Value(*org.Budget)
-	} else {
-		m.Budget = types.Float64Null()
-	}
+	m.Budget = types.Float64Value(org.Budget)
 }

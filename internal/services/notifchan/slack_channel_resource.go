@@ -2,6 +2,7 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -173,16 +174,13 @@ func (r *SlackChannelResource) Delete(ctx context.Context, req resource.DeleteRe
 
 // ImportState accepts "<project_id>:<channel_id>".
 func (r *SlackChannelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tfutil.ImportStateCompoundID(ctx, req, resp,
-		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
-		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseInt64},
-	)
+	importChannel(ctx, req, resp)
 }
 
-func buildSlackRequest(ctx context.Context, m *slackChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildSlackRequest(ctx context.Context, m *slackChannelModel) (*channelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	body := &generated.NotificationChannelRequest{Type: generated.NotificationChannelRequestTypeSlack}
+	body := &channelRequest{Type: "slack"}
 	diags.Append(buildSharedRequest(ctx, sharedFields{
 		Name: &m.Name, MatchAll: &m.MatchAll, Condition: &m.Condition,
 		Priorities: &m.Priorities, MonitorIDs: &m.MonitorIDs,
@@ -191,29 +189,24 @@ func buildSlackRequest(ctx context.Context, m *slackChannelModel) (*generated.No
 		return nil, diags
 	}
 
-	p := generated.SlackParams{}
-	if !m.AuthMethod.IsNull() && !m.AuthMethod.IsUnknown() {
-		v := generated.SlackParamsAuthMethod(m.AuthMethod.ValueString())
-		p.AuthMethod = &v
+	// The server requires every key; the ones the auth method does not use go
+	// as empty strings.
+	p := generated.SlackParams{
+		AuthMethod: generated.SlackAuthMethod(m.AuthMethod.ValueString()),
+		WebhookURL: m.WebhookURL.ValueString(),
+		Token:      m.Token.ValueString(),
+		Channel:    m.Channel.ValueString(),
 	}
-	p.WebhookURL = valueStringToPtr(m.WebhookURL)
-	p.Token = valueStringToPtr(m.Token)
-	p.Channel = valueStringToPtr(m.Channel)
 
-	oneOf := &generated.NotificationChannelRequest_Params_OneOf{}
-	if err := oneOf.FromSlackParams(p); err != nil {
-		diags.AddError("failed to set slack params", err.Error())
-		return nil, diags
-	}
-	body.Params = generated.NotificationChannelRequest_Params{NotificationChannelRequest_Params_OneOf: oneOf}
+	body.Params = p
 
 	return body, diags
 }
 
-func applySlackToModel(ctx context.Context, ch *generated.NotificationChannel, dst *slackChannelModel) diag.Diagnostics {
+func applySlackToModel(ctx context.Context, ch *channelResponse, dst *slackChannelModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rejectChannelType(generated.Slack, ch, &diags)
+	rejectChannelType("slack", ch, &diags)
 	if diags.HasError() {
 		return diags
 	}
@@ -227,18 +220,15 @@ func applySlackToModel(ctx context.Context, ch *generated.NotificationChannel, d
 		return diags
 	}
 
-	if ch.Params.NotificationChannel_Params_OneOf == nil {
-		return diags
-	}
-	p, err := ch.Params.NotificationChannel_Params_OneOf.AsSlackParams()
-	if err != nil {
+	var p generated.SlackParams
+	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode slack params", err.Error())
 		return diags
 	}
-	dst.AuthMethod = tfutil.EnumToValue(p.AuthMethod)
-	dst.WebhookURL = tfutil.PreserveIfEmptyPtr(p.WebhookURL, dst.WebhookURL)
-	dst.Token = tfutil.PreserveIfEmptyPtr(p.Token, dst.Token)
-	dst.Channel = tfutil.PreserveIfEmptyPtr(p.Channel, dst.Channel)
+	dst.AuthMethod = tfutil.EnumToValue(&p.AuthMethod)
+	dst.WebhookURL = tfutil.PreserveIfEmpty(p.WebhookURL, dst.WebhookURL)
+	dst.Token = tfutil.PreserveIfEmpty(p.Token, dst.Token)
+	dst.Channel = tfutil.PreserveIfEmpty(p.Channel, dst.Channel)
 
 	return diags
 }

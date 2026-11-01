@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -17,6 +18,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/uptrace/terraform/internal/generated"
+	"github.com/uptrace/terraform/internal/tfutil"
 )
 
 var channelPriorities = []string{"info", "low", "medium", "high"}
@@ -69,7 +71,7 @@ func sharedAttributes() map[string]schema.Attribute {
 		"monitor_ids": schema.SetAttribute{
 			Optional:    true,
 			ElementType: types.StringType,
-			Description: "Monitor IDs to match when match_all is false.",
+			Description: "Monitor IDs to match when match_all is false. Omit to leave the links alone, as when monitors name the channel in their channel_ids; set [] to detach every monitor.",
 		},
 	}
 }
@@ -88,21 +90,16 @@ type sharedFields struct {
 
 // applyShared writes channel fields common to every type from ch into f.
 // Priorities always round-trips; MonitorIDs preserves an explicit empty list.
-func applyShared(ctx context.Context, ch *generated.NotificationChannel, f sharedFields) diag.Diagnostics {
+func applyShared(ctx context.Context, ch *channelResponse, f sharedFields) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	*f.ID = types.StringValue(strconv.FormatInt(ch.ID, 10))
+	*f.ID = types.StringValue(strconv.FormatUint(ch.ID, 10))
 	*f.Name = types.StringValue(ch.Name)
 	*f.Status = types.StringValue(string(ch.Status))
+	*f.MatchAll = types.BoolValue(ch.MatchAll)
 
-	if ch.MatchAll != nil {
-		*f.MatchAll = types.BoolValue(*ch.MatchAll)
-	} else {
-		*f.MatchAll = types.BoolValue(true)
-	}
-
-	if ch.Condition != nil && *ch.Condition != "" {
-		*f.Condition = types.StringValue(*ch.Condition)
+	if ch.Condition != "" {
+		*f.Condition = types.StringValue(ch.Condition)
 	} else {
 		*f.Condition = types.StringNull()
 	}
@@ -121,19 +118,16 @@ func applyShared(ctx context.Context, ch *generated.NotificationChannel, f share
 		*f.Priorities = v
 	}
 
-	switch {
-	case len(ch.MonitorIds) > 0:
+	// An unset monitor_ids does not manage the links (see buildSharedRequest),
+	// so it stays null whatever links the monitors declared.
+	if !f.MonitorIDs.IsNull() {
 		vals := make([]types.String, len(ch.MonitorIds))
 		for i, id := range ch.MonitorIds {
-			vals[i] = types.StringValue(strconv.FormatInt(id, 10))
+			vals[i] = types.StringValue(strconv.FormatUint(id, 10))
 		}
 		v, d := types.SetValueFrom(ctx, types.StringType, vals)
 		diags.Append(d...)
 		*f.MonitorIDs = v
-	case !f.MonitorIDs.IsNull() && !f.MonitorIDs.IsUnknown() && len(f.MonitorIDs.Elements()) == 0:
-		// Prior was an explicit empty set; keep it.
-	default:
-		*f.MonitorIDs = types.SetNull(types.StringType)
 	}
 
 	return diags
@@ -141,7 +135,7 @@ func applyShared(ctx context.Context, ch *generated.NotificationChannel, f share
 
 // buildSharedRequest populates the non-params fields of a channel request
 // from the shared pointer bundle. Callers set Type and Params themselves.
-func buildSharedRequest(ctx context.Context, f sharedFields, body *generated.NotificationChannelRequest) diag.Diagnostics {
+func buildSharedRequest(ctx context.Context, f sharedFields, body *channelRequest) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	body.Name = f.Name.ValueString()
@@ -161,17 +155,21 @@ func buildSharedRequest(ctx context.Context, f sharedFields, body *generated.Not
 		return diags
 	}
 	for _, p := range priorities {
-		body.Priorities = append(body.Priorities, generated.NotificationChannelRequestPriorities(p.ValueString()))
+		body.Priorities = append(body.Priorities, generated.AlertPriority(p.ValueString()))
 	}
 
+	// A channel and a monitor share their links, and either side may declare
+	// them. An unset monitor_ids sends null, which keeps the stored links, so a
+	// monitor's channel_ids can own them; a set one replaces them, [] included.
 	if !f.MonitorIDs.IsNull() && !f.MonitorIDs.IsUnknown() {
+		body.MonitorIds = []uint64{}
 		var monitorIDs []types.String
 		diags.Append(f.MonitorIDs.ElementsAs(ctx, &monitorIDs, false)...)
 		if diags.HasError() {
 			return diags
 		}
 		for _, id := range monitorIDs {
-			v, err := strconv.ParseInt(id.ValueString(), 10, 64)
+			v, err := strconv.ParseUint(id.ValueString(), 10, 64)
 			if err != nil {
 				diags.AddAttributeError(
 					path.Root("monitor_ids"),
@@ -208,13 +206,13 @@ func validateMatchAllRule(matchAll types.Bool, monitorIDs types.Set, diags *diag
 // rejectChannelType guards a per-type read mapper against a stale state or
 // an out-of-band type change. Returns a diagnostic when the API response
 // does not match the expected type.
-func rejectChannelType(expected generated.NotificationChannelType, ch *generated.NotificationChannel, diags *diag.Diagnostics) {
+func rejectChannelType(expected string, ch *channelResponse, diags *diag.Diagnostics) {
 	if ch.Type == expected {
 		return
 	}
 	diags.AddError(
 		"channel type mismatch",
-		"expected notification channel of type "+string(expected)+", but channel id="+strconv.FormatInt(ch.ID, 10)+" is type "+string(ch.Type)+".",
+		"expected notification channel of type "+expected+", but channel id="+strconv.FormatUint(ch.ID, 10)+" is type "+ch.Type+".",
 	)
 }
 
@@ -227,4 +225,14 @@ func valueStringToPtr(v types.String) *string {
 	}
 	s := v.ValueString()
 	return &s
+}
+
+// importChannel accepts "<project_id>:<channel_id>". It sets monitor_ids to
+// an empty set, so the first read fills in the links the channel has.
+func importChannel(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+	tfutil.ImportStateCompoundID(ctx, req, resp,
+		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
+		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseUint64},
+	)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("monitor_ids"), types.SetValueMust(types.StringType, nil))...)
 }

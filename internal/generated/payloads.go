@@ -2,213 +2,83 @@
 
 package generated
 
-import (
-	"bytes"
-	"encoding/json"
-	"fmt"
+// CreateThresholdMonitorBody The create and update body for a threshold monitor.
+type CreateThresholdMonitorBody = ThresholdMonitorRequest
 
-	"github.com/uptrace/oapi-codegen-dd/v3/pkg/runtime"
-)
+// CreateAnomalyMonitorBody The create and update body for an anomaly monitor.
+type CreateAnomalyMonitorBody = AnomalyMonitorRequest
 
-type CreateAnnotationBody = AnnotationCreateRequest
+// CreateOutlierMonitorBody The create and update body for an outlier monitor.
+type CreateOutlierMonitorBody = OutlierMonitorRequest
 
-// SyncFixturesBody Fixture data used to create, update, or delete resources by key.
-type SyncFixturesBody = SeedDataRequest
+// CreateForecastMonitorBody The create and update body for a forecast monitor.
+type CreateForecastMonitorBody = ForecastMonitorRequest
 
-// BindFixtureKeysBody Links existing resources to fixture keys.
-type BindFixtureKeysBody = LinkDataRequest
+// CreateErrorMonitorBody The create and update body for an error monitor.
+type CreateErrorMonitorBody = ErrorMonitorRequest
 
-type CreateMonitorBody struct {
-	CreateMonitorBody_OneOf *CreateMonitorBody_OneOf `json:"-"`
-}
+// CreateSloMonitorBody The create and update body for an SLO monitor.
+type CreateSloMonitorBody = SloMonitorRequest
 
-func (c CreateMonitorBody) Validate() error {
-	var errors runtime.ValidationErrors
-	if c.CreateMonitorBody_OneOf != nil {
-		if v, ok := any(c.CreateMonitorBody_OneOf).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("CreateMonitorBody_OneOf", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-	return errors
-}
+// UpdateThresholdMonitorBody The create and update body for a threshold monitor.
+type UpdateThresholdMonitorBody = ThresholdMonitorRequest
 
-func (c CreateMonitorBody) MarshalJSON() ([]byte, error) {
-	var parts []json.RawMessage
+// UpdateAnomalyMonitorBody The create and update body for an anomaly monitor.
+type UpdateAnomalyMonitorBody = AnomalyMonitorRequest
 
-	{
-		b, err := runtime.MarshalJSON(c.CreateMonitorBody_OneOf)
-		if err != nil {
-			return nil, fmt.Errorf("CreateMonitorBody_OneOf marshal: %w", err)
-		}
-		parts = append(parts, b)
-	}
+// UpdateOutlierMonitorBody The create and update body for an outlier monitor.
+type UpdateOutlierMonitorBody = OutlierMonitorRequest
 
-	return runtime.CoalesceOrMerge(parts...)
-}
+// UpdateForecastMonitorBody The create and update body for a forecast monitor.
+type UpdateForecastMonitorBody = ForecastMonitorRequest
 
-func (c *CreateMonitorBody) UnmarshalJSON(data []byte) error {
-	trim := bytes.TrimSpace(data)
-	if bytes.Equal(trim, []byte("null")) {
-		return nil
-	}
-	if len(trim) == 0 {
-		return fmt.Errorf("empty JSON input")
-	}
+// UpdateErrorMonitorBody The create and update body for an error monitor.
+type UpdateErrorMonitorBody = ErrorMonitorRequest
 
-	if c.CreateMonitorBody_OneOf == nil {
-		c.CreateMonitorBody_OneOf = &CreateMonitorBody_OneOf{}
-	}
+// UpdateSloMonitorBody The create and update body for an SLO monitor.
+type UpdateSloMonitorBody = SloMonitorRequest
 
-	if err := runtime.UnmarshalJSON(data, c.CreateMonitorBody_OneOf); err != nil {
-		return fmt.Errorf("CreateMonitorBody_OneOf unmarshal: %w", err)
-	}
-
-	return nil
-}
-
-type UpdateMonitorBody struct {
-	UpdateMonitorBody_OneOf *UpdateMonitorBody_OneOf `json:"-"`
-}
-
-func (u UpdateMonitorBody) Validate() error {
-	var errors runtime.ValidationErrors
-	if u.UpdateMonitorBody_OneOf != nil {
-		if v, ok := any(u.UpdateMonitorBody_OneOf).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("UpdateMonitorBody_OneOf", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-	return errors
-}
-
-func (u UpdateMonitorBody) MarshalJSON() ([]byte, error) {
-	var parts []json.RawMessage
-
-	{
-		b, err := runtime.MarshalJSON(u.UpdateMonitorBody_OneOf)
-		if err != nil {
-			return nil, fmt.Errorf("UpdateMonitorBody_OneOf marshal: %w", err)
-		}
-		parts = append(parts, b)
-	}
-
-	return runtime.CoalesceOrMerge(parts...)
-}
-
-func (u *UpdateMonitorBody) UnmarshalJSON(data []byte) error {
-	trim := bytes.TrimSpace(data)
-	if bytes.Equal(trim, []byte("null")) {
-		return nil
-	}
-	if len(trim) == 0 {
-		return fmt.Errorf("empty JSON input")
-	}
-
-	if u.UpdateMonitorBody_OneOf == nil {
-		u.UpdateMonitorBody_OneOf = &UpdateMonitorBody_OneOf{}
-	}
-
-	if err := runtime.UnmarshalJSON(data, u.UpdateMonitorBody_OneOf); err != nil {
-		return fmt.Errorf("UpdateMonitorBody_OneOf unmarshal: %w", err)
-	}
-
-	return nil
-}
-
-type PauseMonitorBody struct {
-	// Duration Pause duration in nanoseconds. Minimum 1 hour (3600000000000 ns). Omit for an indefinite pause.
-	Duration *int64 `json:"duration,omitempty" jsonschema:"Pause duration in nanoseconds. Minimum 1 hour (3600000000000 ns). Omit for an indefinite pause." validate:"omitempty,gte=3600000000000"`
-}
-
-func (p PauseMonitorBody) Validate() error {
-	return runtime.ConvertValidatorError(typesValidator.Struct(p))
-}
-
-// CreateDashboardFromYamlBody YAML dashboard definition.
-type CreateDashboardFromYamlBody = string
-
-// UpdateDashboardFromYamlBody YAML dashboard definition.
-type UpdateDashboardFromYamlBody = string
-
-type UpdateDashboardTableBody = DashboardTableUpdate
-
-type UpdateDashboardGridBody struct {
-	GridQuery *string `json:"gridQuery,omitempty"`
-}
-
-type CreateGridItemBody = GridItemRequest
-
-type UpdateGridLayoutBody struct {
-	// SectionID Section ID to update layout for.
-	SectionID int64                      `json:"sectionId" jsonschema:"Section ID to update layout for." validate:"required"`
-	Items     UpdateGridLayoutBody_Items `json:"items" validate:"required"`
-}
-
-func (u UpdateGridLayoutBody) Validate() error {
-	var errors runtime.ValidationErrors
-	if err := typesValidator.Var(u.SectionID, "required"); err != nil {
-		errors = errors.Append("SectionID", err)
-	}
-	if v, ok := any(u.Items).(runtime.Validator); ok {
-		if err := v.Validate(); err != nil {
-			errors = errors.Append("Items", err)
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-	return errors
-}
-
-type UpdateGridItemBody = GridItemRequest
-
-type CreateGridSectionBody = GridSectionRequest
-
-type UpdateGridSectionBody = GridSection
-
+// CreateOrgBody The body that creates an organization.
 type CreateOrgBody = OrgCreateRequest
 
+// UpdateOrgBody The body that updates an organization's settings.
 type UpdateOrgBody = OrgUpdateRequest
 
+// UpdateOrgBudgetBody The body that sets an organization's budget.
 type UpdateOrgBudgetBody = OrgUpdateBudgetRequest
 
+// CreateProjectBody A project's own settings, as the create and the update both write them. The per-signal view defaults are not here: they are written by patch_project, and no group this body reaches has ever read them.
 type CreateProjectBody = ProjectCreateRequest
 
 // CreateOrgUserBody Body for POST /orgs/{org_id}/users. Creates an OrgUser membership for an existing User by ID. Idempotent — re-posting the same userId updates the role.
 type CreateOrgUserBody = OrgUserCreateRequest
 
+// UpdateOrgUserRoleBody The body that sets an organization user's role.
 type UpdateOrgUserRoleBody = OrgUserRoleUpdateRequest
 
-type UpdateOrgUserProjectPermBody = OrgUserProjectUpdateRequest
-
-type CreateOrgInviteBody = UserInviteCreateRequest
-
+// CreateTeamBody The body that creates a team.
 type CreateTeamBody = TeamCreateRequest
 
-// UpdateTeamBody Omitting or sending an empty `name` preserves the existing name. Omitting `permLevel` clears it to null.
+// UpdateTeamBody Omitting or sending an empty `name` preserves the existing name. Omitting `permLevel` keeps the stored level.
 type UpdateTeamBody = TeamUpdateRequest
-
-// AddTeamProjectBody Request body for adding a project to a team. A non-empty JSON body is required so the server can decode it. The `permLevel` field is accepted but currently ignored by the backend.
-type AddTeamProjectBody = TeamProjectAddRequest
 
 // CreateOrglessInviteBody Body for the top-level POST /invites (Terraform path). Only `email` is accepted; `role` and `teamIds` would be meaningless without an org. The caller must have access to at least one organization with an active subscription.
 type CreateOrglessInviteBody = OrglessUserInviteCreateRequest
 
-type UpdateProjectBody = ProjectCreateRequest
+// UpdateProjectBody The body of the project update: the settings the create writes, and the updatedAt of the read that the update is based on.
+type UpdateProjectBody = ProjectUpdateRequest
 
+// PatchProjectBody The per-signal defaults an explorer page saves back onto its project: the query it opens with, the columns its table draws, and the range it looks back over. Every key is optional, and only the ones the body carries are written. A zero time range resets that signal to the deployment default.
+type PatchProjectBody = ProjectViewSettingsRequest
+
+// CreateProjectTokenBody The body that creates a project token.
 type CreateProjectTokenBody = ProjectTokenCreateRequest
 
+// UpdateProjectTokenBody The body that renames a project token.
 type UpdateProjectTokenBody = ProjectTokenUpdateRequest
 
+// CreateNotificationChannelBody The body of a notification-channel create or update. The type field selects the member, and that member names the params the transport reads.
 type CreateNotificationChannelBody = NotificationChannelRequest
 
+// UpdateNotificationChannelBody The body of a notification-channel create or update. The type field selects the member, and that member names the params the transport reads.
 type UpdateNotificationChannelBody = NotificationChannelRequest

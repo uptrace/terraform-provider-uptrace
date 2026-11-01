@@ -106,8 +106,6 @@ func (r *TeamProjectResource) Create(ctx context.Context, req resource.CreateReq
 			TeamID:    teamID,
 			ProjectID: projectID,
 		},
-		// Backend accepts-but-ignores the permLevel body field today; send empty object.
-		Body: &generated.TeamProjectAddRequest{},
 	})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "add team project failed", err)

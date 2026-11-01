@@ -30,16 +30,15 @@ func TestBuildSlackRequest_webhookAuth(t *testing.T) {
 	}
 	body, diags := buildSlackRequest(context.Background(), m)
 	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
-	require.Equal(t, generated.NotificationChannelRequestTypeSlack, body.Type)
+	require.Equal(t, "slack", body.Type)
 
-	p, err := body.Params.NotificationChannelRequest_Params_OneOf.AsSlackParams()
-	require.NoError(t, err)
-	require.NotNil(t, p.AuthMethod)
-	require.Equal(t, generated.SlackParamsAuthMethod("webhook"), *p.AuthMethod)
-	require.NotNil(t, p.WebhookURL)
-	require.Equal(t, "https://hooks.slack.com/X", *p.WebhookURL)
-	require.Nil(t, p.Token)
-	require.Nil(t, p.Channel)
+	p, ok := body.Params.(generated.SlackParams)
+	require.True(t, ok)
+	require.Equal(t, generated.SlackAuthMethod("webhook"), p.AuthMethod)
+	require.Equal(t, "https://hooks.slack.com/X", p.WebhookURL)
+	// The server requires every key: the unused ones go as empty strings.
+	require.Empty(t, p.Token)
+	require.Empty(t, p.Channel)
 }
 
 func TestBuildSlackRequest_tokenAuth(t *testing.T) {
@@ -58,13 +57,11 @@ func TestBuildSlackRequest_tokenAuth(t *testing.T) {
 	body, diags := buildSlackRequest(context.Background(), m)
 	require.False(t, diags.HasError())
 
-	p, err := body.Params.NotificationChannelRequest_Params_OneOf.AsSlackParams()
-	require.NoError(t, err)
-	require.Nil(t, p.WebhookURL, "webhook_url must be omitted for token auth")
-	require.NotNil(t, p.Token)
-	require.Equal(t, "xoxb-t", *p.Token)
-	require.NotNil(t, p.Channel)
-	require.Equal(t, "#alerts", *p.Channel)
+	p, ok := body.Params.(generated.SlackParams)
+	require.True(t, ok)
+	require.Empty(t, p.WebhookURL, "webhook_url goes empty for token auth")
+	require.Equal(t, "xoxb-t", p.Token)
+	require.Equal(t, "#alerts", p.Channel)
 }
 
 // --- apply ---
@@ -74,22 +71,14 @@ func TestBuildSlackRequest_tokenAuth(t *testing.T) {
 // preserve the prior state value in that case so the user's input doesn't
 // disappear from state on refresh.
 func TestApplySlackToModel_preservesRedactedSensitiveValues(t *testing.T) {
-	authMethod := generated.Token
 	raw, _ := json.Marshal(generated.SlackParams{
-		AuthMethod: &authMethod,
-		// WebhookURL/Token/Channel are all redacted as empty-string pointers.
-		WebhookURL: nil,
-		Token:      nil,
-		Channel:    nil,
+		AuthMethod: generated.SlackAuthMethodToken,
+		// WebhookURL/Token/Channel are all redacted as empty strings.
 	})
-	oneOf := &generated.NotificationChannel_Params_OneOf{}
-	require.NoError(t, oneOf.UnmarshalJSON(raw))
-
-	ch := &generated.NotificationChannel{
-		ID: 7, Name: "c", Type: generated.Slack, Status: generated.Delivering,
-		Params: generated.NotificationChannel_Params{
-			NotificationChannel_Params_OneOf: oneOf,
-		},
+	ch := &channelResponse{
+		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 7, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		Type:                    "slack",
+		Params:                  raw,
 	}
 	dst := &slackChannelModel{
 		Token:   types.StringValue("xoxb-prior"),

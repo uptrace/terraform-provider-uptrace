@@ -146,16 +146,13 @@ func (r *WebhookChannelResource) Delete(ctx context.Context, req resource.Delete
 
 // ImportState accepts "<project_id>:<channel_id>".
 func (r *WebhookChannelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tfutil.ImportStateCompoundID(ctx, req, resp,
-		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
-		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseInt64},
-	)
+	importChannel(ctx, req, resp)
 }
 
-func buildWebhookRequest(ctx context.Context, m *webhookChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildWebhookRequest(ctx context.Context, m *webhookChannelModel) (*channelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	body := &generated.NotificationChannelRequest{Type: generated.NotificationChannelRequestTypeWebhook}
+	body := &channelRequest{Type: "webhook"}
 	diags.Append(buildSharedRequest(ctx, sharedFields{
 		Name: &m.Name, MatchAll: &m.MatchAll, Condition: &m.Condition,
 		Priorities: &m.Priorities, MonitorIDs: &m.MonitorIDs,
@@ -174,20 +171,15 @@ func buildWebhookRequest(ctx context.Context, m *webhookChannelModel) (*generate
 		p.Payload = payload
 	}
 
-	oneOf := &generated.NotificationChannelRequest_Params_OneOf{}
-	if err := oneOf.FromWebhookParams(p); err != nil {
-		diags.AddError("failed to set webhook params", err.Error())
-		return nil, diags
-	}
-	body.Params = generated.NotificationChannelRequest_Params{NotificationChannelRequest_Params_OneOf: oneOf}
+	body.Params = p
 
 	return body, diags
 }
 
-func applyWebhookToModel(ctx context.Context, ch *generated.NotificationChannel, dst *webhookChannelModel) diag.Diagnostics {
+func applyWebhookToModel(ctx context.Context, ch *channelResponse, dst *webhookChannelModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rejectChannelType(generated.NotificationChannelTypeWebhook, ch, &diags)
+	rejectChannelType("webhook", ch, &diags)
 	if diags.HasError() {
 		return diags
 	}
@@ -201,11 +193,8 @@ func applyWebhookToModel(ctx context.Context, ch *generated.NotificationChannel,
 		return diags
 	}
 
-	if ch.Params.NotificationChannel_Params_OneOf == nil {
-		return diags
-	}
-	p, err := ch.Params.NotificationChannel_Params_OneOf.AsWebhookParams()
-	if err != nil {
+	var p generated.WebhookParams
+	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode webhook params", err.Error())
 		return diags
 	}

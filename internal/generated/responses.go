@@ -2,425 +2,182 @@
 
 package generated
 
-// BadRequest Uniform error envelope returned for every non-2xx response.
-type BadRequest = Error
+// BadRequest RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type BadRequest = ProblemDetails
 
-// Unauthorized Uniform error envelope returned for every non-2xx response.
-type Unauthorized = Error
+// Unauthorized RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type Unauthorized = ProblemDetails
 
-// PaymentRequired Uniform error envelope returned for every non-2xx response.
-type PaymentRequired = Error
+// Forbidden RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type Forbidden = ProblemDetails
 
-// Forbidden Uniform error envelope returned for every non-2xx response.
-type Forbidden = Error
+// InternalError RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type InternalError = ProblemDetails
 
-// NotFound Uniform error envelope returned for every non-2xx response.
-type NotFound = Error
+// TooManyRequests RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type TooManyRequests = ProblemDetails
 
-// InternalError Uniform error envelope returned for every non-2xx response.
-type InternalError = Error
+// NotFound RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type NotFound = ProblemDetails
 
-type CreateAnnotationErrorResponse = BadRequest
+// PaymentRequired RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type PaymentRequired = ProblemDetails
 
-type PublicListSpansResponse struct {
-	// Spans Array of span objects.
-	Spans []Span `json:"spans" jsonschema:"Array of span objects." validate:"required"`
-
-	// HasMore Whether more results exist beyond the limit.
-	HasMore *bool `json:"hasMore,omitempty" jsonschema:"Whether more results exist beyond the limit."`
-}
-
-type PublicListSpansErrorResponse = BadRequest
-
-type PublicListSpanGroupsResponse struct {
-	// Groups Array of group rows with dynamic columns based on the query.
-	Groups []map[string]any `json:"groups" jsonschema:"Array of group rows with dynamic columns based on the query." validate:"required"`
-
-	// HasMore Whether more results exist beyond the limit.
-	HasMore *bool `json:"hasMore,omitempty" jsonschema:"Whether more results exist beyond the limit."`
-}
-
-type PublicListSpanGroupsErrorResponse = BadRequest
-
-type ListSpansResponse struct {
-	// Spans Array of span objects.
-	Spans []Span `json:"spans" jsonschema:"Array of span objects." validate:"required"`
-
-	// Count Total count of matching spans.
-	Count int64 `json:"count" jsonschema:"Total count of matching spans." validate:"required"`
-
-	// Query Parsed query parts with error state.
-	Query []map[string]any `json:"query,omitempty" jsonschema:"Parsed query parts with error state."`
-
-	// Sorting Applied sorting configuration.
-	Sorting []OrderItem `json:"sorting,omitempty" jsonschema:"Applied sorting configuration."`
-
-	// Search Applied search matchers.
-	Search []map[string]any `json:"search,omitempty" jsonschema:"Applied search matchers."`
-
-	// WhereAttrs Map of WHERE attribute names to their matched values.
-	WhereAttrs map[string]any `json:"whereAttrs,omitempty" jsonschema:"Map of WHERE attribute names to their matched values."`
-}
-
-type ListSpansErrorResponse = BadRequest
-
-// ListSpanGroupsResponse Result of a span group aggregation query.
-type ListSpanGroupsResponse = GroupsResult
-
-type ListSpanGroupsErrorResponse = BadRequest
-
-type QueryTimeseriesResponse struct {
-	// Groups Array of group rows. Aggregated columns contain arrays of float values aligned with the time array.
-	Groups []map[string]any `json:"groups" jsonschema:"Array of group rows. Aggregated columns contain arrays of float values aligned with the time array." validate:"required"`
-
-	// Columns Column definitions for the result.
-	Columns []QueryColumn `json:"columns,omitempty" jsonschema:"Column definitions for the result."`
-
-	// Time Array of aligned timestamps as unix milliseconds.
-	Time []float64 `json:"time" jsonschema:"Array of aligned timestamps as unix milliseconds." validate:"required"`
-
-	// Interval Time interval between data points in milliseconds.
-	Interval int64 `json:"interval" jsonschema:"Time interval between data points in milliseconds." validate:"required"`
-
-	// Query Parsed query parts with error state.
-	Query []map[string]any `json:"query,omitempty" jsonschema:"Parsed query parts with error state."`
-
-	// Sorting Applied sorting configuration.
-	Sorting []OrderItem `json:"sorting,omitempty" jsonschema:"Applied sorting configuration."`
-
-	// WhereAttrs Map of WHERE attribute names to their matched values.
-	WhereAttrs map[string]any `json:"whereAttrs,omitempty" jsonschema:"Map of WHERE attribute names to their matched values."`
-}
-
-type QueryTimeseriesErrorResponse = BadRequest
-
-type QueryQuantilesResponse struct {
-	// Timeseries Array of named timeseries. Names include: count, countPerMin, errorCount, errorCountPerMin, durationP50, durationP90, durationP99, durationMax.
-	Timeseries []Timeseries `json:"timeseries" jsonschema:"Array of named timeseries. Names include: count, countPerMin, errorCount, errorCountPerMin, durationP50, durationP90, durationP99, durationMax." validate:"required"`
-}
-
-type QueryQuantilesErrorResponse = BadRequest
-
-// ListTraceGroupsResponse Result of a span group aggregation query.
-type ListTraceGroupsResponse = GroupsResult
-
-type ListTraceGroupsErrorResponse = BadRequest
-
-type ListTracesResponse struct {
-	// Spans Root spans for matching traces.
-	Spans []Span `json:"spans" jsonschema:"Root spans for matching traces." validate:"required"`
-
-	// Count Total count of matching traces.
-	Count int64 `json:"count" jsonschema:"Total count of matching traces." validate:"required"`
-
-	// Query Parsed query parts with error state.
-	Query []map[string]any `json:"query,omitempty" jsonschema:"Parsed query parts with error state."`
-
-	// Join Parsed sub-query clauses for each non-root joined alias. One entry per non-root sub-query passed in query[]/alias[]/system[].
-	Join [][]map[string]any `json:"join,omitempty" jsonschema:"Parsed sub-query clauses for each non-root joined alias. One entry per non-root sub-query passed in query[]/alias[]/system[]."`
-
-	// Sorting Applied sorting configuration.
-	Sorting []OrderItem `json:"sorting,omitempty" jsonschema:"Applied sorting configuration."`
-
-	// Search Applied search matchers.
-	Search []map[string]any `json:"search,omitempty" jsonschema:"Applied search matchers."`
-
-	// WhereAttrs Map of WHERE attribute names to their matched values.
-	WhereAttrs map[string]any `json:"whereAttrs,omitempty" jsonschema:"Map of WHERE attribute names to their matched values."`
-}
-
-type ListTracesErrorResponse = BadRequest
-
-type SyncFixturesErrorResponse = BadRequest
-
-type BindFixtureKeysErrorResponse = BadRequest
-
-type ListMonitorsResponse struct {
-	Monitors []Monitor `json:"monitors" validate:"required"`
-
-	// Statuses Per-status monitor counts across the project (ignores the status filter).
-	Statuses []MonitorStatusCount `json:"statuses,omitempty" jsonschema:"Per-status monitor counts across the project (ignores the status filter)."`
-
-	// Count Total number of monitors matching the current filter.
-	Count *int64 `json:"count,omitempty" jsonschema:"Total number of monitors matching the current filter."`
-
-	// Search Parsed search matchers applied to the request.
-	Search []map[string]any `json:"search,omitempty" jsonschema:"Parsed search matchers applied to the request."`
-}
-
-type ListMonitorsErrorResponse = BadRequest
-
-type CreateMonitorResponse = MonitorResponse
-
-type CreateMonitorErrorResponse = BadRequest
-
+// GetMonitorResponse The answer the monitor detail read serves.
 type GetMonitorResponse = MonitorResponse
 
 type GetMonitorErrorResponse = BadRequest
 
-type UpdateMonitorResponse = MonitorResponse
-
-type UpdateMonitorErrorResponse = BadRequest
-
-type DeleteMonitorResponse = MonitorResponse
+// DeleteMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type DeleteMonitorResponse = MonitorSummaryResponse
 
 type DeleteMonitorErrorResponse = BadRequest
 
-type ActivateMonitorResponse = MonitorResponse
+// CreateThresholdMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type CreateThresholdMonitorResponse = MonitorSummaryResponse
 
-type ActivateMonitorErrorResponse = BadRequest
+type CreateThresholdMonitorErrorResponse = BadRequest
 
-type PauseMonitorResponse = MonitorResponse
+// CreateAnomalyMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type CreateAnomalyMonitorResponse = MonitorSummaryResponse
 
-type PauseMonitorErrorResponse = BadRequest
+type CreateAnomalyMonitorErrorResponse = BadRequest
 
-type ListDashboardsResponse struct {
-	Dashboards []Dashboard `json:"dashboards" validate:"required"`
+// CreateOutlierMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type CreateOutlierMonitorResponse = MonitorSummaryResponse
 
-	// NoData True when no dashboards exist for the project at all (independent of the current filter).
-	NoData *bool `json:"noData,omitempty" jsonschema:"True when no dashboards exist for the project at all (independent of the current filter)."`
-}
+type CreateOutlierMonitorErrorResponse = BadRequest
 
-type ListDashboardsErrorResponse = BadRequest
+// CreateForecastMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type CreateForecastMonitorResponse = MonitorSummaryResponse
 
-type ListDashboardTagsResponse struct {
-	Tags []string `json:"tags" validate:"required"`
-}
+type CreateForecastMonitorErrorResponse = BadRequest
 
-type ListDashboardTagsErrorResponse = BadRequest
+// CreateErrorMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type CreateErrorMonitorResponse = MonitorSummaryResponse
 
-type GetDashboardTemplateSchemaResponse = map[string]any
+type CreateErrorMonitorErrorResponse = BadRequest
 
-type ListDashboardTemplatesResponseJSON = ListDashboardTemplatesResponse
+// CreateSloMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type CreateSloMonitorResponse = MonitorSummaryResponse
 
-type ListDashboardTemplatesErrorResponse = BadRequest
+type CreateSloMonitorErrorResponse = BadRequest
 
-type GetDashboardTemplateResponseJSON = GetDashboardTemplateResponse
+// UpdateThresholdMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type UpdateThresholdMonitorResponse = MonitorSummaryResponse
 
-type GetDashboardTemplateErrorResponse = BadRequest
+type UpdateThresholdMonitorErrorResponse = BadRequest
 
-type ExploreMetricsResponseJSON = ExploreMetricsResponse
+// UpdateAnomalyMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type UpdateAnomalyMonitorResponse = MonitorSummaryResponse
 
-type ExploreMetricsErrorResponse = BadRequest
+type UpdateAnomalyMonitorErrorResponse = BadRequest
 
-type ListMetricAttributesResponseJSON = ListMetricAttributesResponse
+// UpdateOutlierMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type UpdateOutlierMonitorResponse = MonitorSummaryResponse
 
-type ListMetricAttributesErrorResponse = BadRequest
+type UpdateOutlierMonitorErrorResponse = BadRequest
 
-type ListMetricAttributeValuesResponseJSON = ListMetricAttributeValuesResponse
+// UpdateForecastMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type UpdateForecastMonitorResponse = MonitorSummaryResponse
 
-type ListMetricAttributeValuesErrorResponse = BadRequest
+type UpdateForecastMonitorErrorResponse = BadRequest
 
-type CreateDashboardFromYamlResponse = DashboardResponse
+// UpdateErrorMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type UpdateErrorMonitorResponse = MonitorSummaryResponse
 
-type CreateDashboardFromYamlErrorResponse = BadRequest
+type UpdateErrorMonitorErrorResponse = BadRequest
 
-type GetDashboardResponse struct {
-	Dashboard   Dashboard     `json:"dashboard"`
-	TableItems  []GridItem    `json:"tableItems,omitempty"`
-	GridRows    []GridSection `json:"gridRows,omitempty"`
-	GridMetrics []string      `json:"gridMetrics,omitempty"`
-	YamlURL     *string       `json:"yamlUrl,omitempty"`
-}
+// UpdateSloMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
+type UpdateSloMonitorResponse = MonitorSummaryResponse
 
-type GetDashboardErrorResponse = BadRequest
+type UpdateSloMonitorErrorResponse = BadRequest
 
-type DeleteDashboardResponse = DashboardResponse
-
-type DeleteDashboardErrorResponse = BadRequest
-
-type GetDashboardYamlResponse = []byte
-
-type GetDashboardYamlErrorResponse = BadRequest
-
-type UpdateDashboardFromYamlResponse = DashboardResponse
-
-type UpdateDashboardFromYamlErrorResponse = BadRequest
-
-type CloneDashboardResponse = DashboardResponse
-
-type CloneDashboardErrorResponse = BadRequest
-
-type ResetDashboardErrorResponse = BadRequest
-
-type PinDashboardErrorResponse = BadRequest
-
-type UnpinDashboardErrorResponse = BadRequest
-
-type UpdateDashboardTableErrorResponse = BadRequest
-
-type UpdateDashboardGridErrorResponse = BadRequest
-
-type CreateGridItemResponse = GridItemResponse
-
-type CreateGridItemErrorResponse = BadRequest
-
-type UpdateGridLayoutErrorResponse = BadRequest
-
-type UpdateGridItemResponse = GridItemResponse
-
-type UpdateGridItemErrorResponse = BadRequest
-
-type DeleteGridItemResponse = GridItemResponse
-
-type DeleteGridItemErrorResponse = BadRequest
-
-type CreateGridSectionResponse = GridSectionResponse
-
-type CreateGridSectionErrorResponse = BadRequest
-
-type UpdateGridSectionResponse = GridSectionResponse
-
-type UpdateGridSectionErrorResponse = BadRequest
-
-type DeleteGridSectionResponse = GridSectionResponse
-
-type DeleteGridSectionErrorResponse = BadRequest
-
-type MoveGridSectionUpResponse = GridSectionResponse
-
-type MoveGridSectionUpErrorResponse = BadRequest
-
-type MoveGridSectionDownResponse = GridSectionResponse
-
-type MoveGridSectionDownErrorResponse = BadRequest
-
-type ListAlertsResponse struct {
-	Alerts []Alert `json:"alerts" validate:"required"`
-
-	// Count Total number of matching alerts.
-	Count int `json:"count" jsonschema:"Total number of matching alerts." validate:"required"`
-}
-
-type ListAlertsErrorResponse = BadRequest
-
-type GetAlertResponse struct {
-	// Alert An alert fired by a monitor.
-	Alert     Alert        `json:"alert" jsonschema:"An alert fired by a monitor."`
-	Events    []AlertEvent `json:"events" validate:"required"`
-	Assignees []User       `json:"assignees" validate:"required"`
-}
-
-type GetAlertErrorResponse = BadRequest
-
-type ListOrgsResponse struct {
-	Orgs []Org `json:"orgs" validate:"required"`
-}
-
-type ListOrgsErrorResponse = Unauthorized
-
+// CreateOrgResponse The organization an operation on one organization answers with.
 type CreateOrgResponse = OrgResponse
 
 type CreateOrgErrorResponse = BadRequest
 
+// GetOrgResponse The organization an operation on one organization answers with.
 type GetOrgResponse = OrgResponse
 
 type GetOrgErrorResponse = Unauthorized
 
+// UpdateOrgResponse The organization an operation on one organization answers with.
 type UpdateOrgResponse = OrgResponse
 
 type UpdateOrgErrorResponse = BadRequest
 
+// UpdateOrgErrorResponseApplicationProblemPlusJSON RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type UpdateOrgErrorResponseApplicationProblemPlusJSON = ProblemDetails
+
+// DeleteOrgResponse The organization an operation on one organization answers with.
 type DeleteOrgResponse = OrgResponse
 
 type DeleteOrgErrorResponse = BadRequest
 
+// UpdateOrgBudgetResponse The organization an operation on one organization answers with.
 type UpdateOrgBudgetResponse = OrgResponse
 
 type UpdateOrgBudgetErrorResponse = BadRequest
 
-type ListOrgProjectsResponse struct {
-	Projects []Project `json:"projects" validate:"required"`
-}
-
-type ListOrgProjectsErrorResponse = Unauthorized
-
+// CreateProjectResponse The project an operation on one project answers with.
 type CreateProjectResponse = ProjectResponse
 
 type CreateProjectErrorResponse = BadRequest
 
-type ListOrgUsersResponse = OrgUserListResponse
-
-type ListOrgUsersErrorResponse = Unauthorized
-
-// CreateOrgUserResponse Response from POST /orgs/{org_id}/users. Wraps the created or updated OrgUser under `orgUser`.
-type CreateOrgUserResponse = OrgUserCreateResponse
+// CreateOrgUserResponse Wraps one org user under `orgUser`. Returned when one is created or updated.
+type CreateOrgUserResponse = OrgUserResponse
 
 type CreateOrgUserErrorResponse = BadRequest
 
-// GetOrgUserResponse Detailed org user view returned by `GET /orgs/{org_id}/users/{org_user_id}`.
-type GetOrgUserResponse = OrgUserShowResponse
+// GetOrgUserResponse One org user in full — the identity, the membership row, and the projects reached.
+type GetOrgUserResponse = OrgUserProfileResponse
 
 type GetOrgUserErrorResponse = Unauthorized
 
 // UpdateOrgUserRoleResponse Response wrapping a single OrgUser under the `user` key.
-type UpdateOrgUserRoleResponse = OrgUserResponse
+type UpdateOrgUserRoleResponse = OrgUserRoleResponse
 
 type UpdateOrgUserRoleErrorResponse = BadRequest
 
-// RemoveOrgUserResponse Empty JSON object `{}`. Returned by operations that have no resource to return on success.
+// RemoveOrgUserResponse An empty object, which is what a route writes when it has acted and has nothing to report. It is a body rather than no body, so a client that parses every answer reads one shape everywhere.
 type RemoveOrgUserResponse = EmptyResponse
 
 type RemoveOrgUserErrorResponse = Unauthorized
 
-// UpdateOrgUserProjectPermResponse Response wrapping an OrgUserProject under the `user` key.
-type UpdateOrgUserProjectPermResponse = OrgUserProjectResponse
-
-type UpdateOrgUserProjectPermErrorResponse = BadRequest
-
-type ListOrgInvitesResponse = UserInviteListResponse
-
-type ListOrgInvitesErrorResponse = Unauthorized
-
-// CreateOrgInviteResponse Response from creating or processing an invitation. `user` is a public invitee summary. `invite` is a compact invite summary; `invite.status` is `sent` for pending invitations and `accepted` when the email already maps to a confirmed user. `invite.id` is the persisted invite ID for pending invites and a response-only random ID for already-confirmed users. `invite.orgId` is present for org-scoped actions; when `invite.status` is `accepted` and `invite.orgId` is present, the confirmed user was attached to that org.
-type CreateOrgInviteResponse = UserInviteResponse
-
-type CreateOrgInviteErrorResponse = BadRequest
-
-// CancelOrgInviteResponse Response from DELETE /orgs/{org_id}/invites/{invite_id}.
-type CancelOrgInviteResponse = UserInviteCancelResponse
-
-type CancelOrgInviteErrorResponse = Unauthorized
-
-// ResendOrgInviteResponse Response from POST /orgs/{org_id}/invites/{invite_id}/resend.
-type ResendOrgInviteResponse = ResendInviteResponse
-
-type ResendOrgInviteErrorResponse = BadRequest
-
-type ListTeamsResponse struct {
-	Teams []Team `json:"teams" validate:"required"`
-}
-
-type ListTeamsErrorResponse = Unauthorized
-
+// CreateTeamResponse The team an operation on one team answers with.
 type CreateTeamResponse = TeamResponse
 
 type CreateTeamErrorResponse = BadRequest
 
+// GetTeamResponse The team an operation on one team answers with.
 type GetTeamResponse = TeamResponse
 
 type GetTeamErrorResponse = Unauthorized
 
+// UpdateTeamResponse The team an operation on one team answers with.
 type UpdateTeamResponse = TeamResponse
 
 type UpdateTeamErrorResponse = BadRequest
 
+// DeleteTeamResponse The team an operation on one team answers with.
 type DeleteTeamResponse = TeamResponse
 
 type DeleteTeamErrorResponse = Unauthorized
 
 type ListTeamProjectsResponse struct {
-	Projects []Project `json:"projects" validate:"required"`
+	Projects []ProjectSummary `json:"projects" validate:"required"`
 }
 
 type ListTeamProjectsErrorResponse = Unauthorized
 
-// AddTeamProjectResponse Empty JSON object `{}`. Returned by operations that have no resource to return on success.
+// AddTeamProjectResponse An empty object, which is what a route writes when it has acted and has nothing to report. It is a body rather than no body, so a client that parses every answer reads one shape everywhere.
 type AddTeamProjectResponse = EmptyResponse
 
 type AddTeamProjectErrorResponse = BadRequest
 
-// RemoveTeamProjectResponse Empty JSON object `{}`. Returned by operations that have no resource to return on success.
+// RemoveTeamProjectResponse An empty object, which is what a route writes when it has acted and has nothing to report. It is a body rather than no body, so a client that parses every answer reads one shape everywhere.
 type RemoveTeamProjectResponse = EmptyResponse
 
 type RemoveTeamProjectErrorResponse = Unauthorized
@@ -431,86 +188,80 @@ type ListTeamUsersResponse struct {
 
 type ListTeamUsersErrorResponse = Unauthorized
 
-// AddTeamUserResponse Empty JSON object `{}`. Returned by operations that have no resource to return on success.
+// AddTeamUserResponse An empty object, which is what a route writes when it has acted and has nothing to report. It is a body rather than no body, so a client that parses every answer reads one shape everywhere.
 type AddTeamUserResponse = EmptyResponse
 
 type AddTeamUserErrorResponse = Unauthorized
 
-// RemoveTeamUserResponse Empty JSON object `{}`. Returned by operations that have no resource to return on success.
+// RemoveTeamUserResponse An empty object, which is what a route writes when it has acted and has nothing to report. It is a body rather than no body, so a client that parses every answer reads one shape everywhere.
 type RemoveTeamUserResponse = EmptyResponse
 
 type RemoveTeamUserErrorResponse = Unauthorized
 
-// CreateOrglessInviteResponse Response from creating or processing an invitation. `user` is a public invitee summary. `invite` is a compact invite summary; `invite.status` is `sent` for pending invitations and `accepted` when the email already maps to a confirmed user. `invite.id` is the persisted invite ID for pending invites and a response-only random ID for already-confirmed users. `invite.orgId` is present for org-scoped actions; when `invite.status` is `accepted` and `invite.orgId` is present, the confirmed user was attached to that org.
+// CreateOrglessInviteResponse Response from creating or processing an invitation. `invite` is a compact invite summary. An org-scoped invitation is always `sent`, whatever account the email maps to: the invitee joins through the emailed link, and `user` is empty (id 0) so the answer does not reveal whether the address has an account. An org-less invitation answers the invitee's public summary in `user`, and it is `accepted` with a response-only random `invite.id` when the email already maps to a confirmed user. `invite.orgId` is present for org-scoped actions.
 type CreateOrglessInviteResponse = UserInviteResponse
 
 type CreateOrglessInviteErrorResponse = BadRequest
 
-// JoinOrgResponse Response from accepting an invitation. Contains `resetPasswordToken` only when the user had no password set prior to acceptance; otherwise the server returns an empty body (decode as an empty object).
-type JoinOrgResponse = JoinResponse
-
-type JoinOrgErrorResponse = BadRequest
-
+// GetProjectResponse The project an operation on one project answers with.
 type GetProjectResponse = ProjectResponse
 
 type GetProjectErrorResponse = Unauthorized
 
+// UpdateProjectResponse The project an operation on one project answers with.
 type UpdateProjectResponse = ProjectResponse
 
 type UpdateProjectErrorResponse = BadRequest
 
+// UpdateProjectErrorResponseApplicationProblemPlusJSON RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type UpdateProjectErrorResponseApplicationProblemPlusJSON = ProblemDetails
+
+// PatchProjectResponse The project an operation on one project answers with.
+type PatchProjectResponse = ProjectResponse
+
+type PatchProjectErrorResponse = BadRequest
+
+// DeleteProjectResponse The project an operation on one project answers with.
 type DeleteProjectResponse = ProjectResponse
 
 type DeleteProjectErrorResponse = Unauthorized
 
-type ListProjectTokensResponse struct {
-	Tokens []ProjectToken `json:"tokens" validate:"required"`
-}
-
-type ListProjectTokensErrorResponse = Unauthorized
-
+// CreateProjectTokenResponse The project token an operation on one token answers with.
 type CreateProjectTokenResponse = ProjectTokenResponse
 
-type CreateProjectTokenErrorResponse = Unauthorized
+type CreateProjectTokenErrorResponse = BadRequest
 
+// GetProjectTokenResponse The project token an operation on one token answers with.
 type GetProjectTokenResponse = ProjectTokenResponse
 
 type GetProjectTokenErrorResponse = Unauthorized
 
+// UpdateProjectTokenResponse The project token an operation on one token answers with.
 type UpdateProjectTokenResponse = ProjectTokenResponse
 
 type UpdateProjectTokenErrorResponse = Unauthorized
 
+// DeleteProjectTokenResponse The project token an operation on one token answers with.
 type DeleteProjectTokenResponse = ProjectTokenResponse
 
 type DeleteProjectTokenErrorResponse = Unauthorized
 
-type GetCurrentUserResponse struct {
-	// User A registered user account.
-	User     User      `json:"user" jsonschema:"A registered user account."`
-	Projects []Project `json:"projects" validate:"required"`
-}
-
-type GetCurrentUserErrorResponse = InternalError
-
-type ListNotificationChannelsResponse struct {
-	Channels []NotificationChannel `json:"channels" validate:"required"`
-}
-
-type ListNotificationChannelsErrorResponse = BadRequest
-
+// CreateNotificationChannelResponse The notification channel an operation on one channel answers with.
 type CreateNotificationChannelResponse = NotificationChannelResponse
 
 type CreateNotificationChannelErrorResponse = BadRequest
 
+// GetNotificationChannelResponse The notification channel an operation on one channel answers with.
 type GetNotificationChannelResponse = NotificationChannelResponse
 
 type GetNotificationChannelErrorResponse = BadRequest
 
+// UpdateNotificationChannelResponse The notification channel an operation on one channel answers with.
 type UpdateNotificationChannelResponse = NotificationChannelResponse
 
 type UpdateNotificationChannelErrorResponse = BadRequest
 
+// DeleteNotificationChannelResponse The notification channel an operation on one channel answers with.
 type DeleteNotificationChannelResponse = NotificationChannelResponse
 
 type DeleteNotificationChannelErrorResponse = BadRequest

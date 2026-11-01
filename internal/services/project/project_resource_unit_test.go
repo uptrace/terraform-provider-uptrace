@@ -8,20 +8,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
-	"github.com/uptrace/oapi-codegen-dd/v3/pkg/runtime"
 	str2duration "github.com/xhit/go-str2duration/v2"
 
 	"github.com/uptrace/terraform/internal/generated"
 )
 
 // durationMs parses a duration string with the same library the resource
-// uses and returns it as float64 milliseconds — the wire representation the
+// uses and returns it as whole milliseconds — the wire representation the
 // server expects.
-func durationMs(t *testing.T, s string) float64 {
+func durationMs(t *testing.T, s string) int64 {
 	t.Helper()
 	d, err := str2duration.ParseDuration(s)
 	require.NoError(t, err)
-	return float64(d.Milliseconds())
+	return d.Milliseconds()
 }
 
 func projectResourceTestSchema(t *testing.T) resource.SchemaResponse {
@@ -57,15 +56,14 @@ func projectResourceTestPlan(t *testing.T, m projectModel) tfsdk.Plan {
 }
 
 func TestProjectToModel_fullPayload(t *testing.T) {
-	semconv := generated.V1330
 	p := &generated.Project{
-		ID:                  7,
-		OrgID:               runtime.Ptr[uint64](42),
-		Name:                "api",
-		GroupByEnv:          runtime.Ptr(true),
-		GroupFuncsByService: runtime.Ptr(false),
-		SemconvVersion:      &semconv,
-		CountDistinct:       runtime.Ptr(false),
+		ID:                      7,
+		OrgID:                   42,
+		Name:                    "api",
+		GroupByEnv:              true,
+		GroupFuncsByService:     false,
+		SkipMonitorStatusEmails: true,
+		SemconvVersion:          generated.SemconvVersionV1330,
 	}
 	var m projectModel
 
@@ -77,13 +75,8 @@ func TestProjectToModel_fullPayload(t *testing.T) {
 	require.True(t, m.GroupByEnv.ValueBool())
 	require.False(t, m.GroupFuncsByService.ValueBool())
 	require.Equal(t, "v1.33.0", m.SemconvVersion.ValueString())
-	require.False(t, m.CountDistinct.ValueBool())
-}
-
-func TestProjectToModel_nilOrgID(t *testing.T) {
-	m := projectModel{OrgID: types.StringValue("42")}
-	projectToModel(&generated.Project{ID: 1, Name: "x"}, &m)
-	require.True(t, m.OrgID.IsNull())
+	require.True(t, m.SkipMonitorStatusEmails.ValueBool())
+	require.False(t, m.SkipMonitorDisabledEmails.ValueBool())
 }
 
 func TestProjectToModel_retentionAndTimeRangeNotOverwritten(t *testing.T) {
@@ -95,9 +88,9 @@ func TestProjectToModel_retentionAndTimeRangeNotOverwritten(t *testing.T) {
 	apiResp := &generated.Project{
 		ID:              1,
 		Name:            "api",
-		SpanRetention:   runtime.Ptr[float64](1_209_600_000), // 336h — the CE override
-		MetricRetention: runtime.Ptr[float64](1_209_600_000),
-		SpanTimeRange:   runtime.Ptr[float64](0),
+		SpanRetention:   1_209_600_000, // 336h — the CE override
+		MetricRetention: 1_209_600_000,
+		SpanTimeRange:   0,
 	}
 
 	projectToModel(apiResp, &m)
@@ -108,35 +101,47 @@ func TestProjectToModel_retentionAndTimeRangeNotOverwritten(t *testing.T) {
 	require.Equal(t, "24h", m.SpanTimeRange.ValueString())
 }
 
-func TestProjectRequestBody_retentionAndTimeRangeConvertedToMillis(t *testing.T) {
+func TestProjectRequestFields_retentionConvertedToMillis(t *testing.T) {
 	m := &projectModel{
 		Name:           types.StringValue("api"),
 		SpanRetention:  types.StringValue("30d"), // str2duration-only unit
-		SpanTimeRange:  types.StringValue("24h"),
 		EventRetention: types.StringValue("0s"),
 	}
 
-	body, err := projectRequestBody(m)
+	body, err := projectRequestFields(m)
 	require.NoError(t, err)
 
 	require.NotNil(t, body.SpanRetention)
 	require.Equal(t, durationMs(t, "30d"), *body.SpanRetention)
-	require.NotNil(t, body.SpanTimeRange)
-	require.Equal(t, durationMs(t, "24h"), *body.SpanTimeRange)
 	// Explicit zero is passed through as the "use default" sentinel.
 	require.NotNil(t, body.EventRetention)
-	require.Equal(t, float64(0), *body.EventRetention)
+	require.Equal(t, int64(0), *body.EventRetention)
 	// Unset field is omitted.
 	require.Nil(t, body.LogRetention)
 }
 
-func TestProjectRequestBody_unsetFieldsAreOmitted(t *testing.T) {
+func TestViewSettingsRequest_timeRangesConvertedToMillis(t *testing.T) {
+	body, err := viewSettingsRequest(&projectModel{SpanTimeRange: types.StringValue("24h")})
+	require.NoError(t, err)
+	require.NotNil(t, body)
+	require.NotNil(t, body.SpanTimeRange)
+	require.Equal(t, durationMs(t, "24h"), *body.SpanTimeRange)
+	require.Nil(t, body.LogTimeRange)
+}
+
+func TestViewSettingsRequest_noTimeRangeSendsNoPatch(t *testing.T) {
+	body, err := viewSettingsRequest(&projectModel{SpanRetention: types.StringValue("30d")})
+	require.NoError(t, err)
+	require.Nil(t, body, "a config with no time range must not PATCH the view settings")
+}
+
+func TestProjectRequestFields_unsetFieldsAreOmitted(t *testing.T) {
 	m := &projectModel{
 		Name:       types.StringValue("api"),
 		GroupByEnv: types.BoolValue(true),
 	}
 
-	body, err := projectRequestBody(m)
+	body, err := projectRequestFields(m)
 	require.NoError(t, err)
 
 	require.Equal(t, "api", body.Name)
@@ -148,17 +153,17 @@ func TestProjectRequestBody_unsetFieldsAreOmitted(t *testing.T) {
 	require.Nil(t, body.MetricRetention)
 }
 
-func TestProjectRequestBody_semconvEnumIsPassedThrough(t *testing.T) {
+func TestProjectRequestFields_semconvEnumIsPassedThrough(t *testing.T) {
 	m := &projectModel{
 		Name:           types.StringValue("api"),
 		SemconvVersion: types.StringValue("v1.25.0"),
 	}
 
-	body, err := projectRequestBody(m)
+	body, err := projectRequestFields(m)
 	require.NoError(t, err)
 
 	require.NotNil(t, body.SemconvVersion)
-	require.Equal(t, generated.ProjectCreateRequestSemconvVersionV1250, *body.SemconvVersion)
+	require.Equal(t, generated.SemconvVersionV1250, *body.SemconvVersion)
 }
 
 func TestProjectImportState_rejectsInvalidOrgID(t *testing.T) {

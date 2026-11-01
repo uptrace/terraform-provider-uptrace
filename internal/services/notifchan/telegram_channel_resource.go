@@ -2,6 +2,7 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -134,16 +135,13 @@ func (r *TelegramChannelResource) Delete(ctx context.Context, req resource.Delet
 
 // ImportState accepts "<project_id>:<channel_id>".
 func (r *TelegramChannelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tfutil.ImportStateCompoundID(ctx, req, resp,
-		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
-		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseInt64},
-	)
+	importChannel(ctx, req, resp)
 }
 
-func buildTelegramRequest(ctx context.Context, m *telegramChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildTelegramRequest(ctx context.Context, m *telegramChannelModel) (*channelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	body := &generated.NotificationChannelRequest{Type: generated.NotificationChannelRequestTypeTelegram}
+	body := &channelRequest{Type: "telegram"}
 	diags.Append(buildSharedRequest(ctx, sharedFields{
 		Name: &m.Name, MatchAll: &m.MatchAll, Condition: &m.Condition,
 		Priorities: &m.Priorities, MonitorIDs: &m.MonitorIDs,
@@ -152,22 +150,17 @@ func buildTelegramRequest(ctx context.Context, m *telegramChannelModel) (*genera
 		return nil, diags
 	}
 
-	oneOf := &generated.NotificationChannelRequest_Params_OneOf{}
-	if err := oneOf.FromTelegramParams(generated.TelegramParams{
+	body.Params = generated.TelegramParams{
 		ChatID: m.ChatID.ValueInt64(),
-	}); err != nil {
-		diags.AddError("failed to set telegram params", err.Error())
-		return nil, diags
 	}
-	body.Params = generated.NotificationChannelRequest_Params{NotificationChannelRequest_Params_OneOf: oneOf}
 
 	return body, diags
 }
 
-func applyTelegramToModel(ctx context.Context, ch *generated.NotificationChannel, dst *telegramChannelModel) diag.Diagnostics {
+func applyTelegramToModel(ctx context.Context, ch *channelResponse, dst *telegramChannelModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rejectChannelType(generated.Telegram, ch, &diags)
+	rejectChannelType("telegram", ch, &diags)
 	if diags.HasError() {
 		return diags
 	}
@@ -181,11 +174,8 @@ func applyTelegramToModel(ctx context.Context, ch *generated.NotificationChannel
 		return diags
 	}
 
-	if ch.Params.NotificationChannel_Params_OneOf == nil {
-		return diags
-	}
-	p, err := ch.Params.NotificationChannel_Params_OneOf.AsTelegramParams()
-	if err != nil {
+	var p generated.TelegramParams
+	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode telegram params", err.Error())
 		return diags
 	}

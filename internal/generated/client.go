@@ -31,152 +31,47 @@ func NewDefaultClient(baseURL string, opts ...runtime.APIClientOption) (*Client,
 
 // ClientInterface is the interface for the API client.
 type ClientInterface interface {
-	// CreateAnnotation Create annotation
-	CreateAnnotation(ctx context.Context, options *CreateAnnotationRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error)
-
-	// PublicListSpans List spans
-	PublicListSpans(ctx context.Context, options *PublicListSpansRequestOptions, reqEditors ...runtime.RequestEditorFn) (*PublicListSpansResponse, error)
-
-	// PublicListSpanGroups List groups
-	PublicListSpanGroups(ctx context.Context, options *PublicListSpanGroupsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*PublicListSpanGroupsResponse, error)
-
-	// ListSpans List spans
-	ListSpans(ctx context.Context, options *ListSpansRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListSpansResponse, error)
-
-	// ListSpanGroups List groups
-	ListSpanGroups(ctx context.Context, options *ListSpanGroupsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListSpanGroupsResponse, error)
-
-	// QueryTimeseries Timeseries
-	QueryTimeseries(ctx context.Context, options *QueryTimeseriesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*QueryTimeseriesResponse, error)
-
-	// QueryQuantiles Quantiles
-	QueryQuantiles(ctx context.Context, options *QueryQuantilesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*QueryQuantilesResponse, error)
-
-	// ListTraceGroups List trace groups
-	ListTraceGroups(ctx context.Context, options *ListTraceGroupsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListTraceGroupsResponse, error)
-
-	// ListTraces List traces
-	ListTraces(ctx context.Context, options *ListTracesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListTracesResponse, error)
-
-	// SyncFixtures Sync fixtures
-	SyncFixtures(ctx context.Context, options *SyncFixturesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error)
-
-	// BindFixtureKeys Bind existing resources to fixture keys
-	BindFixtureKeys(ctx context.Context, options *BindFixtureKeysRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error)
-
-	// ListMonitors List monitors
-	ListMonitors(ctx context.Context, options *ListMonitorsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListMonitorsResponse, error)
-
-	// CreateMonitor Create a monitor
-	CreateMonitor(ctx context.Context, options *CreateMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateMonitorResponse, error)
-
 	// GetMonitor Get a monitor
 	GetMonitor(ctx context.Context, options *GetMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetMonitorResponse, error)
-
-	// UpdateMonitor Update a monitor
-	UpdateMonitor(ctx context.Context, options *UpdateMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateMonitorResponse, error)
 
 	// DeleteMonitor Delete a monitor
 	DeleteMonitor(ctx context.Context, options *DeleteMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*DeleteMonitorResponse, error)
 
-	// ActivateMonitor Activate a monitor
-	ActivateMonitor(ctx context.Context, options *ActivateMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ActivateMonitorResponse, error)
+	// CreateThresholdMonitor Create a threshold monitor
+	CreateThresholdMonitor(ctx context.Context, options *CreateThresholdMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateThresholdMonitorResponse, error)
 
-	// PauseMonitor Pause a monitor
-	PauseMonitor(ctx context.Context, options *PauseMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*PauseMonitorResponse, error)
+	// CreateAnomalyMonitor Create an anomaly monitor
+	CreateAnomalyMonitor(ctx context.Context, options *CreateAnomalyMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateAnomalyMonitorResponse, error)
 
-	// ListDashboards List dashboards
-	ListDashboards(ctx context.Context, options *ListDashboardsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListDashboardsResponse, error)
+	// CreateOutlierMonitor Create an outlier monitor
+	CreateOutlierMonitor(ctx context.Context, options *CreateOutlierMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateOutlierMonitorResponse, error)
 
-	// ListDashboardTags List dashboard tags
-	ListDashboardTags(ctx context.Context, options *ListDashboardTagsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListDashboardTagsResponse, error)
+	// CreateForecastMonitor Create a forecast monitor
+	CreateForecastMonitor(ctx context.Context, options *CreateForecastMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateForecastMonitorResponse, error)
 
-	// GetDashboardTemplateSchema Get dashboard template JSON Schema
-	GetDashboardTemplateSchema(ctx context.Context, reqEditors ...runtime.RequestEditorFn) (*GetDashboardTemplateSchemaResponse, error)
+	// CreateErrorMonitor Create an error monitor
+	CreateErrorMonitor(ctx context.Context, options *CreateErrorMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateErrorMonitorResponse, error)
 
-	// ListDashboardTemplates List dashboard templates
-	ListDashboardTemplates(ctx context.Context, options *ListDashboardTemplatesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListDashboardTemplatesResponseJSON, error)
+	// CreateSloMonitor Create an SLO monitor
+	CreateSloMonitor(ctx context.Context, options *CreateSloMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateSloMonitorResponse, error)
 
-	// GetDashboardTemplate Get dashboard template
-	GetDashboardTemplate(ctx context.Context, options *GetDashboardTemplateRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetDashboardTemplateResponseJSON, error)
+	// UpdateThresholdMonitor Update a threshold monitor
+	UpdateThresholdMonitor(ctx context.Context, options *UpdateThresholdMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateThresholdMonitorResponse, error)
 
-	// ExploreMetrics Explore metrics
-	ExploreMetrics(ctx context.Context, options *ExploreMetricsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ExploreMetricsResponseJSON, error)
+	// UpdateAnomalyMonitor Update an anomaly monitor
+	UpdateAnomalyMonitor(ctx context.Context, options *UpdateAnomalyMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateAnomalyMonitorResponse, error)
 
-	// ListMetricAttributes List metric attributes
-	ListMetricAttributes(ctx context.Context, options *ListMetricAttributesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListMetricAttributesResponseJSON, error)
+	// UpdateOutlierMonitor Update an outlier monitor
+	UpdateOutlierMonitor(ctx context.Context, options *UpdateOutlierMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateOutlierMonitorResponse, error)
 
-	// ListMetricAttributeValues List attribute values
-	ListMetricAttributeValues(ctx context.Context, options *ListMetricAttributeValuesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListMetricAttributeValuesResponseJSON, error)
+	// UpdateForecastMonitor Update a forecast monitor
+	UpdateForecastMonitor(ctx context.Context, options *UpdateForecastMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateForecastMonitorResponse, error)
 
-	// CreateDashboardFromYaml Create dashboard from YAML
-	CreateDashboardFromYaml(ctx context.Context, options *CreateDashboardFromYamlRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateDashboardFromYamlResponse, error)
+	// UpdateErrorMonitor Update an error monitor
+	UpdateErrorMonitor(ctx context.Context, options *UpdateErrorMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateErrorMonitorResponse, error)
 
-	// GetDashboard Get a dashboard
-	GetDashboard(ctx context.Context, options *GetDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetDashboardResponse, error)
-
-	// DeleteDashboard Delete a dashboard
-	DeleteDashboard(ctx context.Context, options *DeleteDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*DeleteDashboardResponse, error)
-
-	// GetDashboardYaml Get dashboard YAML
-	GetDashboardYaml(ctx context.Context, options *GetDashboardYamlRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetDashboardYamlResponse, error)
-
-	// UpdateDashboardFromYaml Update dashboard from YAML
-	UpdateDashboardFromYaml(ctx context.Context, options *UpdateDashboardFromYamlRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateDashboardFromYamlResponse, error)
-
-	// CloneDashboard Clone a dashboard
-	CloneDashboard(ctx context.Context, options *CloneDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CloneDashboardResponse, error)
-
-	// ResetDashboard Reset a dashboard
-	ResetDashboard(ctx context.Context, options *ResetDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error)
-
-	// PinDashboard Pin a dashboard
-	PinDashboard(ctx context.Context, options *PinDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error)
-
-	// UnpinDashboard Unpin a dashboard
-	UnpinDashboard(ctx context.Context, options *UnpinDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error)
-
-	// UpdateDashboardTable Update dashboard table
-	UpdateDashboardTable(ctx context.Context, options *UpdateDashboardTableRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error)
-
-	// UpdateDashboardGrid Update dashboard grid query
-	UpdateDashboardGrid(ctx context.Context, options *UpdateDashboardGridRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error)
-
-	// CreateGridItem Create grid item
-	CreateGridItem(ctx context.Context, options *CreateGridItemRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateGridItemResponse, error)
-
-	// UpdateGridLayout Update grid layout
-	UpdateGridLayout(ctx context.Context, options *UpdateGridLayoutRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error)
-
-	// UpdateGridItem Update grid item
-	UpdateGridItem(ctx context.Context, options *UpdateGridItemRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateGridItemResponse, error)
-
-	// DeleteGridItem Delete grid item
-	DeleteGridItem(ctx context.Context, options *DeleteGridItemRequestOptions, reqEditors ...runtime.RequestEditorFn) (*DeleteGridItemResponse, error)
-
-	// CreateGridSection Create grid section
-	CreateGridSection(ctx context.Context, options *CreateGridSectionRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateGridSectionResponse, error)
-
-	// UpdateGridSection Update grid section
-	UpdateGridSection(ctx context.Context, options *UpdateGridSectionRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateGridSectionResponse, error)
-
-	// DeleteGridSection Delete grid section
-	DeleteGridSection(ctx context.Context, options *DeleteGridSectionRequestOptions, reqEditors ...runtime.RequestEditorFn) (*DeleteGridSectionResponse, error)
-
-	// MoveGridSectionUp Move grid section up
-	MoveGridSectionUp(ctx context.Context, options *MoveGridSectionUpRequestOptions, reqEditors ...runtime.RequestEditorFn) (*MoveGridSectionUpResponse, error)
-
-	// MoveGridSectionDown Move grid section down
-	MoveGridSectionDown(ctx context.Context, options *MoveGridSectionDownRequestOptions, reqEditors ...runtime.RequestEditorFn) (*MoveGridSectionDownResponse, error)
-
-	// ListAlerts List alerts
-	ListAlerts(ctx context.Context, options *ListAlertsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListAlertsResponse, error)
-
-	// GetAlert Get an alert
-	GetAlert(ctx context.Context, options *GetAlertRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetAlertResponse, error)
-
-	// ListOrgs List organizations
-	ListOrgs(ctx context.Context, reqEditors ...runtime.RequestEditorFn) (*ListOrgsResponse, error)
+	// UpdateSloMonitor Update an SLO monitor
+	UpdateSloMonitor(ctx context.Context, options *UpdateSloMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateSloMonitorResponse, error)
 
 	// CreateOrg Create organization
 	CreateOrg(ctx context.Context, options *CreateOrgRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateOrgResponse, error)
@@ -193,14 +88,8 @@ type ClientInterface interface {
 	// UpdateOrgBudget Update organization budget
 	UpdateOrgBudget(ctx context.Context, options *UpdateOrgBudgetRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateOrgBudgetResponse, error)
 
-	// ListOrgProjects List organization projects
-	ListOrgProjects(ctx context.Context, options *ListOrgProjectsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListOrgProjectsResponse, error)
-
 	// CreateProject Create project
 	CreateProject(ctx context.Context, options *CreateProjectRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateProjectResponse, error)
-
-	// ListOrgUsers List organization users
-	ListOrgUsers(ctx context.Context, options *ListOrgUsersRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListOrgUsersResponse, error)
 
 	// CreateOrgUser Add organization user by ID
 	CreateOrgUser(ctx context.Context, options *CreateOrgUserRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateOrgUserResponse, error)
@@ -213,24 +102,6 @@ type ClientInterface interface {
 
 	// RemoveOrgUser Remove organization user
 	RemoveOrgUser(ctx context.Context, options *RemoveOrgUserRequestOptions, reqEditors ...runtime.RequestEditorFn) (*RemoveOrgUserResponse, error)
-
-	// UpdateOrgUserProjectPerm Update organization user project permission
-	UpdateOrgUserProjectPerm(ctx context.Context, options *UpdateOrgUserProjectPermRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateOrgUserProjectPermResponse, error)
-
-	// ListOrgInvites List organization invitations
-	ListOrgInvites(ctx context.Context, options *ListOrgInvitesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListOrgInvitesResponse, error)
-
-	// CreateOrgInvite Create organization invitation
-	CreateOrgInvite(ctx context.Context, options *CreateOrgInviteRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateOrgInviteResponse, error)
-
-	// CancelOrgInvite Cancel organization invitation
-	CancelOrgInvite(ctx context.Context, options *CancelOrgInviteRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CancelOrgInviteResponse, error)
-
-	// ResendOrgInvite Resend organization invitation
-	ResendOrgInvite(ctx context.Context, options *ResendOrgInviteRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ResendOrgInviteResponse, error)
-
-	// ListTeams List organization teams
-	ListTeams(ctx context.Context, options *ListTeamsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListTeamsResponse, error)
 
 	// CreateTeam Create team
 	CreateTeam(ctx context.Context, options *CreateTeamRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateTeamResponse, error)
@@ -265,20 +136,17 @@ type ClientInterface interface {
 	// CreateOrglessInvite Create org-less user invitation (Terraform)
 	CreateOrglessInvite(ctx context.Context, options *CreateOrglessInviteRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateOrglessInviteResponse, error)
 
-	// JoinOrg Accept organization invitation
-	JoinOrg(ctx context.Context, options *JoinOrgRequestOptions, reqEditors ...runtime.RequestEditorFn) (*JoinOrgResponse, error)
-
 	// GetProject Get project
 	GetProject(ctx context.Context, options *GetProjectRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetProjectResponse, error)
 
 	// UpdateProject Update project
 	UpdateProject(ctx context.Context, options *UpdateProjectRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateProjectResponse, error)
 
+	// PatchProject Patch project view settings
+	PatchProject(ctx context.Context, options *PatchProjectRequestOptions, reqEditors ...runtime.RequestEditorFn) (*PatchProjectResponse, error)
+
 	// DeleteProject Delete project
 	DeleteProject(ctx context.Context, options *DeleteProjectRequestOptions, reqEditors ...runtime.RequestEditorFn) (*DeleteProjectResponse, error)
-
-	// ListProjectTokens List project tokens
-	ListProjectTokens(ctx context.Context, options *ListProjectTokensRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListProjectTokensResponse, error)
 
 	// CreateProjectToken Create project token
 	CreateProjectToken(ctx context.Context, options *CreateProjectTokenRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateProjectTokenResponse, error)
@@ -292,12 +160,6 @@ type ClientInterface interface {
 	// DeleteProjectToken Delete project token
 	DeleteProjectToken(ctx context.Context, options *DeleteProjectTokenRequestOptions, reqEditors ...runtime.RequestEditorFn) (*DeleteProjectTokenResponse, error)
 
-	// GetCurrentUser Get current user
-	GetCurrentUser(ctx context.Context, reqEditors ...runtime.RequestEditorFn) (*GetCurrentUserResponse, error)
-
-	// ListNotificationChannels List notification channels
-	ListNotificationChannels(ctx context.Context, options *ListNotificationChannelsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListNotificationChannelsResponse, error)
-
 	// CreateNotificationChannel Create notification channel
 	CreateNotificationChannel(ctx context.Context, options *CreateNotificationChannelRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateNotificationChannelResponse, error)
 
@@ -309,582 +171,6 @@ type ClientInterface interface {
 
 	// DeleteNotificationChannel Delete notification channel
 	DeleteNotificationChannel(ctx context.Context, options *DeleteNotificationChannelRequestOptions, reqEditors ...runtime.RequestEditorFn) (*DeleteNotificationChannelResponse, error)
-}
-
-// CreateAnnotation Create annotation
-func (c *Client) CreateAnnotation(ctx context.Context, options *CreateAnnotationRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/api/v1/annotations",
-		Method:      "POST",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*struct{}, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(CreateAnnotationErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(struct{})
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/api/v1/annotations")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// PublicListSpans List spans
-func (c *Client) PublicListSpans(ctx context.Context, options *PublicListSpansRequestOptions, reqEditors ...runtime.RequestEditorFn) (*PublicListSpansResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/api/v1/tracing/{project_id}/spans",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*PublicListSpansResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(PublicListSpansErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(PublicListSpansResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/api/v1/tracing/{project_id}/spans")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// PublicListSpanGroups List groups
-func (c *Client) PublicListSpanGroups(ctx context.Context, options *PublicListSpanGroupsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*PublicListSpanGroupsResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/api/v1/tracing/{project_id}/groups",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*PublicListSpanGroupsResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(PublicListSpanGroupsErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(PublicListSpanGroupsResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/api/v1/tracing/{project_id}/groups")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListSpans List spans
-func (c *Client) ListSpans(ctx context.Context, options *ListSpansRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListSpansResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/spans/{project_id}",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListSpansResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListSpansErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListSpansResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/spans/{project_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListSpanGroups List groups
-func (c *Client) ListSpanGroups(ctx context.Context, options *ListSpanGroupsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListSpanGroupsResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/spans/{project_id}/groups",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListSpanGroupsResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListSpanGroupsErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListSpanGroupsResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/spans/{project_id}/groups")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// QueryTimeseries Timeseries
-func (c *Client) QueryTimeseries(ctx context.Context, options *QueryTimeseriesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*QueryTimeseriesResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/spans/{project_id}/timeseries",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*QueryTimeseriesResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(QueryTimeseriesErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(QueryTimeseriesResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/spans/{project_id}/timeseries")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// QueryQuantiles Quantiles
-func (c *Client) QueryQuantiles(ctx context.Context, options *QueryQuantilesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*QueryQuantilesResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/spans/{project_id}/quantiles",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*QueryQuantilesResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(QueryQuantilesErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(QueryQuantilesResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/spans/{project_id}/quantiles")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListTraceGroups List trace groups
-func (c *Client) ListTraceGroups(ctx context.Context, options *ListTraceGroupsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListTraceGroupsResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/traces/{project_id}/groups",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListTraceGroupsResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListTraceGroupsErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListTraceGroupsResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/traces/{project_id}/groups")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListTraces List traces
-func (c *Client) ListTraces(ctx context.Context, options *ListTracesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListTracesResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/traces/{project_id}",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListTracesResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListTracesErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListTracesResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/traces/{project_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// SyncFixtures Sync fixtures
-func (c *Client) SyncFixtures(ctx context.Context, options *SyncFixturesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/api/v1/fixtures",
-		Method:      "PUT",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*struct{}, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(SyncFixturesErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(struct{})
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/api/v1/fixtures")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// BindFixtureKeys Bind existing resources to fixture keys
-func (c *Client) BindFixtureKeys(ctx context.Context, options *BindFixtureKeysRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/api/v1/fixtures/bindings",
-		Method:      "PUT",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*struct{}, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(BindFixtureKeysErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(struct{})
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/api/v1/fixtures/bindings")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListMonitors List monitors
-func (c *Client) ListMonitors(ctx context.Context, options *ListMonitorsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListMonitorsResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListMonitorsResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListMonitorsErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListMonitorsResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// CreateMonitor Create a monitor
-func (c *Client) CreateMonitor(ctx context.Context, options *CreateMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateMonitorResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}",
-		Method:      "POST",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*CreateMonitorResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(CreateMonitorErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(CreateMonitorResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
 }
 
 // GetMonitor Get a monitor
@@ -917,51 +203,6 @@ func (c *Client) GetMonitor(ctx context.Context, options *GetMonitorRequestOptio
 				runtime.WithStatusCode(resp.StatusCode))
 		}
 		target := new(GetMonitorResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/{monitor_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// UpdateMonitor Update a monitor
-func (c *Client) UpdateMonitor(ctx context.Context, options *UpdateMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateMonitorResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/{monitor_id}",
-		Method:      "PUT",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*UpdateMonitorResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(UpdateMonitorErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(UpdateMonitorResponse)
 		if err = json.Unmarshal(bodyBytes, target); err != nil {
 			err = fmt.Errorf("error decoding response: %w", err)
 			return nil, err
@@ -1020,926 +261,11 @@ func (c *Client) DeleteMonitor(ctx context.Context, options *DeleteMonitorReques
 	return responseParser(ctx, resp)
 }
 
-// ActivateMonitor Activate a monitor
-func (c *Client) ActivateMonitor(ctx context.Context, options *ActivateMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ActivateMonitorResponse, error) {
+// CreateThresholdMonitor Create a threshold monitor
+func (c *Client) CreateThresholdMonitor(ctx context.Context, options *CreateThresholdMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateThresholdMonitorResponse, error) {
 	var err error
 	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/{monitor_id}/active",
-		Method:     "PUT",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ActivateMonitorResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ActivateMonitorErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ActivateMonitorResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/{monitor_id}/active")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// PauseMonitor Pause a monitor
-func (c *Client) PauseMonitor(ctx context.Context, options *PauseMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*PauseMonitorResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/{monitor_id}/paused",
-		Method:      "PUT",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*PauseMonitorResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(PauseMonitorErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(PauseMonitorResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/{monitor_id}/paused")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListDashboards List dashboards
-func (c *Client) ListDashboards(ctx context.Context, options *ListDashboardsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListDashboardsResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListDashboardsResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListDashboardsErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListDashboardsResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListDashboardTags List dashboard tags
-func (c *Client) ListDashboardTags(ctx context.Context, options *ListDashboardTagsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListDashboardTagsResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/tags",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListDashboardTagsResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListDashboardTagsErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListDashboardTagsResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/tags")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// GetDashboardTemplateSchema Get dashboard template JSON Schema
-func (c *Client) GetDashboardTemplateSchema(ctx context.Context, reqEditors ...runtime.RequestEditorFn) (*GetDashboardTemplateSchemaResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboard-templates/schema",
-		Method:     "GET",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*GetDashboardTemplateSchemaResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			return nil, runtime.NewClientAPIError(fmt.Errorf("unexpected status code: %d", resp.StatusCode),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(GetDashboardTemplateSchemaResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboard-templates/schema")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListDashboardTemplates List dashboard templates
-func (c *Client) ListDashboardTemplates(ctx context.Context, options *ListDashboardTemplatesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListDashboardTemplatesResponseJSON, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboard-templates/{project_id}",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListDashboardTemplatesResponseJSON, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListDashboardTemplatesErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListDashboardTemplatesResponseJSON)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboard-templates/{project_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// GetDashboardTemplate Get dashboard template
-func (c *Client) GetDashboardTemplate(ctx context.Context, options *GetDashboardTemplateRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetDashboardTemplateResponseJSON, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboard-templates/{project_id}/{template_id}",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*GetDashboardTemplateResponseJSON, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(GetDashboardTemplateErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(GetDashboardTemplateResponseJSON)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboard-templates/{project_id}/{template_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ExploreMetrics Explore metrics
-func (c *Client) ExploreMetrics(ctx context.Context, options *ExploreMetricsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ExploreMetricsResponseJSON, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/metrics/{project_id}/explore",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ExploreMetricsResponseJSON, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ExploreMetricsErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ExploreMetricsResponseJSON)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/metrics/{project_id}/explore")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListMetricAttributes List metric attributes
-func (c *Client) ListMetricAttributes(ctx context.Context, options *ListMetricAttributesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListMetricAttributesResponseJSON, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/metrics/{project_id}/attributes",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListMetricAttributesResponseJSON, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListMetricAttributesErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListMetricAttributesResponseJSON)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/metrics/{project_id}/attributes")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListMetricAttributeValues List attribute values
-func (c *Client) ListMetricAttributeValues(ctx context.Context, options *ListMetricAttributeValuesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListMetricAttributeValuesResponseJSON, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/metrics/{project_id}/attributes/{attr_key}",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListMetricAttributeValuesResponseJSON, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListMetricAttributeValuesErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListMetricAttributeValuesResponseJSON)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/metrics/{project_id}/attributes/{attr_key}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// CreateDashboardFromYaml Create dashboard from YAML
-func (c *Client) CreateDashboardFromYaml(ctx context.Context, options *CreateDashboardFromYamlRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateDashboardFromYamlResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/yaml",
-		Method:      "POST",
-		Options:     options,
-		ContentType: "text/yaml",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*CreateDashboardFromYamlResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(CreateDashboardFromYamlErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(CreateDashboardFromYamlResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/yaml")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// GetDashboard Get a dashboard
-func (c *Client) GetDashboard(ctx context.Context, options *GetDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetDashboardResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*GetDashboardResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(GetDashboardErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(GetDashboardResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// DeleteDashboard Delete a dashboard
-func (c *Client) DeleteDashboard(ctx context.Context, options *DeleteDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*DeleteDashboardResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}",
-		Method:     "DELETE",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*DeleteDashboardResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(DeleteDashboardErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(DeleteDashboardResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// GetDashboardYaml Get dashboard YAML
-func (c *Client) GetDashboardYaml(ctx context.Context, options *GetDashboardYamlRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetDashboardYamlResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/yaml",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*GetDashboardYamlResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(GetDashboardYamlErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		result := GetDashboardYamlResponse(bodyBytes)
-		return &result, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/yaml")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// UpdateDashboardFromYaml Update dashboard from YAML
-func (c *Client) UpdateDashboardFromYaml(ctx context.Context, options *UpdateDashboardFromYamlRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateDashboardFromYamlResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/yaml",
-		Method:      "PUT",
-		Options:     options,
-		ContentType: "text/yaml",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*UpdateDashboardFromYamlResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(UpdateDashboardFromYamlErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(UpdateDashboardFromYamlResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/yaml")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// CloneDashboard Clone a dashboard
-func (c *Client) CloneDashboard(ctx context.Context, options *CloneDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CloneDashboardResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/clone",
-		Method:     "POST",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*CloneDashboardResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(CloneDashboardErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(CloneDashboardResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/clone")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ResetDashboard Reset a dashboard
-func (c *Client) ResetDashboard(ctx context.Context, options *ResetDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/reset-layout",
-		Method:     "PUT",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*struct{}, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ResetDashboardErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(struct{})
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/reset-layout")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// PinDashboard Pin a dashboard
-func (c *Client) PinDashboard(ctx context.Context, options *PinDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/pinned",
-		Method:     "PUT",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*struct{}, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(PinDashboardErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(struct{})
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/pinned")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// UnpinDashboard Unpin a dashboard
-func (c *Client) UnpinDashboard(ctx context.Context, options *UnpinDashboardRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/unpinned",
-		Method:     "PUT",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*struct{}, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(UnpinDashboardErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(struct{})
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/unpinned")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// UpdateDashboardTable Update dashboard table
-func (c *Client) UpdateDashboardTable(ctx context.Context, options *UpdateDashboardTableRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/table",
-		Method:      "PUT",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*struct{}, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(UpdateDashboardTableErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(struct{})
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/table")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// UpdateDashboardGrid Update dashboard grid query
-func (c *Client) UpdateDashboardGrid(ctx context.Context, options *UpdateDashboardGridRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/grid",
-		Method:      "PUT",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*struct{}, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(UpdateDashboardGridErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(struct{})
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/grid")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// CreateGridItem Create grid item
-func (c *Client) CreateGridItem(ctx context.Context, options *CreateGridItemRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateGridItemResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/grid",
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/threshold",
 		Method:      "POST",
 		Options:     options,
 		ContentType: "application/json",
@@ -1950,10 +276,10 @@ func (c *Client) CreateGridItem(ctx context.Context, options *CreateGridItemRequ
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*CreateGridItemResponse, error) {
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*CreateThresholdMonitorResponse, error) {
 		bodyBytes := resp.Content
 		if resp.StatusCode != 200 {
-			target := new(CreateGridItemErrorResponse)
+			target := new(CreateThresholdMonitorErrorResponse)
 			err = json.Unmarshal(bodyBytes, target)
 			if err != nil {
 				return nil, fmt.Errorf("error decoding response: %w", err)
@@ -1965,7 +291,7 @@ func (c *Client) CreateGridItem(ctx context.Context, options *CreateGridItemRequ
 			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
 				runtime.WithStatusCode(resp.StatusCode))
 		}
-		target := new(CreateGridItemResponse)
+		target := new(CreateThresholdMonitorResponse)
 		if err = json.Unmarshal(bodyBytes, target); err != nil {
 			err = fmt.Errorf("error decoding response: %w", err)
 			return nil, err
@@ -1973,152 +299,18 @@ func (c *Client) CreateGridItem(ctx context.Context, options *CreateGridItemRequ
 		return target, nil
 	}
 
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/grid")
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/threshold")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
 	return responseParser(ctx, resp)
 }
 
-// UpdateGridLayout Update grid layout
-func (c *Client) UpdateGridLayout(ctx context.Context, options *UpdateGridLayoutRequestOptions, reqEditors ...runtime.RequestEditorFn) (*struct{}, error) {
+// CreateAnomalyMonitor Create an anomaly monitor
+func (c *Client) CreateAnomalyMonitor(ctx context.Context, options *CreateAnomalyMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateAnomalyMonitorResponse, error) {
 	var err error
 	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/grid/layout",
-		Method:      "PUT",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*struct{}, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(UpdateGridLayoutErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(struct{})
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/grid/layout")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// UpdateGridItem Update grid item
-func (c *Client) UpdateGridItem(ctx context.Context, options *UpdateGridItemRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateGridItemResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/grid/{grid_item_id}",
-		Method:      "PUT",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*UpdateGridItemResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(UpdateGridItemErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(UpdateGridItemResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/grid/{grid_item_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// DeleteGridItem Delete grid item
-func (c *Client) DeleteGridItem(ctx context.Context, options *DeleteGridItemRequestOptions, reqEditors ...runtime.RequestEditorFn) (*DeleteGridItemResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/grid/{grid_item_id}",
-		Method:     "DELETE",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*DeleteGridItemResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(DeleteGridItemErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(DeleteGridItemResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/grid/{grid_item_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// CreateGridSection Create grid section
-func (c *Client) CreateGridSection(ctx context.Context, options *CreateGridSectionRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateGridSectionResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/sections",
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/anomaly",
 		Method:      "POST",
 		Options:     options,
 		ContentType: "application/json",
@@ -2129,10 +321,10 @@ func (c *Client) CreateGridSection(ctx context.Context, options *CreateGridSecti
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*CreateGridSectionResponse, error) {
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*CreateAnomalyMonitorResponse, error) {
 		bodyBytes := resp.Content
 		if resp.StatusCode != 200 {
-			target := new(CreateGridSectionErrorResponse)
+			target := new(CreateAnomalyMonitorErrorResponse)
 			err = json.Unmarshal(bodyBytes, target)
 			if err != nil {
 				return nil, fmt.Errorf("error decoding response: %w", err)
@@ -2144,7 +336,7 @@ func (c *Client) CreateGridSection(ctx context.Context, options *CreateGridSecti
 			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
 				runtime.WithStatusCode(resp.StatusCode))
 		}
-		target := new(CreateGridSectionResponse)
+		target := new(CreateAnomalyMonitorResponse)
 		if err = json.Unmarshal(bodyBytes, target); err != nil {
 			err = fmt.Errorf("error decoding response: %w", err)
 			return nil, err
@@ -2152,18 +344,198 @@ func (c *Client) CreateGridSection(ctx context.Context, options *CreateGridSecti
 		return target, nil
 	}
 
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/sections")
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/anomaly")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
 	return responseParser(ctx, resp)
 }
 
-// UpdateGridSection Update grid section
-func (c *Client) UpdateGridSection(ctx context.Context, options *UpdateGridSectionRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateGridSectionResponse, error) {
+// CreateOutlierMonitor Create an outlier monitor
+func (c *Client) CreateOutlierMonitor(ctx context.Context, options *CreateOutlierMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateOutlierMonitorResponse, error) {
 	var err error
 	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/sections/{section_id}",
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/outlier",
+		Method:      "POST",
+		Options:     options,
+		ContentType: "application/json",
+	}
+
+	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*CreateOutlierMonitorResponse, error) {
+		bodyBytes := resp.Content
+		if resp.StatusCode != 200 {
+			target := new(CreateOutlierMonitorErrorResponse)
+			err = json.Unmarshal(bodyBytes, target)
+			if err != nil {
+				return nil, fmt.Errorf("error decoding response: %w", err)
+			}
+
+			if errTarget, ok := any(*target).(error); ok {
+				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
+			}
+			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
+				runtime.WithStatusCode(resp.StatusCode))
+		}
+		target := new(CreateOutlierMonitorResponse)
+		if err = json.Unmarshal(bodyBytes, target); err != nil {
+			err = fmt.Errorf("error decoding response: %w", err)
+			return nil, err
+		}
+		return target, nil
+	}
+
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/outlier")
+	if err != nil {
+		return nil, fmt.Errorf("error executing request: %w", err)
+	}
+	return responseParser(ctx, resp)
+}
+
+// CreateForecastMonitor Create a forecast monitor
+func (c *Client) CreateForecastMonitor(ctx context.Context, options *CreateForecastMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateForecastMonitorResponse, error) {
+	var err error
+	reqParams := runtime.RequestOptionsParameters{
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/forecast",
+		Method:      "POST",
+		Options:     options,
+		ContentType: "application/json",
+	}
+
+	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*CreateForecastMonitorResponse, error) {
+		bodyBytes := resp.Content
+		if resp.StatusCode != 200 {
+			target := new(CreateForecastMonitorErrorResponse)
+			err = json.Unmarshal(bodyBytes, target)
+			if err != nil {
+				return nil, fmt.Errorf("error decoding response: %w", err)
+			}
+
+			if errTarget, ok := any(*target).(error); ok {
+				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
+			}
+			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
+				runtime.WithStatusCode(resp.StatusCode))
+		}
+		target := new(CreateForecastMonitorResponse)
+		if err = json.Unmarshal(bodyBytes, target); err != nil {
+			err = fmt.Errorf("error decoding response: %w", err)
+			return nil, err
+		}
+		return target, nil
+	}
+
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/forecast")
+	if err != nil {
+		return nil, fmt.Errorf("error executing request: %w", err)
+	}
+	return responseParser(ctx, resp)
+}
+
+// CreateErrorMonitor Create an error monitor
+func (c *Client) CreateErrorMonitor(ctx context.Context, options *CreateErrorMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateErrorMonitorResponse, error) {
+	var err error
+	reqParams := runtime.RequestOptionsParameters{
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/error",
+		Method:      "POST",
+		Options:     options,
+		ContentType: "application/json",
+	}
+
+	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*CreateErrorMonitorResponse, error) {
+		bodyBytes := resp.Content
+		if resp.StatusCode != 200 {
+			target := new(CreateErrorMonitorErrorResponse)
+			err = json.Unmarshal(bodyBytes, target)
+			if err != nil {
+				return nil, fmt.Errorf("error decoding response: %w", err)
+			}
+
+			if errTarget, ok := any(*target).(error); ok {
+				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
+			}
+			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
+				runtime.WithStatusCode(resp.StatusCode))
+		}
+		target := new(CreateErrorMonitorResponse)
+		if err = json.Unmarshal(bodyBytes, target); err != nil {
+			err = fmt.Errorf("error decoding response: %w", err)
+			return nil, err
+		}
+		return target, nil
+	}
+
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/error")
+	if err != nil {
+		return nil, fmt.Errorf("error executing request: %w", err)
+	}
+	return responseParser(ctx, resp)
+}
+
+// CreateSloMonitor Create an SLO monitor
+func (c *Client) CreateSloMonitor(ctx context.Context, options *CreateSloMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateSloMonitorResponse, error) {
+	var err error
+	reqParams := runtime.RequestOptionsParameters{
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/slo",
+		Method:      "POST",
+		Options:     options,
+		ContentType: "application/json",
+	}
+
+	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*CreateSloMonitorResponse, error) {
+		bodyBytes := resp.Content
+		if resp.StatusCode != 200 {
+			target := new(CreateSloMonitorErrorResponse)
+			err = json.Unmarshal(bodyBytes, target)
+			if err != nil {
+				return nil, fmt.Errorf("error decoding response: %w", err)
+			}
+
+			if errTarget, ok := any(*target).(error); ok {
+				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
+			}
+			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
+				runtime.WithStatusCode(resp.StatusCode))
+		}
+		target := new(CreateSloMonitorResponse)
+		if err = json.Unmarshal(bodyBytes, target); err != nil {
+			err = fmt.Errorf("error decoding response: %w", err)
+			return nil, err
+		}
+		return target, nil
+	}
+
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/slo")
+	if err != nil {
+		return nil, fmt.Errorf("error executing request: %w", err)
+	}
+	return responseParser(ctx, resp)
+}
+
+// UpdateThresholdMonitor Update a threshold monitor
+func (c *Client) UpdateThresholdMonitor(ctx context.Context, options *UpdateThresholdMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateThresholdMonitorResponse, error) {
+	var err error
+	reqParams := runtime.RequestOptionsParameters{
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/{monitor_id}/threshold",
 		Method:      "PUT",
 		Options:     options,
 		ContentType: "application/json",
@@ -2174,10 +546,10 @@ func (c *Client) UpdateGridSection(ctx context.Context, options *UpdateGridSecti
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*UpdateGridSectionResponse, error) {
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*UpdateThresholdMonitorResponse, error) {
 		bodyBytes := resp.Content
 		if resp.StatusCode != 200 {
-			target := new(UpdateGridSectionErrorResponse)
+			target := new(UpdateThresholdMonitorErrorResponse)
 			err = json.Unmarshal(bodyBytes, target)
 			if err != nil {
 				return nil, fmt.Errorf("error decoding response: %w", err)
@@ -2189,7 +561,7 @@ func (c *Client) UpdateGridSection(ctx context.Context, options *UpdateGridSecti
 			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
 				runtime.WithStatusCode(resp.StatusCode))
 		}
-		target := new(UpdateGridSectionResponse)
+		target := new(UpdateThresholdMonitorResponse)
 		if err = json.Unmarshal(bodyBytes, target); err != nil {
 			err = fmt.Errorf("error decoding response: %w", err)
 			return nil, err
@@ -2197,20 +569,21 @@ func (c *Client) UpdateGridSection(ctx context.Context, options *UpdateGridSecti
 		return target, nil
 	}
 
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/sections/{section_id}")
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/{monitor_id}/threshold")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
 	return responseParser(ctx, resp)
 }
 
-// DeleteGridSection Delete grid section
-func (c *Client) DeleteGridSection(ctx context.Context, options *DeleteGridSectionRequestOptions, reqEditors ...runtime.RequestEditorFn) (*DeleteGridSectionResponse, error) {
+// UpdateAnomalyMonitor Update an anomaly monitor
+func (c *Client) UpdateAnomalyMonitor(ctx context.Context, options *UpdateAnomalyMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateAnomalyMonitorResponse, error) {
 	var err error
 	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/sections/{section_id}",
-		Method:     "DELETE",
-		Options:    options,
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/{monitor_id}/anomaly",
+		Method:      "PUT",
+		Options:     options,
+		ContentType: "application/json",
 	}
 
 	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
@@ -2218,10 +591,10 @@ func (c *Client) DeleteGridSection(ctx context.Context, options *DeleteGridSecti
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*DeleteGridSectionResponse, error) {
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*UpdateAnomalyMonitorResponse, error) {
 		bodyBytes := resp.Content
 		if resp.StatusCode != 200 {
-			target := new(DeleteGridSectionErrorResponse)
+			target := new(UpdateAnomalyMonitorErrorResponse)
 			err = json.Unmarshal(bodyBytes, target)
 			if err != nil {
 				return nil, fmt.Errorf("error decoding response: %w", err)
@@ -2233,7 +606,7 @@ func (c *Client) DeleteGridSection(ctx context.Context, options *DeleteGridSecti
 			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
 				runtime.WithStatusCode(resp.StatusCode))
 		}
-		target := new(DeleteGridSectionResponse)
+		target := new(UpdateAnomalyMonitorResponse)
 		if err = json.Unmarshal(bodyBytes, target); err != nil {
 			err = fmt.Errorf("error decoding response: %w", err)
 			return nil, err
@@ -2241,20 +614,21 @@ func (c *Client) DeleteGridSection(ctx context.Context, options *DeleteGridSecti
 		return target, nil
 	}
 
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/sections/{section_id}")
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/{monitor_id}/anomaly")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
 	return responseParser(ctx, resp)
 }
 
-// MoveGridSectionUp Move grid section up
-func (c *Client) MoveGridSectionUp(ctx context.Context, options *MoveGridSectionUpRequestOptions, reqEditors ...runtime.RequestEditorFn) (*MoveGridSectionUpResponse, error) {
+// UpdateOutlierMonitor Update an outlier monitor
+func (c *Client) UpdateOutlierMonitor(ctx context.Context, options *UpdateOutlierMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateOutlierMonitorResponse, error) {
 	var err error
 	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/sections/{section_id}/up",
-		Method:     "PUT",
-		Options:    options,
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/{monitor_id}/outlier",
+		Method:      "PUT",
+		Options:     options,
+		ContentType: "application/json",
 	}
 
 	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
@@ -2262,10 +636,10 @@ func (c *Client) MoveGridSectionUp(ctx context.Context, options *MoveGridSection
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*MoveGridSectionUpResponse, error) {
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*UpdateOutlierMonitorResponse, error) {
 		bodyBytes := resp.Content
 		if resp.StatusCode != 200 {
-			target := new(MoveGridSectionUpErrorResponse)
+			target := new(UpdateOutlierMonitorErrorResponse)
 			err = json.Unmarshal(bodyBytes, target)
 			if err != nil {
 				return nil, fmt.Errorf("error decoding response: %w", err)
@@ -2277,7 +651,7 @@ func (c *Client) MoveGridSectionUp(ctx context.Context, options *MoveGridSection
 			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
 				runtime.WithStatusCode(resp.StatusCode))
 		}
-		target := new(MoveGridSectionUpResponse)
+		target := new(UpdateOutlierMonitorResponse)
 		if err = json.Unmarshal(bodyBytes, target); err != nil {
 			err = fmt.Errorf("error decoding response: %w", err)
 			return nil, err
@@ -2285,20 +659,21 @@ func (c *Client) MoveGridSectionUp(ctx context.Context, options *MoveGridSection
 		return target, nil
 	}
 
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/sections/{section_id}/up")
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/{monitor_id}/outlier")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
 	return responseParser(ctx, resp)
 }
 
-// MoveGridSectionDown Move grid section down
-func (c *Client) MoveGridSectionDown(ctx context.Context, options *MoveGridSectionDownRequestOptions, reqEditors ...runtime.RequestEditorFn) (*MoveGridSectionDownResponse, error) {
+// UpdateForecastMonitor Update a forecast monitor
+func (c *Client) UpdateForecastMonitor(ctx context.Context, options *UpdateForecastMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateForecastMonitorResponse, error) {
 	var err error
 	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/dashboards/{project_id}/{dashboard_id}/sections/{section_id}/down",
-		Method:     "PUT",
-		Options:    options,
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/{monitor_id}/forecast",
+		Method:      "PUT",
+		Options:     options,
+		ContentType: "application/json",
 	}
 
 	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
@@ -2306,10 +681,10 @@ func (c *Client) MoveGridSectionDown(ctx context.Context, options *MoveGridSecti
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*MoveGridSectionDownResponse, error) {
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*UpdateForecastMonitorResponse, error) {
 		bodyBytes := resp.Content
 		if resp.StatusCode != 200 {
-			target := new(MoveGridSectionDownErrorResponse)
+			target := new(UpdateForecastMonitorErrorResponse)
 			err = json.Unmarshal(bodyBytes, target)
 			if err != nil {
 				return nil, fmt.Errorf("error decoding response: %w", err)
@@ -2321,7 +696,7 @@ func (c *Client) MoveGridSectionDown(ctx context.Context, options *MoveGridSecti
 			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
 				runtime.WithStatusCode(resp.StatusCode))
 		}
-		target := new(MoveGridSectionDownResponse)
+		target := new(UpdateForecastMonitorResponse)
 		if err = json.Unmarshal(bodyBytes, target); err != nil {
 			err = fmt.Errorf("error decoding response: %w", err)
 			return nil, err
@@ -2329,20 +704,21 @@ func (c *Client) MoveGridSectionDown(ctx context.Context, options *MoveGridSecti
 		return target, nil
 	}
 
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/dashboards/{project_id}/{dashboard_id}/sections/{section_id}/down")
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/{monitor_id}/forecast")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
 	return responseParser(ctx, resp)
 }
 
-// ListAlerts List alerts
-func (c *Client) ListAlerts(ctx context.Context, options *ListAlertsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListAlertsResponse, error) {
+// UpdateErrorMonitor Update an error monitor
+func (c *Client) UpdateErrorMonitor(ctx context.Context, options *UpdateErrorMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateErrorMonitorResponse, error) {
 	var err error
 	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/alerts/{project_id}",
-		Method:     "GET",
-		Options:    options,
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/{monitor_id}/error",
+		Method:      "PUT",
+		Options:     options,
+		ContentType: "application/json",
 	}
 
 	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
@@ -2350,10 +726,10 @@ func (c *Client) ListAlerts(ctx context.Context, options *ListAlertsRequestOptio
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListAlertsResponse, error) {
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*UpdateErrorMonitorResponse, error) {
 		bodyBytes := resp.Content
 		if resp.StatusCode != 200 {
-			target := new(ListAlertsErrorResponse)
+			target := new(UpdateErrorMonitorErrorResponse)
 			err = json.Unmarshal(bodyBytes, target)
 			if err != nil {
 				return nil, fmt.Errorf("error decoding response: %w", err)
@@ -2365,7 +741,7 @@ func (c *Client) ListAlerts(ctx context.Context, options *ListAlertsRequestOptio
 			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
 				runtime.WithStatusCode(resp.StatusCode))
 		}
-		target := new(ListAlertsResponse)
+		target := new(UpdateErrorMonitorResponse)
 		if err = json.Unmarshal(bodyBytes, target); err != nil {
 			err = fmt.Errorf("error decoding response: %w", err)
 			return nil, err
@@ -2373,20 +749,21 @@ func (c *Client) ListAlerts(ctx context.Context, options *ListAlertsRequestOptio
 		return target, nil
 	}
 
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/alerts/{project_id}")
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/{monitor_id}/error")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
 	return responseParser(ctx, resp)
 }
 
-// GetAlert Get an alert
-func (c *Client) GetAlert(ctx context.Context, options *GetAlertRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetAlertResponse, error) {
+// UpdateSloMonitor Update an SLO monitor
+func (c *Client) UpdateSloMonitor(ctx context.Context, options *UpdateSloMonitorRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateSloMonitorResponse, error) {
 	var err error
 	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/alerts/{project_id}/{alert_id}",
-		Method:     "GET",
-		Options:    options,
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/monitors/{project_id}/{monitor_id}/slo",
+		Method:      "PUT",
+		Options:     options,
+		ContentType: "application/json",
 	}
 
 	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
@@ -2394,10 +771,10 @@ func (c *Client) GetAlert(ctx context.Context, options *GetAlertRequestOptions, 
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
 
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*GetAlertResponse, error) {
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*UpdateSloMonitorResponse, error) {
 		bodyBytes := resp.Content
 		if resp.StatusCode != 200 {
-			target := new(GetAlertErrorResponse)
+			target := new(UpdateSloMonitorErrorResponse)
 			err = json.Unmarshal(bodyBytes, target)
 			if err != nil {
 				return nil, fmt.Errorf("error decoding response: %w", err)
@@ -2409,7 +786,7 @@ func (c *Client) GetAlert(ctx context.Context, options *GetAlertRequestOptions, 
 			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
 				runtime.WithStatusCode(resp.StatusCode))
 		}
-		target := new(GetAlertResponse)
+		target := new(UpdateSloMonitorResponse)
 		if err = json.Unmarshal(bodyBytes, target); err != nil {
 			err = fmt.Errorf("error decoding response: %w", err)
 			return nil, err
@@ -2417,50 +794,7 @@ func (c *Client) GetAlert(ctx context.Context, options *GetAlertRequestOptions, 
 		return target, nil
 	}
 
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/alerts/{project_id}/{alert_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListOrgs List organizations
-func (c *Client) ListOrgs(ctx context.Context, reqEditors ...runtime.RequestEditorFn) (*ListOrgsResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/orgs",
-		Method:     "GET",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListOrgsResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListOrgsErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListOrgsResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs")
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/monitors/{project_id}/{monitor_id}/slo")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
@@ -2690,50 +1024,6 @@ func (c *Client) UpdateOrgBudget(ctx context.Context, options *UpdateOrgBudgetRe
 	return responseParser(ctx, resp)
 }
 
-// ListOrgProjects List organization projects
-func (c *Client) ListOrgProjects(ctx context.Context, options *ListOrgProjectsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListOrgProjectsResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/projects",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListOrgProjectsResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListOrgProjectsErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListOrgProjectsResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/projects")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
 // CreateProject Create project
 func (c *Client) CreateProject(ctx context.Context, options *CreateProjectRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateProjectResponse, error) {
 	var err error
@@ -2773,50 +1063,6 @@ func (c *Client) CreateProject(ctx context.Context, options *CreateProjectReques
 	}
 
 	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/projects")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListOrgUsers List organization users
-func (c *Client) ListOrgUsers(ctx context.Context, options *ListOrgUsersRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListOrgUsersResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/users",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListOrgUsersResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListOrgUsersErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListOrgUsersResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/users")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
@@ -2995,272 +1241,6 @@ func (c *Client) RemoveOrgUser(ctx context.Context, options *RemoveOrgUserReques
 	}
 
 	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/users/{org_user_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// UpdateOrgUserProjectPerm Update organization user project permission
-func (c *Client) UpdateOrgUserProjectPerm(ctx context.Context, options *UpdateOrgUserProjectPermRequestOptions, reqEditors ...runtime.RequestEditorFn) (*UpdateOrgUserProjectPermResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/users/{org_user_id}/projects/{project_id}",
-		Method:      "PUT",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*UpdateOrgUserProjectPermResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(UpdateOrgUserProjectPermErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(UpdateOrgUserProjectPermResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/users/{org_user_id}/projects/{project_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListOrgInvites List organization invitations
-func (c *Client) ListOrgInvites(ctx context.Context, options *ListOrgInvitesRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListOrgInvitesResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/invites",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListOrgInvitesResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListOrgInvitesErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListOrgInvitesResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/invites")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// CreateOrgInvite Create organization invitation
-func (c *Client) CreateOrgInvite(ctx context.Context, options *CreateOrgInviteRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateOrgInviteResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/invites",
-		Method:      "POST",
-		Options:     options,
-		ContentType: "application/json",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*CreateOrgInviteResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(CreateOrgInviteErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(CreateOrgInviteResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/invites")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// CancelOrgInvite Cancel organization invitation
-func (c *Client) CancelOrgInvite(ctx context.Context, options *CancelOrgInviteRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CancelOrgInviteResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/invites/{invite_id}",
-		Method:     "DELETE",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*CancelOrgInviteResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(CancelOrgInviteErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(CancelOrgInviteResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/invites/{invite_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ResendOrgInvite Resend organization invitation
-func (c *Client) ResendOrgInvite(ctx context.Context, options *ResendOrgInviteRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ResendOrgInviteResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/invites/{invite_id}/resend",
-		Method:     "POST",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ResendOrgInviteResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ResendOrgInviteErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ResendOrgInviteResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/invites/{invite_id}/resend")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListTeams List organization teams
-func (c *Client) ListTeams(ctx context.Context, options *ListTeamsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListTeamsResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/teams",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListTeamsResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListTeamsErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListTeamsResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/teams")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
@@ -3493,10 +1473,9 @@ func (c *Client) ListTeamProjects(ctx context.Context, options *ListTeamProjects
 func (c *Client) AddTeamProject(ctx context.Context, options *AddTeamProjectRequestOptions, reqEditors ...runtime.RequestEditorFn) (*AddTeamProjectResponse, error) {
 	var err error
 	reqParams := runtime.RequestOptionsParameters{
-		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/teams/{team_id}/projects/{project_id}",
-		Method:      "POST",
-		Options:     options,
-		ContentType: "application/json",
+		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/teams/{team_id}/projects/{project_id}",
+		Method:     "POST",
+		Options:    options,
 	}
 
 	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
@@ -3755,50 +1734,6 @@ func (c *Client) CreateOrglessInvite(ctx context.Context, options *CreateOrgless
 	return responseParser(ctx, resp)
 }
 
-// JoinOrg Accept organization invitation
-func (c *Client) JoinOrg(ctx context.Context, options *JoinOrgRequestOptions, reqEditors ...runtime.RequestEditorFn) (*JoinOrgResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/join/{invite_id}",
-		Method:     "POST",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*JoinOrgResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(JoinOrgErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(JoinOrgResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/join/{invite_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
 // GetProject Get project
 func (c *Client) GetProject(ctx context.Context, options *GetProjectRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetProjectResponse, error) {
 	var err error
@@ -3888,6 +1823,51 @@ func (c *Client) UpdateProject(ctx context.Context, options *UpdateProjectReques
 	return responseParser(ctx, resp)
 }
 
+// PatchProject Patch project view settings
+func (c *Client) PatchProject(ctx context.Context, options *PatchProjectRequestOptions, reqEditors ...runtime.RequestEditorFn) (*PatchProjectResponse, error) {
+	var err error
+	reqParams := runtime.RequestOptionsParameters{
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/projects/{project_id}",
+		Method:      "PATCH",
+		Options:     options,
+		ContentType: "application/json",
+	}
+
+	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*PatchProjectResponse, error) {
+		bodyBytes := resp.Content
+		if resp.StatusCode != 200 {
+			target := new(PatchProjectErrorResponse)
+			err = json.Unmarshal(bodyBytes, target)
+			if err != nil {
+				return nil, fmt.Errorf("error decoding response: %w", err)
+			}
+
+			if errTarget, ok := any(*target).(error); ok {
+				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
+			}
+			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
+				runtime.WithStatusCode(resp.StatusCode))
+		}
+		target := new(PatchProjectResponse)
+		if err = json.Unmarshal(bodyBytes, target); err != nil {
+			err = fmt.Errorf("error decoding response: %w", err)
+			return nil, err
+		}
+		return target, nil
+	}
+
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/projects/{project_id}")
+	if err != nil {
+		return nil, fmt.Errorf("error executing request: %w", err)
+	}
+	return responseParser(ctx, resp)
+}
+
 // DeleteProject Delete project
 func (c *Client) DeleteProject(ctx context.Context, options *DeleteProjectRequestOptions, reqEditors ...runtime.RequestEditorFn) (*DeleteProjectResponse, error) {
 	var err error
@@ -3926,50 +1906,6 @@ func (c *Client) DeleteProject(ctx context.Context, options *DeleteProjectReques
 	}
 
 	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/projects/{project_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListProjectTokens List project tokens
-func (c *Client) ListProjectTokens(ctx context.Context, options *ListProjectTokensRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListProjectTokensResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/projects/{project_id}/tokens",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListProjectTokensResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListProjectTokensErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListProjectTokensResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/projects/{project_id}/tokens")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}
@@ -4148,93 +2084,6 @@ func (c *Client) DeleteProjectToken(ctx context.Context, options *DeleteProjectT
 	}
 
 	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/projects/{project_id}/tokens/{token_id}")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// GetCurrentUser Get current user
-func (c *Client) GetCurrentUser(ctx context.Context, reqEditors ...runtime.RequestEditorFn) (*GetCurrentUserResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/users/current",
-		Method:     "GET",
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*GetCurrentUserResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(GetCurrentUserErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(GetCurrentUserResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/users/current")
-	if err != nil {
-		return nil, fmt.Errorf("error executing request: %w", err)
-	}
-	return responseParser(ctx, resp)
-}
-
-// ListNotificationChannels List notification channels
-func (c *Client) ListNotificationChannels(ctx context.Context, options *ListNotificationChannelsRequestOptions, reqEditors ...runtime.RequestEditorFn) (*ListNotificationChannelsResponse, error) {
-	var err error
-	reqParams := runtime.RequestOptionsParameters{
-		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/projects/{project_id}/notification-channels",
-		Method:     "GET",
-		Options:    options,
-	}
-
-	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-
-	responseParser := func(ctx context.Context, resp *runtime.Response) (*ListNotificationChannelsResponse, error) {
-		bodyBytes := resp.Content
-		if resp.StatusCode != 200 {
-			target := new(ListNotificationChannelsErrorResponse)
-			err = json.Unmarshal(bodyBytes, target)
-			if err != nil {
-				return nil, fmt.Errorf("error decoding response: %w", err)
-			}
-
-			if errTarget, ok := any(*target).(error); ok {
-				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
-			}
-			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
-				runtime.WithStatusCode(resp.StatusCode))
-		}
-		target := new(ListNotificationChannelsResponse)
-		if err = json.Unmarshal(bodyBytes, target); err != nil {
-			err = fmt.Errorf("error decoding response: %w", err)
-			return nil, err
-		}
-		return target, nil
-	}
-
-	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/projects/{project_id}/notification-channels")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}

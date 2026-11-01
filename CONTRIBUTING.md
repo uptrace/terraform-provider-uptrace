@@ -70,6 +70,21 @@ Without `TF_ACC=1`, acceptance tests are automatically skipped.
   `TestAcc` prefix and `resource.TestCase` with `testutil.ProtoV6ProviderFactories`. Always include
   `PreCheck`, `CheckDestroy`, and an import step.
 
+## Updating the API client
+
+`internal/generated/` is generated from `openapi/openapi.yaml`, a bundled copy of the spec that
+lives in the uptrace/app repository. Vendor it from an app checkout, then regenerate:
+
+```bash
+make sync-spec APP_DIR=../app APP_REF=origin/prod
+make generate
+```
+
+Bundle from the oldest app version the provider must support. The server refuses a request key
+its spec does not list, so a client built from a newer spec can send a key an older server
+rejects. `openapi/overlay.yaml` adjusts the spec before generation (number types, keys that must
+be sent as `null` or `[]`); its comments say why each action exists.
+
 ## Generating documentation
 
 Registry documentation in `docs/` is generated from schema descriptions and the `examples/` directory:

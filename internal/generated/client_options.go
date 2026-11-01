@@ -6,668 +6,6 @@ import (
 	"github.com/uptrace/oapi-codegen-dd/v3/pkg/runtime"
 )
 
-// CreateAnnotationRequestOptions is the options needed to make a request to CreateAnnotation.
-type CreateAnnotationRequestOptions struct {
-	Body *CreateAnnotationBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *CreateAnnotationRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.Body != nil {
-		if v, ok := any(o.Body).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Body", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *CreateAnnotationRequestOptions) GetPathParams() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetQuery returns the query params as a map.
-func (o *CreateAnnotationRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *CreateAnnotationRequestOptions) GetBody() any {
-	return o.Body
-}
-
-// GetHeader returns the headers as a map.
-func (o *CreateAnnotationRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// PublicListSpansRequestOptions is the options needed to make a request to PublicListSpans.
-type PublicListSpansRequestOptions struct {
-	PathParams *PublicListSpansPath
-	Query      *PublicListSpansQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *PublicListSpansRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *PublicListSpansRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *PublicListSpansRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *PublicListSpansRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *PublicListSpansRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// PublicListSpanGroupsRequestOptions is the options needed to make a request to PublicListSpanGroups.
-type PublicListSpanGroupsRequestOptions struct {
-	PathParams *PublicListSpanGroupsPath
-	Query      *PublicListSpanGroupsQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *PublicListSpanGroupsRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *PublicListSpanGroupsRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *PublicListSpanGroupsRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *PublicListSpanGroupsRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *PublicListSpanGroupsRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListSpansRequestOptions is the options needed to make a request to ListSpans.
-type ListSpansRequestOptions struct {
-	PathParams *ListSpansPath
-	Query      *ListSpansQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListSpansRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListSpansRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListSpansRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListSpansRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListSpansRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListSpanGroupsRequestOptions is the options needed to make a request to ListSpanGroups.
-type ListSpanGroupsRequestOptions struct {
-	PathParams *ListSpanGroupsPath
-	Query      *ListSpanGroupsQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListSpanGroupsRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListSpanGroupsRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListSpanGroupsRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListSpanGroupsRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListSpanGroupsRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// QueryTimeseriesRequestOptions is the options needed to make a request to QueryTimeseries.
-type QueryTimeseriesRequestOptions struct {
-	PathParams *QueryTimeseriesPath
-	Query      *QueryTimeseriesQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *QueryTimeseriesRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *QueryTimeseriesRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *QueryTimeseriesRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *QueryTimeseriesRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *QueryTimeseriesRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// QueryQuantilesRequestOptions is the options needed to make a request to QueryQuantiles.
-type QueryQuantilesRequestOptions struct {
-	PathParams *QueryQuantilesPath
-	Query      *QueryQuantilesQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *QueryQuantilesRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *QueryQuantilesRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *QueryQuantilesRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *QueryQuantilesRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *QueryQuantilesRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListTraceGroupsRequestOptions is the options needed to make a request to ListTraceGroups.
-type ListTraceGroupsRequestOptions struct {
-	PathParams *ListTraceGroupsPath
-	Query      *ListTraceGroupsQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListTraceGroupsRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListTraceGroupsRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListTraceGroupsRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListTraceGroupsRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListTraceGroupsRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListTracesRequestOptions is the options needed to make a request to ListTraces.
-type ListTracesRequestOptions struct {
-	PathParams *ListTracesPath
-	Query      *ListTracesQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListTracesRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListTracesRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListTracesRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListTracesRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListTracesRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// SyncFixturesRequestOptions is the options needed to make a request to SyncFixtures.
-type SyncFixturesRequestOptions struct {
-	Body *SyncFixturesBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *SyncFixturesRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.Body != nil {
-		if v, ok := any(o.Body).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Body", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *SyncFixturesRequestOptions) GetPathParams() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetQuery returns the query params as a map.
-func (o *SyncFixturesRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *SyncFixturesRequestOptions) GetBody() any {
-	return o.Body
-}
-
-// GetHeader returns the headers as a map.
-func (o *SyncFixturesRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// BindFixtureKeysRequestOptions is the options needed to make a request to BindFixtureKeys.
-type BindFixtureKeysRequestOptions struct {
-	Body *BindFixtureKeysBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *BindFixtureKeysRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.Body != nil {
-		if v, ok := any(o.Body).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Body", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *BindFixtureKeysRequestOptions) GetPathParams() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetQuery returns the query params as a map.
-func (o *BindFixtureKeysRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *BindFixtureKeysRequestOptions) GetBody() any {
-	return o.Body
-}
-
-// GetHeader returns the headers as a map.
-func (o *BindFixtureKeysRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListMonitorsRequestOptions is the options needed to make a request to ListMonitors.
-type ListMonitorsRequestOptions struct {
-	PathParams *ListMonitorsPath
-	Query      *ListMonitorsQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListMonitorsRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListMonitorsRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListMonitorsRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListMonitorsRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListMonitorsRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// CreateMonitorRequestOptions is the options needed to make a request to CreateMonitor.
-type CreateMonitorRequestOptions struct {
-	PathParams *CreateMonitorPath
-	Body       *CreateMonitorBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *CreateMonitorRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Body != nil {
-		if v, ok := any(o.Body).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Body", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *CreateMonitorRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *CreateMonitorRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *CreateMonitorRequestOptions) GetBody() any {
-	return o.Body
-}
-
-// GetHeader returns the headers as a map.
-func (o *CreateMonitorRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
 // GetMonitorRequestOptions is the options needed to make a request to GetMonitor.
 type GetMonitorRequestOptions struct {
 	PathParams *GetMonitorPath
@@ -709,59 +47,6 @@ func (o *GetMonitorRequestOptions) GetBody() any {
 
 // GetHeader returns the headers as a map.
 func (o *GetMonitorRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// UpdateMonitorRequestOptions is the options needed to make a request to UpdateMonitor.
-type UpdateMonitorRequestOptions struct {
-	PathParams *UpdateMonitorPath
-	Body       *UpdateMonitorBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *UpdateMonitorRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Body != nil {
-		if v, ok := any(o.Body).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Body", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *UpdateMonitorRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *UpdateMonitorRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *UpdateMonitorRequestOptions) GetBody() any {
-	return o.Body
-}
-
-// GetHeader returns the headers as a map.
-func (o *UpdateMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
@@ -809,59 +94,15 @@ func (o *DeleteMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// ActivateMonitorRequestOptions is the options needed to make a request to ActivateMonitor.
-type ActivateMonitorRequestOptions struct {
-	PathParams *ActivateMonitorPath
+// CreateThresholdMonitorRequestOptions is the options needed to make a request to CreateThresholdMonitor.
+type CreateThresholdMonitorRequestOptions struct {
+	PathParams *CreateThresholdMonitorPath
+	Body       *CreateThresholdMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *ActivateMonitorRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ActivateMonitorRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ActivateMonitorRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ActivateMonitorRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ActivateMonitorRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// PauseMonitorRequestOptions is the options needed to make a request to PauseMonitor.
-type PauseMonitorRequestOptions struct {
-	PathParams *PauseMonitorPath
-	Body       *PauseMonitorBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *PauseMonitorRequestOptions) Validate() error {
+func (o *CreateThresholdMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
@@ -887,387 +128,34 @@ func (o *PauseMonitorRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *PauseMonitorRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *CreateThresholdMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *PauseMonitorRequestOptions) GetQuery() (map[string]any, error) {
+func (o *CreateThresholdMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *PauseMonitorRequestOptions) GetBody() any {
+func (o *CreateThresholdMonitorRequestOptions) GetBody() any {
 	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *PauseMonitorRequestOptions) GetHeader() (map[string]string, error) {
+func (o *CreateThresholdMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// ListDashboardsRequestOptions is the options needed to make a request to ListDashboards.
-type ListDashboardsRequestOptions struct {
-	PathParams *ListDashboardsPath
-	Query      *ListDashboardsQuery
+// CreateAnomalyMonitorRequestOptions is the options needed to make a request to CreateAnomalyMonitor.
+type CreateAnomalyMonitorRequestOptions struct {
+	PathParams *CreateAnomalyMonitorPath
+	Body       *CreateAnomalyMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *ListDashboardsRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListDashboardsRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListDashboardsRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListDashboardsRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListDashboardsRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListDashboardTagsRequestOptions is the options needed to make a request to ListDashboardTags.
-type ListDashboardTagsRequestOptions struct {
-	PathParams *ListDashboardTagsPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListDashboardTagsRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListDashboardTagsRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListDashboardTagsRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListDashboardTagsRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListDashboardTagsRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListDashboardTemplatesRequestOptions is the options needed to make a request to ListDashboardTemplates.
-type ListDashboardTemplatesRequestOptions struct {
-	PathParams *ListDashboardTemplatesPath
-	Query      *ListDashboardTemplatesQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListDashboardTemplatesRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListDashboardTemplatesRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListDashboardTemplatesRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListDashboardTemplatesRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListDashboardTemplatesRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// GetDashboardTemplateRequestOptions is the options needed to make a request to GetDashboardTemplate.
-type GetDashboardTemplateRequestOptions struct {
-	PathParams *GetDashboardTemplatePath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *GetDashboardTemplateRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *GetDashboardTemplateRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *GetDashboardTemplateRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *GetDashboardTemplateRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *GetDashboardTemplateRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ExploreMetricsRequestOptions is the options needed to make a request to ExploreMetrics.
-type ExploreMetricsRequestOptions struct {
-	PathParams *ExploreMetricsPath
-	Query      *ExploreMetricsQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ExploreMetricsRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ExploreMetricsRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ExploreMetricsRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ExploreMetricsRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ExploreMetricsRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListMetricAttributesRequestOptions is the options needed to make a request to ListMetricAttributes.
-type ListMetricAttributesRequestOptions struct {
-	PathParams *ListMetricAttributesPath
-	Query      *ListMetricAttributesQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListMetricAttributesRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListMetricAttributesRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListMetricAttributesRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListMetricAttributesRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListMetricAttributesRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListMetricAttributeValuesRequestOptions is the options needed to make a request to ListMetricAttributeValues.
-type ListMetricAttributeValuesRequestOptions struct {
-	PathParams *ListMetricAttributeValuesPath
-	Query      *ListMetricAttributeValuesQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListMetricAttributeValuesRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListMetricAttributeValuesRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListMetricAttributeValuesRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListMetricAttributeValuesRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListMetricAttributeValuesRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// CreateDashboardFromYamlRequestOptions is the options needed to make a request to CreateDashboardFromYaml.
-type CreateDashboardFromYamlRequestOptions struct {
-	PathParams *CreateDashboardFromYamlPath
-	Body       *CreateDashboardFromYamlBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *CreateDashboardFromYamlRequestOptions) Validate() error {
+func (o *CreateAnomalyMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
@@ -1293,166 +181,34 @@ func (o *CreateDashboardFromYamlRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *CreateDashboardFromYamlRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *CreateAnomalyMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *CreateDashboardFromYamlRequestOptions) GetQuery() (map[string]any, error) {
+func (o *CreateAnomalyMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *CreateDashboardFromYamlRequestOptions) GetBody() any {
+func (o *CreateAnomalyMonitorRequestOptions) GetBody() any {
 	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *CreateDashboardFromYamlRequestOptions) GetHeader() (map[string]string, error) {
+func (o *CreateAnomalyMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// GetDashboardRequestOptions is the options needed to make a request to GetDashboard.
-type GetDashboardRequestOptions struct {
-	PathParams *GetDashboardPath
+// CreateOutlierMonitorRequestOptions is the options needed to make a request to CreateOutlierMonitor.
+type CreateOutlierMonitorRequestOptions struct {
+	PathParams *CreateOutlierMonitorPath
+	Body       *CreateOutlierMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *GetDashboardRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *GetDashboardRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *GetDashboardRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *GetDashboardRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *GetDashboardRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// DeleteDashboardRequestOptions is the options needed to make a request to DeleteDashboard.
-type DeleteDashboardRequestOptions struct {
-	PathParams *DeleteDashboardPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *DeleteDashboardRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *DeleteDashboardRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *DeleteDashboardRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *DeleteDashboardRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *DeleteDashboardRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// GetDashboardYamlRequestOptions is the options needed to make a request to GetDashboardYaml.
-type GetDashboardYamlRequestOptions struct {
-	PathParams *GetDashboardYamlPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *GetDashboardYamlRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *GetDashboardYamlRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *GetDashboardYamlRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *GetDashboardYamlRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *GetDashboardYamlRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// UpdateDashboardFromYamlRequestOptions is the options needed to make a request to UpdateDashboardFromYaml.
-type UpdateDashboardFromYamlRequestOptions struct {
-	PathParams *UpdateDashboardFromYamlPath
-	Body       *UpdateDashboardFromYamlBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *UpdateDashboardFromYamlRequestOptions) Validate() error {
+func (o *CreateOutlierMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
@@ -1478,210 +234,34 @@ func (o *UpdateDashboardFromYamlRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *UpdateDashboardFromYamlRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *CreateOutlierMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *UpdateDashboardFromYamlRequestOptions) GetQuery() (map[string]any, error) {
+func (o *CreateOutlierMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *UpdateDashboardFromYamlRequestOptions) GetBody() any {
+func (o *CreateOutlierMonitorRequestOptions) GetBody() any {
 	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *UpdateDashboardFromYamlRequestOptions) GetHeader() (map[string]string, error) {
+func (o *CreateOutlierMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// CloneDashboardRequestOptions is the options needed to make a request to CloneDashboard.
-type CloneDashboardRequestOptions struct {
-	PathParams *CloneDashboardPath
+// CreateForecastMonitorRequestOptions is the options needed to make a request to CreateForecastMonitor.
+type CreateForecastMonitorRequestOptions struct {
+	PathParams *CreateForecastMonitorPath
+	Body       *CreateForecastMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *CloneDashboardRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *CloneDashboardRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *CloneDashboardRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *CloneDashboardRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *CloneDashboardRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ResetDashboardRequestOptions is the options needed to make a request to ResetDashboard.
-type ResetDashboardRequestOptions struct {
-	PathParams *ResetDashboardPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ResetDashboardRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ResetDashboardRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ResetDashboardRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ResetDashboardRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ResetDashboardRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// PinDashboardRequestOptions is the options needed to make a request to PinDashboard.
-type PinDashboardRequestOptions struct {
-	PathParams *PinDashboardPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *PinDashboardRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *PinDashboardRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *PinDashboardRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *PinDashboardRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *PinDashboardRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// UnpinDashboardRequestOptions is the options needed to make a request to UnpinDashboard.
-type UnpinDashboardRequestOptions struct {
-	PathParams *UnpinDashboardPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *UnpinDashboardRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *UnpinDashboardRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *UnpinDashboardRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *UnpinDashboardRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *UnpinDashboardRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// UpdateDashboardTableRequestOptions is the options needed to make a request to UpdateDashboardTable.
-type UpdateDashboardTableRequestOptions struct {
-	PathParams *UpdateDashboardTablePath
-	Body       *UpdateDashboardTableBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *UpdateDashboardTableRequestOptions) Validate() error {
+func (o *CreateForecastMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
@@ -1707,34 +287,34 @@ func (o *UpdateDashboardTableRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *UpdateDashboardTableRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *CreateForecastMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *UpdateDashboardTableRequestOptions) GetQuery() (map[string]any, error) {
+func (o *CreateForecastMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *UpdateDashboardTableRequestOptions) GetBody() any {
+func (o *CreateForecastMonitorRequestOptions) GetBody() any {
 	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *UpdateDashboardTableRequestOptions) GetHeader() (map[string]string, error) {
+func (o *CreateForecastMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// UpdateDashboardGridRequestOptions is the options needed to make a request to UpdateDashboardGrid.
-type UpdateDashboardGridRequestOptions struct {
-	PathParams *UpdateDashboardGridPath
-	Body       *UpdateDashboardGridBody
+// CreateErrorMonitorRequestOptions is the options needed to make a request to CreateErrorMonitor.
+type CreateErrorMonitorRequestOptions struct {
+	PathParams *CreateErrorMonitorPath
+	Body       *CreateErrorMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *UpdateDashboardGridRequestOptions) Validate() error {
+func (o *CreateErrorMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
@@ -1760,34 +340,34 @@ func (o *UpdateDashboardGridRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *UpdateDashboardGridRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *CreateErrorMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *UpdateDashboardGridRequestOptions) GetQuery() (map[string]any, error) {
+func (o *CreateErrorMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *UpdateDashboardGridRequestOptions) GetBody() any {
+func (o *CreateErrorMonitorRequestOptions) GetBody() any {
 	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *UpdateDashboardGridRequestOptions) GetHeader() (map[string]string, error) {
+func (o *CreateErrorMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// CreateGridItemRequestOptions is the options needed to make a request to CreateGridItem.
-type CreateGridItemRequestOptions struct {
-	PathParams *CreateGridItemPath
-	Body       *CreateGridItemBody
+// CreateSloMonitorRequestOptions is the options needed to make a request to CreateSloMonitor.
+type CreateSloMonitorRequestOptions struct {
+	PathParams *CreateSloMonitorPath
+	Body       *CreateSloMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *CreateGridItemRequestOptions) Validate() error {
+func (o *CreateSloMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
@@ -1813,34 +393,34 @@ func (o *CreateGridItemRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *CreateGridItemRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *CreateSloMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *CreateGridItemRequestOptions) GetQuery() (map[string]any, error) {
+func (o *CreateSloMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *CreateGridItemRequestOptions) GetBody() any {
+func (o *CreateSloMonitorRequestOptions) GetBody() any {
 	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *CreateGridItemRequestOptions) GetHeader() (map[string]string, error) {
+func (o *CreateSloMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// UpdateGridLayoutRequestOptions is the options needed to make a request to UpdateGridLayout.
-type UpdateGridLayoutRequestOptions struct {
-	PathParams *UpdateGridLayoutPath
-	Body       *UpdateGridLayoutBody
+// UpdateThresholdMonitorRequestOptions is the options needed to make a request to UpdateThresholdMonitor.
+type UpdateThresholdMonitorRequestOptions struct {
+	PathParams *UpdateThresholdMonitorPath
+	Body       *UpdateThresholdMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *UpdateGridLayoutRequestOptions) Validate() error {
+func (o *UpdateThresholdMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
@@ -1866,34 +446,34 @@ func (o *UpdateGridLayoutRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *UpdateGridLayoutRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *UpdateThresholdMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *UpdateGridLayoutRequestOptions) GetQuery() (map[string]any, error) {
+func (o *UpdateThresholdMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *UpdateGridLayoutRequestOptions) GetBody() any {
+func (o *UpdateThresholdMonitorRequestOptions) GetBody() any {
 	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *UpdateGridLayoutRequestOptions) GetHeader() (map[string]string, error) {
+func (o *UpdateThresholdMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// UpdateGridItemRequestOptions is the options needed to make a request to UpdateGridItem.
-type UpdateGridItemRequestOptions struct {
-	PathParams *UpdateGridItemPath
-	Body       *UpdateGridItemBody
+// UpdateAnomalyMonitorRequestOptions is the options needed to make a request to UpdateAnomalyMonitor.
+type UpdateAnomalyMonitorRequestOptions struct {
+	PathParams *UpdateAnomalyMonitorPath
+	Body       *UpdateAnomalyMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *UpdateGridItemRequestOptions) Validate() error {
+func (o *UpdateAnomalyMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
@@ -1919,78 +499,34 @@ func (o *UpdateGridItemRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *UpdateGridItemRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *UpdateAnomalyMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *UpdateGridItemRequestOptions) GetQuery() (map[string]any, error) {
+func (o *UpdateAnomalyMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *UpdateGridItemRequestOptions) GetBody() any {
+func (o *UpdateAnomalyMonitorRequestOptions) GetBody() any {
 	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *UpdateGridItemRequestOptions) GetHeader() (map[string]string, error) {
+func (o *UpdateAnomalyMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// DeleteGridItemRequestOptions is the options needed to make a request to DeleteGridItem.
-type DeleteGridItemRequestOptions struct {
-	PathParams *DeleteGridItemPath
+// UpdateOutlierMonitorRequestOptions is the options needed to make a request to UpdateOutlierMonitor.
+type UpdateOutlierMonitorRequestOptions struct {
+	PathParams *UpdateOutlierMonitorPath
+	Body       *UpdateOutlierMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *DeleteGridItemRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *DeleteGridItemRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *DeleteGridItemRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *DeleteGridItemRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *DeleteGridItemRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// CreateGridSectionRequestOptions is the options needed to make a request to CreateGridSection.
-type CreateGridSectionRequestOptions struct {
-	PathParams *CreateGridSectionPath
-	Body       *CreateGridSectionBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *CreateGridSectionRequestOptions) Validate() error {
+func (o *UpdateOutlierMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
@@ -2016,34 +552,34 @@ func (o *CreateGridSectionRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *CreateGridSectionRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *UpdateOutlierMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *CreateGridSectionRequestOptions) GetQuery() (map[string]any, error) {
+func (o *UpdateOutlierMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *CreateGridSectionRequestOptions) GetBody() any {
+func (o *UpdateOutlierMonitorRequestOptions) GetBody() any {
 	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *CreateGridSectionRequestOptions) GetHeader() (map[string]string, error) {
+func (o *UpdateOutlierMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// UpdateGridSectionRequestOptions is the options needed to make a request to UpdateGridSection.
-type UpdateGridSectionRequestOptions struct {
-	PathParams *UpdateGridSectionPath
-	Body       *UpdateGridSectionBody
+// UpdateForecastMonitorRequestOptions is the options needed to make a request to UpdateForecastMonitor.
+type UpdateForecastMonitorRequestOptions struct {
+	PathParams *UpdateForecastMonitorPath
+	Body       *UpdateForecastMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *UpdateGridSectionRequestOptions) Validate() error {
+func (o *UpdateForecastMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
@@ -2069,39 +605,48 @@ func (o *UpdateGridSectionRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *UpdateGridSectionRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *UpdateForecastMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *UpdateGridSectionRequestOptions) GetQuery() (map[string]any, error) {
+func (o *UpdateForecastMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *UpdateGridSectionRequestOptions) GetBody() any {
+func (o *UpdateForecastMonitorRequestOptions) GetBody() any {
 	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *UpdateGridSectionRequestOptions) GetHeader() (map[string]string, error) {
+func (o *UpdateForecastMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// DeleteGridSectionRequestOptions is the options needed to make a request to DeleteGridSection.
-type DeleteGridSectionRequestOptions struct {
-	PathParams *DeleteGridSectionPath
+// UpdateErrorMonitorRequestOptions is the options needed to make a request to UpdateErrorMonitor.
+type UpdateErrorMonitorRequestOptions struct {
+	PathParams *UpdateErrorMonitorPath
+	Body       *UpdateErrorMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *DeleteGridSectionRequestOptions) Validate() error {
+func (o *UpdateErrorMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
 		if v, ok := any(o.PathParams).(runtime.Validator); ok {
 			if err := v.Validate(); err != nil {
 				errors = errors.Append("PathParams", err)
+			}
+		}
+	}
+
+	if o.Body != nil {
+		if v, ok := any(o.Body).(runtime.Validator); ok {
+			if err := v.Validate(); err != nil {
+				errors = errors.Append("Body", err)
 			}
 		}
 	}
@@ -2113,39 +658,48 @@ func (o *DeleteGridSectionRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *DeleteGridSectionRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *UpdateErrorMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *DeleteGridSectionRequestOptions) GetQuery() (map[string]any, error) {
+func (o *UpdateErrorMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *DeleteGridSectionRequestOptions) GetBody() any {
-	return nil
+func (o *UpdateErrorMonitorRequestOptions) GetBody() any {
+	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *DeleteGridSectionRequestOptions) GetHeader() (map[string]string, error) {
+func (o *UpdateErrorMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// MoveGridSectionUpRequestOptions is the options needed to make a request to MoveGridSectionUp.
-type MoveGridSectionUpRequestOptions struct {
-	PathParams *MoveGridSectionUpPath
+// UpdateSloMonitorRequestOptions is the options needed to make a request to UpdateSloMonitor.
+type UpdateSloMonitorRequestOptions struct {
+	PathParams *UpdateSloMonitorPath
+	Body       *UpdateSloMonitorBody
 }
 
 // Validate validates all the fields in the options.
 // Use it if fields validation was not run.
-func (o *MoveGridSectionUpRequestOptions) Validate() error {
+func (o *UpdateSloMonitorRequestOptions) Validate() error {
 	var errors runtime.ValidationErrors
 
 	if o.PathParams != nil {
 		if v, ok := any(o.PathParams).(runtime.Validator); ok {
 			if err := v.Validate(); err != nil {
 				errors = errors.Append("PathParams", err)
+			}
+		}
+	}
+
+	if o.Body != nil {
+		if v, ok := any(o.Body).(runtime.Validator); ok {
+			if err := v.Validate(); err != nil {
+				errors = errors.Append("Body", err)
 			}
 		}
 	}
@@ -2157,163 +711,22 @@ func (o *MoveGridSectionUpRequestOptions) Validate() error {
 }
 
 // GetPathParams returns the path params as a map.
-func (o *MoveGridSectionUpRequestOptions) GetPathParams() (map[string]any, error) {
+func (o *UpdateSloMonitorRequestOptions) GetPathParams() (map[string]any, error) {
 	return runtime.AsMap[any](o.PathParams)
 }
 
 // GetQuery returns the query params as a map.
-func (o *MoveGridSectionUpRequestOptions) GetQuery() (map[string]any, error) {
+func (o *UpdateSloMonitorRequestOptions) GetQuery() (map[string]any, error) {
 	return nil, nil
 }
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *MoveGridSectionUpRequestOptions) GetBody() any {
-	return nil
+func (o *UpdateSloMonitorRequestOptions) GetBody() any {
+	return o.Body
 }
 
 // GetHeader returns the headers as a map.
-func (o *MoveGridSectionUpRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// MoveGridSectionDownRequestOptions is the options needed to make a request to MoveGridSectionDown.
-type MoveGridSectionDownRequestOptions struct {
-	PathParams *MoveGridSectionDownPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *MoveGridSectionDownRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *MoveGridSectionDownRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *MoveGridSectionDownRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *MoveGridSectionDownRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *MoveGridSectionDownRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListAlertsRequestOptions is the options needed to make a request to ListAlerts.
-type ListAlertsRequestOptions struct {
-	PathParams *ListAlertsPath
-	Query      *ListAlertsQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListAlertsRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListAlertsRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListAlertsRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListAlertsRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListAlertsRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// GetAlertRequestOptions is the options needed to make a request to GetAlert.
-type GetAlertRequestOptions struct {
-	PathParams *GetAlertPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *GetAlertRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *GetAlertRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *GetAlertRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *GetAlertRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *GetAlertRequestOptions) GetHeader() (map[string]string, error) {
+func (o *UpdateSloMonitorRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
@@ -2555,50 +968,6 @@ func (o *UpdateOrgBudgetRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
-// ListOrgProjectsRequestOptions is the options needed to make a request to ListOrgProjects.
-type ListOrgProjectsRequestOptions struct {
-	PathParams *ListOrgProjectsPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListOrgProjectsRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListOrgProjectsRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListOrgProjectsRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListOrgProjectsRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListOrgProjectsRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
 // CreateProjectRequestOptions is the options needed to make a request to CreateProject.
 type CreateProjectRequestOptions struct {
 	PathParams *CreateProjectPath
@@ -2649,59 +1018,6 @@ func (o *CreateProjectRequestOptions) GetBody() any {
 
 // GetHeader returns the headers as a map.
 func (o *CreateProjectRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListOrgUsersRequestOptions is the options needed to make a request to ListOrgUsers.
-type ListOrgUsersRequestOptions struct {
-	PathParams *ListOrgUsersPath
-	Query      *ListOrgUsersQuery
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListOrgUsersRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Query != nil {
-		if v, ok := any(o.Query).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Query", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListOrgUsersRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListOrgUsersRequestOptions) GetQuery() (map[string]any, error) {
-	return runtime.AsMap[any](o.Query)
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListOrgUsersRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListOrgUsersRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
@@ -2896,288 +1212,6 @@ func (o *RemoveOrgUserRequestOptions) GetBody() any {
 
 // GetHeader returns the headers as a map.
 func (o *RemoveOrgUserRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// UpdateOrgUserProjectPermRequestOptions is the options needed to make a request to UpdateOrgUserProjectPerm.
-type UpdateOrgUserProjectPermRequestOptions struct {
-	PathParams *UpdateOrgUserProjectPermPath
-	Body       *UpdateOrgUserProjectPermBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *UpdateOrgUserProjectPermRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Body != nil {
-		if v, ok := any(o.Body).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Body", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *UpdateOrgUserProjectPermRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *UpdateOrgUserProjectPermRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *UpdateOrgUserProjectPermRequestOptions) GetBody() any {
-	return o.Body
-}
-
-// GetHeader returns the headers as a map.
-func (o *UpdateOrgUserProjectPermRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListOrgInvitesRequestOptions is the options needed to make a request to ListOrgInvites.
-type ListOrgInvitesRequestOptions struct {
-	PathParams *ListOrgInvitesPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListOrgInvitesRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListOrgInvitesRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListOrgInvitesRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListOrgInvitesRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListOrgInvitesRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// CreateOrgInviteRequestOptions is the options needed to make a request to CreateOrgInvite.
-type CreateOrgInviteRequestOptions struct {
-	PathParams *CreateOrgInvitePath
-	Body       *CreateOrgInviteBody
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *CreateOrgInviteRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Body != nil {
-		if v, ok := any(o.Body).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Body", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *CreateOrgInviteRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *CreateOrgInviteRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *CreateOrgInviteRequestOptions) GetBody() any {
-	return o.Body
-}
-
-// GetHeader returns the headers as a map.
-func (o *CreateOrgInviteRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// CancelOrgInviteRequestOptions is the options needed to make a request to CancelOrgInvite.
-type CancelOrgInviteRequestOptions struct {
-	PathParams *CancelOrgInvitePath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *CancelOrgInviteRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *CancelOrgInviteRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *CancelOrgInviteRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *CancelOrgInviteRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *CancelOrgInviteRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ResendOrgInviteRequestOptions is the options needed to make a request to ResendOrgInvite.
-type ResendOrgInviteRequestOptions struct {
-	PathParams *ResendOrgInvitePath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ResendOrgInviteRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ResendOrgInviteRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ResendOrgInviteRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ResendOrgInviteRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ResendOrgInviteRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListTeamsRequestOptions is the options needed to make a request to ListTeams.
-type ListTeamsRequestOptions struct {
-	PathParams *ListTeamsPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListTeamsRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListTeamsRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListTeamsRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListTeamsRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListTeamsRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
@@ -3422,7 +1456,6 @@ func (o *ListTeamProjectsRequestOptions) GetHeader() (map[string]string, error) 
 // AddTeamProjectRequestOptions is the options needed to make a request to AddTeamProject.
 type AddTeamProjectRequestOptions struct {
 	PathParams *AddTeamProjectPath
-	Body       *AddTeamProjectBody
 }
 
 // Validate validates all the fields in the options.
@@ -3434,14 +1467,6 @@ func (o *AddTeamProjectRequestOptions) Validate() error {
 		if v, ok := any(o.PathParams).(runtime.Validator); ok {
 			if err := v.Validate(); err != nil {
 				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-
-	if o.Body != nil {
-		if v, ok := any(o.Body).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("Body", err)
 			}
 		}
 	}
@@ -3464,7 +1489,7 @@ func (o *AddTeamProjectRequestOptions) GetQuery() (map[string]any, error) {
 
 // GetBody returns the payload in any type that can be marshalled to JSON by the client.
 func (o *AddTeamProjectRequestOptions) GetBody() any {
-	return o.Body
+	return nil
 }
 
 // GetHeader returns the headers as a map.
@@ -3692,50 +1717,6 @@ func (o *CreateOrglessInviteRequestOptions) GetHeader() (map[string]string, erro
 	return nil, nil
 }
 
-// JoinOrgRequestOptions is the options needed to make a request to JoinOrg.
-type JoinOrgRequestOptions struct {
-	PathParams *JoinOrgPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *JoinOrgRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *JoinOrgRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *JoinOrgRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *JoinOrgRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *JoinOrgRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
 // GetProjectRequestOptions is the options needed to make a request to GetProject.
 type GetProjectRequestOptions struct {
 	PathParams *GetProjectPath
@@ -3833,6 +1814,59 @@ func (o *UpdateProjectRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
+// PatchProjectRequestOptions is the options needed to make a request to PatchProject.
+type PatchProjectRequestOptions struct {
+	PathParams *PatchProjectPath
+	Body       *PatchProjectBody
+}
+
+// Validate validates all the fields in the options.
+// Use it if fields validation was not run.
+func (o *PatchProjectRequestOptions) Validate() error {
+	var errors runtime.ValidationErrors
+
+	if o.PathParams != nil {
+		if v, ok := any(o.PathParams).(runtime.Validator); ok {
+			if err := v.Validate(); err != nil {
+				errors = errors.Append("PathParams", err)
+			}
+		}
+	}
+
+	if o.Body != nil {
+		if v, ok := any(o.Body).(runtime.Validator); ok {
+			if err := v.Validate(); err != nil {
+				errors = errors.Append("Body", err)
+			}
+		}
+	}
+	if len(errors) == 0 {
+		return nil
+	}
+
+	return errors
+}
+
+// GetPathParams returns the path params as a map.
+func (o *PatchProjectRequestOptions) GetPathParams() (map[string]any, error) {
+	return runtime.AsMap[any](o.PathParams)
+}
+
+// GetQuery returns the query params as a map.
+func (o *PatchProjectRequestOptions) GetQuery() (map[string]any, error) {
+	return nil, nil
+}
+
+// GetBody returns the payload in any type that can be marshalled to JSON by the client.
+func (o *PatchProjectRequestOptions) GetBody() any {
+	return o.Body
+}
+
+// GetHeader returns the headers as a map.
+func (o *PatchProjectRequestOptions) GetHeader() (map[string]string, error) {
+	return nil, nil
+}
+
 // DeleteProjectRequestOptions is the options needed to make a request to DeleteProject.
 type DeleteProjectRequestOptions struct {
 	PathParams *DeleteProjectPath
@@ -3874,50 +1908,6 @@ func (o *DeleteProjectRequestOptions) GetBody() any {
 
 // GetHeader returns the headers as a map.
 func (o *DeleteProjectRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListProjectTokensRequestOptions is the options needed to make a request to ListProjectTokens.
-type ListProjectTokensRequestOptions struct {
-	PathParams *ListProjectTokensPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListProjectTokensRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListProjectTokensRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListProjectTokensRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListProjectTokensRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListProjectTokensRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 
@@ -4112,50 +2102,6 @@ func (o *DeleteProjectTokenRequestOptions) GetBody() any {
 
 // GetHeader returns the headers as a map.
 func (o *DeleteProjectTokenRequestOptions) GetHeader() (map[string]string, error) {
-	return nil, nil
-}
-
-// ListNotificationChannelsRequestOptions is the options needed to make a request to ListNotificationChannels.
-type ListNotificationChannelsRequestOptions struct {
-	PathParams *ListNotificationChannelsPath
-}
-
-// Validate validates all the fields in the options.
-// Use it if fields validation was not run.
-func (o *ListNotificationChannelsRequestOptions) Validate() error {
-	var errors runtime.ValidationErrors
-
-	if o.PathParams != nil {
-		if v, ok := any(o.PathParams).(runtime.Validator); ok {
-			if err := v.Validate(); err != nil {
-				errors = errors.Append("PathParams", err)
-			}
-		}
-	}
-	if len(errors) == 0 {
-		return nil
-	}
-
-	return errors
-}
-
-// GetPathParams returns the path params as a map.
-func (o *ListNotificationChannelsRequestOptions) GetPathParams() (map[string]any, error) {
-	return runtime.AsMap[any](o.PathParams)
-}
-
-// GetQuery returns the query params as a map.
-func (o *ListNotificationChannelsRequestOptions) GetQuery() (map[string]any, error) {
-	return nil, nil
-}
-
-// GetBody returns the payload in any type that can be marshalled to JSON by the client.
-func (o *ListNotificationChannelsRequestOptions) GetBody() any {
-	return nil
-}
-
-// GetHeader returns the headers as a map.
-func (o *ListNotificationChannelsRequestOptions) GetHeader() (map[string]string, error) {
 	return nil, nil
 }
 

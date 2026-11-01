@@ -2,6 +2,7 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -135,16 +136,13 @@ func (r *GoogleChatChannelResource) Delete(ctx context.Context, req resource.Del
 
 // ImportState accepts "<project_id>:<channel_id>".
 func (r *GoogleChatChannelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tfutil.ImportStateCompoundID(ctx, req, resp,
-		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
-		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseInt64},
-	)
+	importChannel(ctx, req, resp)
 }
 
-func buildGoogleChatRequest(ctx context.Context, m *googleChatChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildGoogleChatRequest(ctx context.Context, m *googleChatChannelModel) (*channelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	body := &generated.NotificationChannelRequest{Type: generated.NotificationChannelRequestTypeGoogleChat}
+	body := &channelRequest{Type: "google_chat"}
 	diags.Append(buildSharedRequest(ctx, sharedFields{
 		Name: &m.Name, MatchAll: &m.MatchAll, Condition: &m.Condition,
 		Priorities: &m.Priorities, MonitorIDs: &m.MonitorIDs,
@@ -153,22 +151,17 @@ func buildGoogleChatRequest(ctx context.Context, m *googleChatChannelModel) (*ge
 		return nil, diags
 	}
 
-	oneOf := &generated.NotificationChannelRequest_Params_OneOf{}
-	if err := oneOf.FromGoogleChatParams(generated.GoogleChatParams{
+	body.Params = generated.GoogleChatParams{
 		WebhookURL: m.WebhookURL.ValueString(),
-	}); err != nil {
-		diags.AddError("failed to set google_chat params", err.Error())
-		return nil, diags
 	}
-	body.Params = generated.NotificationChannelRequest_Params{NotificationChannelRequest_Params_OneOf: oneOf}
 
 	return body, diags
 }
 
-func applyGoogleChatToModel(ctx context.Context, ch *generated.NotificationChannel, dst *googleChatChannelModel) diag.Diagnostics {
+func applyGoogleChatToModel(ctx context.Context, ch *channelResponse, dst *googleChatChannelModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rejectChannelType(generated.GoogleChat, ch, &diags)
+	rejectChannelType("google_chat", ch, &diags)
 	if diags.HasError() {
 		return diags
 	}
@@ -182,12 +175,12 @@ func applyGoogleChatToModel(ctx context.Context, ch *generated.NotificationChann
 		return diags
 	}
 
-	if ch.Params.NotificationChannel_Params_OneOf == nil {
+	if len(ch.Params) == 0 || string(ch.Params) == "null" {
 		dst.WebhookURL = tfutil.PreferPrior(dst.WebhookURL, types.StringNull())
 		return diags
 	}
-	p, err := ch.Params.NotificationChannel_Params_OneOf.AsGoogleChatParams()
-	if err != nil {
+	var p generated.GoogleChatParams
+	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode google_chat params", err.Error())
 		return diags
 	}

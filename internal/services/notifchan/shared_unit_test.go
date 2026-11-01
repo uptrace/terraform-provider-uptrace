@@ -2,6 +2,7 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -21,9 +22,9 @@ type testChannelModel struct {
 // --- applyShared ---
 
 func TestApplyShared_monitorIDsExplicitEmptyPreserved(t *testing.T) {
-	ch := &generated.NotificationChannel{
-		ID: 42, Name: "c", Type: generated.Slack, Status: generated.Delivering,
-		MonitorIds: nil,
+	ch := &channelResponse{
+		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 42, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		Type:                    "slack",
 	}
 	priorEmpty, _ := types.SetValueFrom(context.Background(), types.StringType, []string{})
 	var (
@@ -42,8 +43,9 @@ func TestApplyShared_monitorIDsExplicitEmptyPreserved(t *testing.T) {
 }
 
 func TestApplyShared_monitorIDsNilBecomesNull(t *testing.T) {
-	ch := &generated.NotificationChannel{
-		ID: 42, Name: "c", Type: generated.Slack, Status: generated.Delivering,
+	ch := &channelResponse{
+		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 42, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		Type:                    "slack",
 	}
 	var (
 		id, name, status, condition types.String
@@ -59,10 +61,29 @@ func TestApplyShared_monitorIDsNilBecomesNull(t *testing.T) {
 	require.True(t, monitorIDs.IsNull(), "nil prior + empty API → SetNull")
 }
 
+func TestApplyShared_unsetMonitorIDsIgnoreLinksFromMonitors(t *testing.T) {
+	ch := &channelResponse{
+		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 42, Name: "c", MonitorIds: []uint64{7}},
+		Type:                    "slack",
+	}
+	var (
+		id, name, status, condition types.String
+		matchAll                    types.Bool
+		priorities                  types.List
+		monitorIDs                  = types.SetNull(types.StringType)
+	)
+	diags := applyShared(context.Background(), ch, sharedFields{
+		ID: &id, Name: &name, Status: &status, MatchAll: &matchAll,
+		Condition: &condition, Priorities: &priorities, MonitorIDs: &monitorIDs,
+	})
+	require.False(t, diags.HasError())
+	require.True(t, monitorIDs.IsNull(), "a link a monitor declared must not show as drift on the channel")
+}
+
 func TestApplyShared_conditionNilBecomesNull(t *testing.T) {
-	ch := &generated.NotificationChannel{
-		ID: 42, Name: "c", Type: generated.Slack, Status: generated.Delivering,
-		Condition: nil,
+	ch := &channelResponse{
+		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 42, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		Type:                    "slack",
 	}
 	var (
 		id, name, status, condition types.String
@@ -78,10 +99,10 @@ func TestApplyShared_conditionNilBecomesNull(t *testing.T) {
 	require.True(t, condition.IsNull())
 }
 
-func TestApplyShared_matchAllDefaultsToTrueWhenNil(t *testing.T) {
-	ch := &generated.NotificationChannel{
-		ID: 42, Name: "c", Type: generated.Slack, Status: generated.Delivering,
-		MatchAll: nil,
+func TestApplyShared_matchAllFollowsAPI(t *testing.T) {
+	ch := &channelResponse{
+		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 42, Name: "c", Status: generated.NotificationChannelStatusDelivering, MatchAll: true},
+		Type:                    "slack",
 	}
 	var (
 		id, name, status, condition types.String
@@ -94,7 +115,7 @@ func TestApplyShared_matchAllDefaultsToTrueWhenNil(t *testing.T) {
 		Condition: &condition, Priorities: &priorities, MonitorIDs: &monitorIDs,
 	})
 	require.False(t, diags.HasError())
-	require.True(t, matchAll.ValueBool(), "nil match_all must default to true")
+	require.True(t, matchAll.ValueBool())
 }
 
 // --- buildSharedRequest ---
@@ -106,7 +127,7 @@ func TestBuildSharedRequest_monitorIDsInvalidIDEmitsDiagnostic(t *testing.T) {
 	matchAll := types.BoolValue(true)
 	condition := types.StringNull()
 
-	body := &generated.NotificationChannelRequest{}
+	body := &channelRequest{}
 	diags := buildSharedRequest(context.Background(), sharedFields{
 		Name: &name, MatchAll: &matchAll, Condition: &condition,
 		Priorities: &priorities, MonitorIDs: &badIDs,
@@ -126,15 +147,61 @@ func TestBuildSharedRequest_prioritiesRoundTrip(t *testing.T) {
 	matchAll := types.BoolValue(true)
 	condition := types.StringNull()
 
-	body := &generated.NotificationChannelRequest{}
+	body := &channelRequest{}
 	diags := buildSharedRequest(context.Background(), sharedFields{
 		Name: &name, MatchAll: &matchAll, Condition: &condition,
 		Priorities: &priorities, MonitorIDs: &monitorIDs,
 	}, body)
 	require.False(t, diags.HasError())
-	require.Equal(t, []generated.NotificationChannelRequestPriorities{
+	require.Equal(t, []generated.AlertPriority{
 		"high", "medium",
 	}, body.Priorities)
+	require.Nil(t, body.MonitorIds, "unset monitor_ids sends null, which keeps the links monitors declared")
+}
+
+// --- channelRequest / channelResponse ---
+
+func TestChannelRequest_toAPIKeepsEveryKey(t *testing.T) {
+	body := &channelRequest{
+		BaseNotificationChannelRequest: generated.BaseNotificationChannelRequest{
+			Name:       "tg",
+			MonitorIds: []uint64{},
+			Priorities: []generated.AlertPriority{"high"},
+		},
+		Type:   "telegram",
+		Params: generated.TelegramParams{ChatID: -100},
+	}
+
+	req, err := body.toAPI()
+	require.NoError(t, err)
+
+	b, err := json.Marshal(req)
+	require.NoError(t, err)
+	var got map[string]any
+	require.NoError(t, json.Unmarshal(b, &got))
+	require.Equal(t, "telegram", got["type"])
+	require.Equal(t, "tg", got["name"])
+	require.Equal(t, []any{}, got["monitorIds"], "an empty list must be sent, not omitted")
+	require.Equal(t, map[string]any{"chatId": float64(-100)}, got["params"])
+}
+
+func TestChannelFromAPI_decodesBaseTypeAndParams(t *testing.T) {
+	var ch generated.NotificationChannel
+	require.NoError(t, json.Unmarshal([]byte(`{
+		"id": 9, "projectId": 1, "name": "tg", "status": "delivering", "pausedUntil": 0,
+		"error": "", "matchAll": false, "condition": "", "priorities": ["high"],
+		"monitorIds": [3], "type": "telegram", "params": {"chatId": -100}
+	}`), &ch))
+
+	resp, err := channelFromAPI(&ch)
+	require.NoError(t, err)
+	require.Equal(t, uint64(9), resp.ID)
+	require.Equal(t, "telegram", resp.Type)
+	require.Equal(t, []uint64{3}, resp.MonitorIds)
+
+	var p generated.TelegramParams
+	require.NoError(t, json.Unmarshal(resp.Params, &p))
+	require.Equal(t, int64(-100), p.ChatID)
 }
 
 // --- validateMatchAllRule ---
@@ -177,16 +244,16 @@ func TestValueStringToPtr(t *testing.T) {
 // --- rejectChannelType ---
 
 func TestRejectChannelType_mismatch(t *testing.T) {
-	ch := &generated.NotificationChannel{ID: 1, Type: generated.Slack}
+	ch := &channelResponse{BaseNotificationChannel: generated.BaseNotificationChannel{ID: 1}, Type: "slack"}
 	var diags diag.Diagnostics
-	rejectChannelType(generated.NotificationChannelTypeWebhook, ch, &diags)
+	rejectChannelType("webhook", ch, &diags)
 	require.True(t, diags.HasError())
 }
 
 func TestRejectChannelType_match(t *testing.T) {
-	ch := &generated.NotificationChannel{ID: 1, Type: generated.Slack}
+	ch := &channelResponse{BaseNotificationChannel: generated.BaseNotificationChannel{ID: 1}, Type: "slack"}
 	var diags diag.Diagnostics
-	rejectChannelType(generated.Slack, ch, &diags)
+	rejectChannelType("slack", ch, &diags)
 	require.False(t, diags.HasError())
 }
 
@@ -204,11 +271,11 @@ func testChannelCRUD(t *testing.T) channelCRUD[testChannelModel] {
 		Name: func(m *testChannelModel) types.String {
 			return m.name
 		},
-		Build: func(context.Context, *testChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+		Build: func(context.Context, *testChannelModel) (*channelRequest, diag.Diagnostics) {
 			t.Fatalf("Build should not be called when project_id parsing fails")
 			return nil, nil
 		},
-		Apply: func(context.Context, *generated.NotificationChannel, *testChannelModel) diag.Diagnostics {
+		Apply: func(context.Context, *channelResponse, *testChannelModel) diag.Diagnostics {
 			t.Fatalf("Apply should not be called when project_id parsing fails")
 			return nil
 		},

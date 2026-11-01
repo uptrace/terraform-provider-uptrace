@@ -2,6 +2,7 @@ package notifchan
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -135,16 +136,13 @@ func (r *MattermostChannelResource) Delete(ctx context.Context, req resource.Del
 
 // ImportState accepts "<project_id>:<channel_id>".
 func (r *MattermostChannelResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	tfutil.ImportStateCompoundID(ctx, req, resp,
-		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
-		tfutil.ImportField{Name: "channel_id", Parse: tfutil.ParseInt64},
-	)
+	importChannel(ctx, req, resp)
 }
 
-func buildMattermostRequest(ctx context.Context, m *mattermostChannelModel) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildMattermostRequest(ctx context.Context, m *mattermostChannelModel) (*channelRequest, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	body := &generated.NotificationChannelRequest{Type: generated.NotificationChannelRequestTypeMattermost}
+	body := &channelRequest{Type: "mattermost"}
 	diags.Append(buildSharedRequest(ctx, sharedFields{
 		Name: &m.Name, MatchAll: &m.MatchAll, Condition: &m.Condition,
 		Priorities: &m.Priorities, MonitorIDs: &m.MonitorIDs,
@@ -153,22 +151,17 @@ func buildMattermostRequest(ctx context.Context, m *mattermostChannelModel) (*ge
 		return nil, diags
 	}
 
-	oneOf := &generated.NotificationChannelRequest_Params_OneOf{}
-	if err := oneOf.FromMattermostParams(generated.MattermostParams{
+	body.Params = generated.MattermostParams{
 		WebhookURL: m.WebhookURL.ValueString(),
-	}); err != nil {
-		diags.AddError("failed to set mattermost params", err.Error())
-		return nil, diags
 	}
-	body.Params = generated.NotificationChannelRequest_Params{NotificationChannelRequest_Params_OneOf: oneOf}
 
 	return body, diags
 }
 
-func applyMattermostToModel(ctx context.Context, ch *generated.NotificationChannel, dst *mattermostChannelModel) diag.Diagnostics {
+func applyMattermostToModel(ctx context.Context, ch *channelResponse, dst *mattermostChannelModel) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	rejectChannelType(generated.Mattermost, ch, &diags)
+	rejectChannelType("mattermost", ch, &diags)
 	if diags.HasError() {
 		return diags
 	}
@@ -182,12 +175,12 @@ func applyMattermostToModel(ctx context.Context, ch *generated.NotificationChann
 		return diags
 	}
 
-	if ch.Params.NotificationChannel_Params_OneOf == nil {
+	if len(ch.Params) == 0 || string(ch.Params) == "null" {
 		dst.WebhookURL = tfutil.PreferPrior(dst.WebhookURL, types.StringNull())
 		return diags
 	}
-	p, err := ch.Params.NotificationChannel_Params_OneOf.AsMattermostParams()
-	if err != nil {
+	var p generated.MattermostParams
+	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode mattermost params", err.Error())
 		return diags
 	}

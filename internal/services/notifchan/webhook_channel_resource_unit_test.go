@@ -29,8 +29,8 @@ func TestBuildWebhookRequest_withPayload(t *testing.T) {
 	body, diags := buildWebhookRequest(context.Background(), m)
 	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
 
-	p, err := body.Params.NotificationChannelRequest_Params_OneOf.AsWebhookParams()
-	require.NoError(t, err)
+	p, ok := body.Params.(generated.WebhookParams)
+	require.True(t, ok)
 	require.Equal(t, "https://example.com/hook", p.URL)
 	require.Equal(t, "uptrace", p.Payload["source"])
 	require.Equal(t, "high", p.Payload["severity"])
@@ -61,14 +61,10 @@ func TestApplyWebhookToModel_emptyPayloadStaysNull(t *testing.T) {
 		URL:     "https://example.com/hook",
 		Payload: map[string]any{},
 	})
-	oneOf := &generated.NotificationChannel_Params_OneOf{}
-	require.NoError(t, oneOf.UnmarshalJSON(raw))
-
-	ch := &generated.NotificationChannel{
-		ID: 7, Name: "c", Type: generated.NotificationChannelTypeWebhook, Status: generated.Delivering,
-		Params: generated.NotificationChannel_Params{
-			NotificationChannel_Params_OneOf: oneOf,
-		},
+	ch := &channelResponse{
+		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 7, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		Type:                    "webhook",
+		Params:                  raw,
 	}
 	dst := &webhookChannelModel{
 		URL:     types.StringValue("https://example.com/hook"),
@@ -84,14 +80,10 @@ func TestApplyWebhookToModel_payloadRoundTrip(t *testing.T) {
 		URL:     "https://example.com/hook",
 		Payload: map[string]any{"source": "uptrace"},
 	})
-	oneOf := &generated.NotificationChannel_Params_OneOf{}
-	require.NoError(t, oneOf.UnmarshalJSON(raw))
-
-	ch := &generated.NotificationChannel{
-		ID: 7, Name: "c", Type: generated.NotificationChannelTypeWebhook, Status: generated.Delivering,
-		Params: generated.NotificationChannel_Params{
-			NotificationChannel_Params_OneOf: oneOf,
-		},
+	ch := &channelResponse{
+		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 7, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		Type:                    "webhook",
+		Params:                  raw,
 	}
 	dst := &webhookChannelModel{URL: types.StringValue("https://example.com/hook")}
 	diags := applyWebhookToModel(context.Background(), ch, dst)

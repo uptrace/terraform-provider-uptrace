@@ -88,7 +88,8 @@ Manages a project scoped under an organization.
 | group_by_env           | bool   | no       | Group spans by environment. Updatable.                           |
 | group_funcs_by_service | bool   | no       | Group functions by service. Updatable.                           |
 | semconv_version        | string | no       | One of `none`, `v1.25.0`, `v1.33.0`.                            |
-| count_distinct         | bool   | no       | Updatable.                                                       |
+| skip_monitor_status_emails   | bool | no   | Send no email when a monitor of the project changes status.     |
+| skip_monitor_disabled_emails | bool | no   | Send no email when the server disables a monitor of the project. |
 | span_time_range        | string | no       | Default query time range for spans (e.g. `"24h"`).              |
 | log_time_range         | string | no       | Default query time range for logs.                               |
 | event_time_range       | string | no       | Default query time range for events.                             |
@@ -96,6 +97,7 @@ Manages a project scoped under an organization.
 | log_retention          | string | no       | Data retention for logs.                                         |
 | event_retention        | string | no       | Data retention for events.                                       |
 | metric_retention       | string | no       | Data retention for metrics.                                      |
+| profile_retention      | string | no       | Data retention for profiles.                                     |
 | id                     | string | computed |                                                                  |
 
 Duration strings accept `ns`, `us`, `ms`, `s`, `m`, `h`, `d` (day), and `w` (week).
@@ -206,7 +208,7 @@ type-specific configuration.
 | name        | string       | yes      | Channel name. Updatable.                                              |
 | priorities  | list(string) | yes      | Alert priorities to match: `info`, `low`, `medium`, `high`.          |
 | match_all   | bool         | no       | Defaults to `true`. Set `false` to restrict to `monitor_ids`.        |
-| monitor_ids | list(string) | no       | Required when `match_all = false`.                                    |
+| monitor_ids | list(string) | no       | Required when `match_all = false`. Omit to leave the links alone; `[]` detaches every monitor. |
 | condition   | string       | no       | Alert condition expression.                                           |
 | id          | string       | computed |                                                                       |
 | status      | string       | computed | One of `delivering`, `paused`, `disabled`, `draft`.                  |
@@ -215,12 +217,12 @@ type-specific configuration.
 
 | Resource                         | Fields                                                                                                                           |
 |----------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| `uptrace_slack_channel`          | `auth_method` (`webhook` or `token`), `webhook_url`, `token`, `channel`. Required fields depend on `auth_method`.                |
+| `uptrace_slack_channel`          | `auth_method` (`webhook` or `token`), `webhook_url`, `token`, `channel`. Required fields depend on `auth_method`; unused ones are sent empty. |
 | `uptrace_google_chat_channel`    | `webhook_url`                                                                                                                    |
 | `uptrace_mattermost_channel`     | `webhook_url`                                                                                                                    |
 | `uptrace_teams_channel`          | `webhook_url`                                                                                                                    |
 | `uptrace_pagerduty_channel`      | `routing_key`, `severity` (`critical`, `error`, `warning`, `info`)                                                               |
-| `uptrace_opsgenie_channel`       | `api_key`, `priority` (`P1`-`P5`)                                                                                                |
+| `uptrace_opsgenie_channel`       | `api_key`, `priority` (`P1`-`P5`); optional `api_provider` (`opsgenie` default, `jsm`, `custom`), `endpoint` (for `custom`)         |
 | `uptrace_telegram_channel`       | `chat_id` (int64)                                                                                                                |
 | `uptrace_pushover_channel`       | `token`, `user_key`; optional `priority` (int, -2 to 2), `sound`                                                                |
 | `uptrace_webhook_channel`        | `url`; optional `payload` (JSON string -- use `jsonencode()`)                                                                    |
@@ -243,54 +245,69 @@ resource "uptrace_slack_channel" "alerts" {
 }
 ```
 
-### uptrace_error_monitor
+### Monitors
 
-Watches trend anomalies in an MQL query and fires alerts.
+Each monitor type is its own resource, as each has its own API route and params:
 
-### uptrace_metric_monitor
+| Resource                    | Fires when                                                         |
+|-----------------------------|--------------------------------------------------------------------|
+| `uptrace_threshold_monitor` | the value leaves a fixed range (`min_value`, `max_value`)         |
+| `uptrace_anomaly_monitor`   | the value leaves the range the detector learned for the series    |
+| `uptrace_outlier_monitor`   | one series strays from its peers                                   |
+| `uptrace_forecast_monitor`  | the value is projected to leave a range within `horizon`          |
+| `uptrace_error_monitor`     | a new error group appears                                          |
+| `uptrace_slo_monitor`       | an SLO rule fires, such as a burn rate                             |
 
-Evaluates an MQL query on a schedule with a manual threshold or automatic trend-based detector.
+**Shared fields:**
 
-**Shared fields (both monitors):**
+| Field             | Type        | Required | Description                                                                 |
+|-------------------|-------------|----------|-----------------------------------------------------------------------------|
+| project_id        | string      | yes      | Project ID. Forces replacement on change.                                   |
+| name              | string      | yes      | Monitor name; may hold template variables such as `{{ .Attrs.host_name }}`. |
+| description       | string      | no       | Alert description sent with each notification.                              |
+| channel_ids       | set(string) | no       | Notification channel IDs. Omit to leave the links alone; `[]` detaches every channel. |
+| trend_agg_func    | string      | no       | `sum`, `avg`, `median` or `last`. Server default when omitted.              |
+| trend_sensitivity | string      | no       | `very_low` to `very_high`. Server default when omitted.                     |
+| repeat_interval   | object      | no       | `{ strategy, interval, min, max }`: `default`, `fixed` (`interval`), `linear` or `exponential` (`min`, `max`). |
+| id                | string      | computed |                                                                             |
+| status            | string      | computed | `active`, `paused`, `firing`, `no_data`, `warming_up` or `disabled`.         |
 
-| Field                     | Type        | Required | Description                                                              |
-|---------------------------|-------------|----------|--------------------------------------------------------------------------|
-| project_id                | string      | yes      | Project ID. Forces replacement on change.                                |
-| name                      | string      | yes      | Monitor name. Updatable.                                                 |
-| notify_everyone_by_email  | bool        | no       | Defaults to `false`. Updatable.                                          |
-| trend_agg_func            | string      | no       | One of `sum`, `avg`, `median`, `last`. Defaults to `sum`.                |
-| trend_sensitivity         | string      | no       | One of `low`, `medium`, `high`. Defaults to `medium`.                    |
-| team_ids                  | set(string) | no       | Team IDs to notify.                                                      |
-| channel_ids               | set(string) | no       | Notification channel IDs.                                                |
-| id                        | string      | computed |                                                                          |
-| status                    | string      | computed | One of `active`, `paused`, `firing`, `no_data`, `disabled`.              |
+Durations are strings such as `"90s"`, `"5m"` or `"30d"`.
 
-**`params` block -- error monitor:**
+A monitor and a channel share their links, so declare them on one side: a monitor's
+`channel_ids` or a channel's `monitor_ids` (with `match_all = false`). The side that leaves its
+list unset does not manage the links and shows no drift when the other side changes them.
 
-| Field   | Type            | Required | Description                                                    |
-|---------|-----------------|----------|----------------------------------------------------------------|
-| metrics | list of objects | yes      | `{ name = "...", alias = "$..." }`. Aliases must start with `$` followed by an identifier. |
-| query   | string          | yes      | MQL query expression.                                          |
+**`params` of the metric-based monitors** (threshold, anomaly, outlier, forecast):
 
-**`params` block -- metric monitor:**
+| Field             | Type            | Required | Description                                                       |
+|-------------------|-----------------|----------|-------------------------------------------------------------------|
+| metrics           | list of objects | yes      | `{ name, alias }`; the alias is `$` followed by an identifier.    |
+| query             | string          | yes      | MQL expression that produces the monitored value.                 |
+| column            | object          | no       | `{ name, unit }`: the result column to evaluate.                  |
+| resolution        | string          | no       | Width of one evaluated point.                                     |
+| num_eval_points   | number          | no       | How many recent points each check evaluates.                      |
+| window_rule       | string          | no       | `at_all_times`, `at_least`, `on_average` or `in_total`.           |
+| min_breach_points | number          | no       | Breaching points the `at_least` rule needs.                       |
+| absent_points     | string          | no       | A missing point counts as `zero`, is `ignore`d, or breaches (`alert`). |
+| time_offset       | string          | no       | How far back the evaluated window ends.                           |
 
-| Field           | Type            | Required | Description                                                    |
-|-----------------|-----------------|----------|----------------------------------------------------------------|
-| metrics         | list of objects | yes      | `{ name = "...", alias = "$..." }`. Aliases must start with `$` followed by an identifier. |
-| query           | string          | yes      | MQL query expression.                                          |
-| column          | object          | no       | `{ name = "...", unit = "milliseconds" }`.                     |
-| resolution      | number          | no       | Evaluation resolution in milliseconds.                         |
-| num_eval_points | number          | no       | Consecutive breach points before alerting.                     |
-| absent_points   | string          | no       | One of `ignore`, `alert`, `zero`.                              |
-| time_offset     | number          | no       | Time offset in milliseconds.                                   |
-| detector        | object          | yes      | Exactly one of `manual {}` or `auto {}`.                       |
+Type-specific `params`:
 
-`detector.manual`: optional `min_value`, `max_value`, `recovery { min_value, max_value }`.
+- threshold: `min_value`, `max_value`, `recovery { min_value, max_value }`.
+- anomaly: `preset`, `sensitivity`, `direction`, `seasonality`, `min_volume`, `min_change`.
+- outlier: `min_peers`, `min_change`, `sensitivity`, `direction`, `keep_firing_for`.
+- forecast: `min_value`, `max_value`, `seasonality`, `horizon`.
+- error: only `metrics` and `query`.
+- slo: `metrics`, `good_query`, `total_query`, `grouping`, `resolution`, `target`, `window_kind`,
+  `rolling_window`, and `rules`, each `{ name, priority, type }` plus `long_window`, `short_window`,
+  `factor` for `burn_rate` or `consumed_bound` for `budget_consumed`, and `min_total`.
 
-`detector.auto`: optional `tolerance` (`low`/`medium`/`high`), `training_period` (ms),
-`min_dev_fraction`, `min_dev_absolute`.
+The server normalizes an MQL query (an alias gains `{}`); the resource keeps the configured
+spelling, so a refresh shows no diff.
 
-Import either monitor: `terraform import uptrace_<error|metric>_monitor.x <project_id>:<monitor_id>`
+Import any monitor: `terraform import uptrace_<type>_monitor.x <project_id>:<monitor_id>`. Importing
+a monitor into the resource of another type fails and names the right one.
 
 ## Importing existing resources
 

@@ -60,7 +60,7 @@ resource "uptrace_servicenow_channel" "example" {
 - `group` (String) Assignment group.
 - `impact` (String) Incident impact (1, 2, or 3).
 - `match_all` (Boolean) Match all monitors. If false, monitor_ids must be provided.
-- `monitor_ids` (Set of String) Monitor IDs to match when match_all is false.
+- `monitor_ids` (Set of String) Monitor IDs to match when match_all is false. Omit to leave the links alone, as when monitors name the channel in their channel_ids; set [] to detach every monitor.
 - `notify` (String) Notify setting (1 or 2).
 - `opened_by` (String) Opened by user.
 - `severity` (String) Incident severity (1-5).
