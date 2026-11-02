@@ -217,6 +217,7 @@ type-specific configuration.
 
 | Resource                         | Fields                                                                                                                           |
 |----------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `uptrace_email_channel`          | `everyone` (bool), or `team_ids` / `user_ids` (sets of IDs). Set `everyone`, or at least one list; only project members get the email. |
 | `uptrace_slack_channel`          | `auth_method` (`webhook` or `token`), `webhook_url`, `token`, `channel`. Required fields depend on `auth_method`; unused ones are sent empty. |
 | `uptrace_google_chat_channel`    | `webhook_url`                                                                                                                    |
 | `uptrace_mattermost_channel`     | `webhook_url`                                                                                                                    |
