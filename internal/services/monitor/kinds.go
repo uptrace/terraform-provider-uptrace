@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"regexp"
+	"time"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -74,6 +76,34 @@ func optionalComputedInt(desc string) schema.Int64Attribute {
 		Description:   desc + " Omit for the server default.",
 		PlanModifiers: []planmodifier.Int64{int64planmodifier.UseStateForUnknown()},
 	}
+}
+
+// Bounds of the knobs whose zero the server rewrites to a default. Each
+// mirrors a constant of the app's alerting/monitorspec, so a value the server
+// would not store as sent fails the plan.
+const (
+	minNumEvalPoints     = 1                   // 1, the low bound of monitorspec.ValidateNumEvalPoints
+	maxNumEvalPoints     = 15                  // monitorspec.MaxNumEvalPoints
+	minOutlierMinPeers   = 3                   // monitorspec.MinOutlierMinPeers
+	maxOutlierMinPeers   = 10000               // monitorspec.MaxOutlierMinPeers
+	minOutlierKeepFiring = 10 * time.Second    // monitorspec.MinOutlierKeepFiringFor
+	maxOutlierKeepFiring = 2 * time.Hour       // monitorspec.MaxOutlierKeepFiringFor
+	minForecastHorizon   = time.Hour           // monitorspec.MinForecastHorizon
+	maxForecastHorizon   = 14 * 24 * time.Hour // monitorspec.MaxForecastHorizon
+)
+
+// boundedInt is an optionalComputedInt held to [min, max].
+func boundedInt(desc string, min, max int64) schema.Int64Attribute {
+	a := optionalComputedInt(desc)
+	a.Validators = []validator.Int64{int64validator.Between(min, max)}
+	return a
+}
+
+// boundedDuration is a computed durationAttribute held to [min, max].
+func boundedDuration(desc string, min, max time.Duration) schema.StringAttribute {
+	a := durationAttribute(true, desc)
+	a.Validators = append(a.Validators, durationBetween{min: min, max: max})
+	return a
 }
 
 func optionalComputedFloat(desc string) schema.Float64Attribute {
@@ -181,7 +211,7 @@ func metricParamsAttributes(extra map[string]schema.Attribute) map[string]schema
 			},
 		},
 		"resolution":      durationAttribute(true, "Width of one evaluated point."),
-		"num_eval_points": optionalComputedInt("How many recent points each check evaluates."),
+		"num_eval_points": boundedInt("How many recent points each check evaluates.", minNumEvalPoints, maxNumEvalPoints),
 		"window_rule": optionalComputedEnum("How the evaluated points decide a breach.",
 			generated.MetricWindowRuleAtAllTimes, generated.MetricWindowRuleAtLeast,
 			generated.MetricWindowRuleOnAverage, generated.MetricWindowRuleInTotal),
@@ -503,11 +533,11 @@ var outlierKind = &kind{
 		Required:    true,
 		Description: "What the monitor queries and how a series is judged against its peers.",
 		Attributes: metricParamsAttributes(map[string]schema.Attribute{
-			"min_peers":       optionalComputedInt("Fewest series a group needs before any is judged."),
+			"min_peers":       boundedInt("Fewest series a group needs before any is judged.", minOutlierMinPeers, maxOutlierMinPeers),
 			"min_change":      optionalComputedFloat("Smallest absolute distance from the peers that counts."),
 			"sensitivity":     sensitivityAttribute(),
 			"direction":       directionAttribute(),
-			"keep_firing_for": durationAttribute(true, "How long an alert stays open after the series rejoins its peers."),
+			"keep_firing_for": boundedDuration("How long an alert stays open after the series rejoins its peers.", minOutlierKeepFiring, maxOutlierKeepFiring),
 		}),
 	},
 	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*generated.MonitorSummaryResponse, error) {
@@ -590,7 +620,7 @@ var forecastKind = &kind{
 			"min_value":   schema.Float64Attribute{Optional: true, Description: "The monitor fires when the forecast drops below it."},
 			"max_value":   schema.Float64Attribute{Optional: true, Description: "The monitor fires when the forecast rises above it."},
 			"seasonality": seasonalityAttribute(),
-			"horizon":     durationAttribute(true, "How far ahead the forecast looks."),
+			"horizon":     boundedDuration("How far ahead the forecast looks.", minForecastHorizon, maxForecastHorizon),
 		}),
 	},
 	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*generated.MonitorSummaryResponse, error) {

@@ -121,3 +121,31 @@ func (durationValidator) ValidateString(_ context.Context, req validator.StringR
 			fmt.Sprintf("%q must not be negative", req.ConfigValue.ValueString()))
 	}
 }
+
+// durationBetween accepts a duration string from min to max inclusive. It
+// holds a knob to the bounds the server's Validate holds it to, so a value the
+// server would refuse, or rewrite to its default as it does a zero, fails the
+// plan instead of the apply.
+type durationBetween struct {
+	min, max time.Duration
+}
+
+func (v durationBetween) Description(context.Context) string {
+	return fmt.Sprintf("must be a duration from %s to %s", formatDuration(v.min), formatDuration(v.max))
+}
+
+func (v durationBetween) MarkdownDescription(ctx context.Context) string { return v.Description(ctx) }
+
+func (v durationBetween) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	d, err := str2duration.ParseDuration(req.ConfigValue.ValueString())
+	if err != nil {
+		return // durationValidator reports it
+	}
+	if d < v.min || d > v.max {
+		resp.Diagnostics.AddAttributeError(req.Path, "duration out of range",
+			fmt.Sprintf("%q %s; omit it for the server default", req.ConfigValue.ValueString(), v.Description(context.Background())))
+	}
+}

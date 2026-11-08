@@ -7,6 +7,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/require"
@@ -282,3 +285,65 @@ func TestFormatDuration(t *testing.T) {
 }
 
 func basetypesObjectAsOptions() basetypes.ObjectAsOptions { return basetypes.ObjectAsOptions{} }
+
+// TestBoundedKnobs_refuseWhatTheServerRewrites holds each knob whose zero the
+// server rewrites to a default to the server's bounds: a generated config that
+// carries such a zero fails the plan, not the apply.
+func TestBoundedKnobs_refuseWhatTheServerRewrites(t *testing.T) {
+	ctx := context.Background()
+	durationErrs := func(k *kind, name, value string) int {
+		a := k.params.Attributes[name].(schema.StringAttribute)
+		var diags diag.Diagnostics
+		for _, v := range a.Validators {
+			resp := &validator.StringResponse{}
+			v.ValidateString(ctx, validator.StringRequest{Path: path.Root(name), ConfigValue: types.StringValue(value)}, resp)
+			diags.Append(resp.Diagnostics...)
+		}
+		return diags.ErrorsCount()
+	}
+	intErrs := func(k *kind, name string, value int64) int {
+		a := k.params.Attributes[name].(schema.Int64Attribute)
+		var diags diag.Diagnostics
+		for _, v := range a.Validators {
+			resp := &validator.Int64Response{}
+			v.ValidateInt64(ctx, validator.Int64Request{Path: path.Root(name), ConfigValue: types.Int64Value(value)}, resp)
+			diags.Append(resp.Diagnostics...)
+		}
+		return diags.ErrorsCount()
+	}
+
+	for _, tc := range []struct {
+		kind *kind
+		name string
+		bad  []string
+		good []string
+	}{
+		{outlierKind, "keep_firing_for", []string{"0s", "9s", "2h1m"}, []string{"10s", "30m", "2h"}},
+		{forecastKind, "horizon", []string{"0s", "59m", "15d"}, []string{"1h", "3d", "14d"}},
+	} {
+		for _, v := range tc.bad {
+			require.Equal(t, 1, durationErrs(tc.kind, tc.name, v), "%s = %q", tc.name, v)
+		}
+		for _, v := range tc.good {
+			require.Zero(t, durationErrs(tc.kind, tc.name, v), "%s = %q", tc.name, v)
+		}
+	}
+
+	for _, tc := range []struct {
+		kind *kind
+		name string
+		bad  []int64
+		good []int64
+	}{
+		{outlierKind, "min_peers", []int64{0, 2, 10001}, []int64{3, 10000}},
+		{thresholdKind, "num_eval_points", []int64{0, 16}, []int64{1, 15}},
+		{outlierKind, "num_eval_points", []int64{0}, []int64{5}},
+	} {
+		for _, v := range tc.bad {
+			require.Equal(t, 1, intErrs(tc.kind, tc.name, v), "%s = %d", tc.name, v)
+		}
+		for _, v := range tc.good {
+			require.Zero(t, intErrs(tc.kind, tc.name, v), "%s = %d", tc.name, v)
+		}
+	}
+}
