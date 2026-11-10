@@ -213,7 +213,13 @@ func (r *monitorResource) ValidateConfig(ctx context.Context, req resource.Valid
 // or above num_eval_points becomes at_all_times with no count, and a count
 // under any other rule is zeroed. A plan that held such a pair would end the
 // apply inconsistent (DESIGN.md G3). An at_least rule without a count is
-// refused too, as the server refuses it.
+// refused too, as the server refuses it. It compares the count with the width
+// only when the configuration sets num_eval_points; planWindowRule compares it
+// with the planned width otherwise.
+//
+// The server reads a positive count without a rule as at_least (monitorspec
+// RuleForBreachPoints), so that pair takes the at_least checks, and ModifyPlan
+// plans the rule for it.
 func (r *monitorResource) validateWindowRule(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	if _, ok := r.kind.params.Attributes["window_rule"]; !ok {
 		return
@@ -234,7 +240,8 @@ func (r *monitorResource) validateWindowRule(ctx context.Context, req resource.V
 		return
 	}
 
-	if rule.ValueString() != string(generated.MetricWindowRuleAtLeast) {
+	countImpliesRule := rule.IsNull() && !count.IsNull() && count.ValueInt64() > 0
+	if rule.ValueString() != string(generated.MetricWindowRuleAtLeast) && !countImpliesRule {
 		if !count.IsNull() && count.ValueInt64() != 0 {
 			resp.Diagnostics.AddAttributeError(p.AtName("min_breach_points"), "invalid min_breach_points",
 				"only the at_least window rule counts breaching points; the server stores 0 under any other rule")
@@ -246,16 +253,27 @@ func (r *monitorResource) validateWindowRule(ctx context.Context, req resource.V
 			"the at_least window rule needs min_breach_points of 1 or more")
 		return
 	}
-	evalPoints := int64(defaultNumEvalPoints)
+	// A configuration that omits the width plans the stored one, which only
+	// the plan holds, so planWindowRule checks that case.
 	if !width.IsNull() {
-		evalPoints = width.ValueInt64()
+		refuseEveryPoint(&resp.Diagnostics, count.ValueInt64(), width.ValueInt64(), false)
 	}
-	if count.ValueInt64() >= evalPoints {
-		resp.Diagnostics.AddAttributeError(p.AtName("min_breach_points"), "invalid min_breach_points",
-			fmt.Sprintf("min_breach_points (%d) at or above num_eval_points (%d) is every point; "+
-				"the server stores it as the at_all_times window rule, so write that rule instead",
-				count.ValueInt64(), evalPoints))
+}
+
+// refuseEveryPoint refuses an at_least count at or above the window width,
+// which the server stores as the at_all_times rule. omitted reports that the
+// configuration does not set the width.
+func refuseEveryPoint(diags *diag.Diagnostics, count, width int64, omitted bool) {
+	if count < width {
+		return
 	}
+	detail := fmt.Sprintf("min_breach_points (%d) at or above num_eval_points (%d) is every point; "+
+		"the server stores it as the at_all_times window rule, so write that rule instead", count, width)
+	if omitted {
+		detail += ", or set num_eval_points above the count. The configuration omits num_eval_points, " +
+			"so the monitor keeps its stored width, or the server default for a new monitor"
+	}
+	diags.AddAttributeError(path.Root("params").AtName("min_breach_points"), "invalid min_breach_points", detail)
 }
 
 // validateRepeatInterval refuses a repeat_interval whose fields do not fit
@@ -296,12 +314,19 @@ func (r *monitorResource) validateRepeatInterval(ctx context.Context, req resour
 // UseStateForUnknown modifiers restore the others, but status has none, since
 // a real update can change it. Without this, every plan of an unchanged
 // monitor would show an update that only refreshes status.
+//
+// It first plans the window rule that a count without a rule means
+// (planWindowRule), so the comparison with the state reads that rule.
 func (r *monitorResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
-	if req.State.Raw.IsNull() || req.Plan.Raw.IsNull() {
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+	r.planWindowRule(ctx, req, resp)
+	if resp.Diagnostics.HasError() || req.State.Raw.IsNull() {
 		return
 	}
 	var plan, state monitorModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(resp.Plan.Get(ctx, &plan)...)
 	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() || !plan.Status.IsUnknown() {
 		return
@@ -312,6 +337,64 @@ func (r *monitorResource) ModifyPlan(ctx context.Context, req resource.ModifyPla
 		// A real change: the server decides the status again.
 		plan.Status = types.StringUnknown()
 		resp.Diagnostics.Append(resp.Plan.Set(ctx, &plan)...)
+	}
+}
+
+// planWindowRule plans window_rule = at_least for a configuration that sets a
+// positive min_breach_points and no window_rule, which is how the server reads
+// that pair (monitorspec RuleForBreachPoints). Without it, UseStateForUnknown
+// plans the rule of the state. When that rule is not at_least, the server
+// zeroes the count, and the apply ends inconsistent (DESIGN.md G3).
+//
+// The other way round, it plans min_breach_points = 0 for a configuration that
+// sets a rule other than at_least and no count: the server stores 0 under such
+// a rule, and UseStateForUnknown would plan the count of the state.
+//
+// It refuses an at_least count at or above the planned width when the
+// configuration omits num_eval_points. UseStateForUnknown plans the stored
+// width there, which validateWindowRule cannot see; a new monitor takes the
+// server default.
+func (r *monitorResource) planWindowRule(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if _, ok := r.kind.params.Attributes["window_rule"]; !ok {
+		return
+	}
+	var params types.Object
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("params"), &params)...)
+	if resp.Diagnostics.HasError() || params.IsNull() || params.IsUnknown() {
+		return
+	}
+	var (
+		rule, count, width = types.StringNull(), types.Int64Null(), types.Int64Null()
+		p                  = path.Root("params")
+	)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, p.AtName("window_rule"), &rule)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, p.AtName("min_breach_points"), &count)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, p.AtName("num_eval_points"), &width)...)
+	if resp.Diagnostics.HasError() || rule.IsUnknown() || count.IsUnknown() {
+		return
+	}
+	counts := !count.IsNull() && count.ValueInt64() > 0 &&
+		(rule.IsNull() || rule.ValueString() == string(generated.MetricWindowRuleAtLeast))
+	if counts && width.IsNull() {
+		var planned types.Int64
+		resp.Diagnostics.Append(resp.Plan.GetAttribute(ctx, p.AtName("num_eval_points"), &planned)...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		evalPoints := int64(defaultNumEvalPoints)
+		if !planned.IsNull() && !planned.IsUnknown() {
+			evalPoints = planned.ValueInt64()
+		}
+		if refuseEveryPoint(&resp.Diagnostics, count.ValueInt64(), evalPoints, true); resp.Diagnostics.HasError() {
+			return
+		}
+	}
+	switch {
+	case rule.IsNull() && !count.IsNull() && count.ValueInt64() > 0:
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, p.AtName("window_rule"),
+			types.StringValue(string(generated.MetricWindowRuleAtLeast)))...)
+	case !rule.IsNull() && rule.ValueString() != string(generated.MetricWindowRuleAtLeast) && count.IsNull():
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, p.AtName("min_breach_points"), types.Int64Value(0))...)
 	}
 }
 

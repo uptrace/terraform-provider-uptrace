@@ -86,7 +86,7 @@ Optional:
 - `absent_points` (String) How a point with no data counts: zero, ignore, or alert (a missing point breaches). Omit for the server default.
 - `column` (Attributes) The query result column the monitor evaluates, and its display unit. Omit to evaluate the first column. (see [below for nested schema](#nestedatt--params--column))
 - `max_value` (Number) The monitor fires when the value rises above it.
-- `min_breach_points` (Number) Breaching points the at_least window rule needs. Omit for the server default.
+- `min_breach_points` (Number) Breaching points the at_least window rule needs. A count of 1 or more with no window_rule means at_least. Omit for the server default.
 - `min_value` (Number) The monitor fires when the value drops below it.
 - `num_eval_points` (Number) How many recent points each check evaluates. Omit for the server default.
 - `recovery` (Attributes) The range a firing monitor must return to before it recovers. It must sit inside min_value..max_value. (see [below for nested schema](#nestedatt--params--recovery))

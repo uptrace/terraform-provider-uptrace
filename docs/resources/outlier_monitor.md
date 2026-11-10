@@ -63,7 +63,7 @@ Optional:
 - `column` (Attributes) The query result column the monitor evaluates, and its display unit. Omit to evaluate the first column. (see [below for nested schema](#nestedatt--params--column))
 - `direction` (String) Which deviations alert. Omit for the server default.
 - `keep_firing_for` (String) How long an alert stays open after the series rejoins its peers. A duration string: ms, s, m, h, d (day) or w (week).
-- `min_breach_points` (Number) Breaching points the at_least window rule needs. Omit for the server default.
+- `min_breach_points` (Number) Breaching points the at_least window rule needs. A count of 1 or more with no window_rule means at_least. Omit for the server default.
 - `min_change` (Number) Smallest absolute distance from the peers that counts. Omit for the server default.
 - `min_peers` (Number) Fewest series a group needs before any is judged. Omit for the server default.
 - `num_eval_points` (Number) How many recent points each check evaluates. Omit for the server default.

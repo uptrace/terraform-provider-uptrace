@@ -2,6 +2,7 @@ package monitor_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -128,6 +129,110 @@ resource "uptrace_threshold_monitor" "test" {
 				resource.TestCheckResourceAttr(addr, "repeat_interval.strategy", "fixed"),
 			},
 		),
+	})
+}
+
+// A count without a window rule means at_least, as the server reads it. The
+// last step sets the count again over a stored at_all_times rule: the plan
+// must state at_least there, or the server zeroes the count and the apply ends
+// inconsistent (terraform:G3).
+func TestAccThresholdMonitor_countWithoutARule(t *testing.T) {
+	const addr = "uptrace_threshold_monitor.test"
+	base := testAccProjectConfig("acc-count-rule-org", "acc-count-rule-project")
+	monitor := func(dials string) string {
+		return base + `
+resource "uptrace_threshold_monitor" "test" {
+  project_id = uptrace_project.test.id
+  name       = "acc count without a rule"
+
+  params = {
+    metrics   = [{ name = "go_goroutine_count", alias = "$goroutines" }]
+    query     = "sum($goroutines) as goroutines | group by service_name"
+    max_value = 10000
+    ` + dials + `
+  }
+}
+`
+	}
+	counted := monitor("min_breach_points = 3")
+	atAllTimes := monitor(`window_rule = "at_all_times"`)
+	atLeast := resource.ComposeAggregateTestCheckFunc(
+		resource.TestCheckResourceAttr(addr, "params.window_rule", "at_least"),
+		resource.TestCheckResourceAttr(addr, "params.min_breach_points", "3"),
+	)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.PreCheck(t) },
+		ProtoV6ProviderFactories: testutil.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckMonitorDestroy(t, "uptrace_threshold_monitor"),
+		Steps: []resource.TestStep{
+			{Config: counted, Check: atLeast},
+			{Config: counted, PlanOnly: true},
+			{Config: atAllTimes, Check: resource.ComposeAggregateTestCheckFunc(
+				resource.TestCheckResourceAttr(addr, "params.window_rule", "at_all_times"),
+				resource.TestCheckResourceAttr(addr, "params.min_breach_points", "0"),
+			)},
+			{Config: atAllTimes, PlanOnly: true},
+			{Config: counted, Check: atLeast},
+			{Config: counted, PlanOnly: true},
+		},
+	})
+}
+
+// A configuration that omits num_eval_points keeps the stored width, so a
+// count is checked against that width, not against the default. Over a stored
+// width of 3, a count of 3 is every point: the server would fold it to
+// at_all_times, so the plan refuses it (terraform:G3). Over a stored width of
+// 10, a count of 6 is under the width, and the server stores it.
+func TestAccThresholdMonitor_countOverAStoredWidth(t *testing.T) {
+	const addr = "uptrace_threshold_monitor.test"
+	base := testAccProjectConfig("acc-count-width-org", "acc-count-width-project")
+	monitor := func(dials string) string {
+		return base + `
+resource "uptrace_threshold_monitor" "test" {
+  project_id = uptrace_project.test.id
+  name       = "acc count over a stored width"
+
+  params = {
+    metrics   = [{ name = "go_goroutine_count", alias = "$goroutines" }]
+    query     = "sum($goroutines) as goroutines | group by service_name"
+    max_value = 10000
+    ` + dials + `
+  }
+}
+`
+	}
+	narrow := monitor("num_eval_points = 3\n    window_rule = \"at_all_times\"")
+	wide := monitor("num_eval_points = 10\n    window_rule = \"at_all_times\"")
+	counted := monitor("min_breach_points = 6")
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.PreCheck(t) },
+		ProtoV6ProviderFactories: testutil.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckMonitorDestroy(t, "uptrace_threshold_monitor"),
+		Steps: []resource.TestStep{
+			{Config: narrow, Check: resource.TestCheckResourceAttr(addr, "params.num_eval_points", "3")},
+			{Config: narrow, PlanOnly: true},
+			{
+				Config:      monitor("min_breach_points = 3"),
+				ExpectError: regexp.MustCompile(`at or above num_eval_points \(3\)`),
+			},
+			{Config: wide, Check: resource.TestCheckResourceAttr(addr, "params.num_eval_points", "10")},
+			{Config: wide, PlanOnly: true},
+			{Config: counted, Check: resource.ComposeAggregateTestCheckFunc(
+				resource.TestCheckResourceAttr(addr, "params.window_rule", "at_least"),
+				resource.TestCheckResourceAttr(addr, "params.min_breach_points", "6"),
+				resource.TestCheckResourceAttr(addr, "params.num_eval_points", "10"),
+			)},
+			{Config: counted, PlanOnly: true},
+			{
+				ResourceName:            addr,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateIdFunc:       importIDFunc(addr),
+				ImportStateVerifyIgnore: []string{"status", "params.query"},
+			},
+		},
 	})
 }
 

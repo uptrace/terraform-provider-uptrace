@@ -216,7 +216,7 @@ func metricParamsAttributes(extra map[string]schema.Attribute) map[string]schema
 		"window_rule": optionalComputedEnum("How the evaluated points decide a breach.",
 			generated.MetricWindowRuleAtAllTimes, generated.MetricWindowRuleAtLeast,
 			generated.MetricWindowRuleOnAverage, generated.MetricWindowRuleInTotal),
-		"min_breach_points": optionalComputedInt("Breaching points the at_least window rule needs."),
+		"min_breach_points": optionalComputedInt("Breaching points the at_least window rule needs. A count of 1 or more with no window_rule means at_least."),
 		"absent_points": optionalComputedEnum("How a point with no data counts: zero, ignore, or alert (a missing point breaches).",
 			generated.AbsentPointsZero, generated.AbsentPointsIgnore, generated.AbsentPointsAlert),
 		"time_offset": durationAttribute(true, "How far back the evaluated window ends, for data that arrives late."),
