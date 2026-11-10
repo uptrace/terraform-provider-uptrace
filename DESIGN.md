@@ -2,6 +2,9 @@
 version: 4
 skill: docs-curate
 scope: [terraform/]
+last_goal: "G5 — A pull request that changes terraform/ runs each check of the provider module"
+last_frozen: "F2 — The resource type names, their attribute names and their import ID formats"
+last_record: "D4 — CI builds the provider against the contract of each pull request that changes openapi/, as an advisory check"
 ---
 
 # Terraform provider
