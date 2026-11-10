@@ -3,12 +3,12 @@
 page_title: "uptrace_org_user Resource - uptrace"
 subcategory: ""
 description: |-
-  Adds an existing user to an organization with a role. Idempotent — creating twice updates the role server-side. Pair with uptrace_user to manage the underlying user.
+  Adds an existing user to an organization with a role. Idempotent — creating twice updates the role server-side. Pair with uptrace_user to manage the underlying user. Deprecated: use uptrace_org_member, which takes the email address instead of a user ID.
 ---
 
 # uptrace_org_user (Resource)
 
-Adds an existing user to an organization with a role. Idempotent — creating twice updates the role server-side. Pair with `uptrace_user` to manage the underlying user.
+Adds an existing user to an organization with a role. Idempotent — creating twice updates the role server-side. Pair with `uptrace_user` to manage the underlying user. Deprecated: use `uptrace_org_member`, which takes the email address instead of a user ID.
 
 ## Example Usage
 

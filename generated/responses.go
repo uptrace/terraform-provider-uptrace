@@ -28,8 +28,8 @@ type GetMonitorResponse = MonitorResponse
 
 type GetMonitorErrorResponse = BadRequest
 
-// DeleteMonitorResponse The answer a monitor write serves. It is the row as it now stands, with nothing a read derives joined onto it.
-type DeleteMonitorResponse = MonitorSummaryResponse
+// DeleteMonitorResponse An empty object, which is what a route writes when it has acted and has nothing to report. It is a body rather than no body, so a client that parses every answer reads one shape everywhere.
+type DeleteMonitorResponse = EmptyResponse
 
 type DeleteMonitorErrorResponse = BadRequest
 
@@ -146,6 +146,27 @@ type RemoveOrgUserResponse = EmptyResponse
 
 type RemoveOrgUserErrorResponse = Unauthorized
 
+// GetOrgMemberResponse Wraps one membership set by email under `member`.
+type GetOrgMemberResponse = OrgMemberResponse
+
+type GetOrgMemberErrorResponse = BadRequest
+
+// SetOrgMemberResponse Wraps one membership set by email under `member`.
+type SetOrgMemberResponse = OrgMemberResponse
+
+type SetOrgMemberErrorResponse = BadRequest
+
+// SetOrgMemberErrorResponseApplicationProblemPlusJSON RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type SetOrgMemberErrorResponseApplicationProblemPlusJSON = ProblemDetails
+
+// RemoveOrgMemberResponse An empty object, which is what a route writes when it has acted and has nothing to report. It is a body rather than no body, so a client that parses every answer reads one shape everywhere.
+type RemoveOrgMemberResponse = EmptyResponse
+
+type RemoveOrgMemberErrorResponse = BadRequest
+
+// RemoveOrgMemberErrorResponseApplicationProblemPlusJSON RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type RemoveOrgMemberErrorResponseApplicationProblemPlusJSON = ProblemDetails
+
 // CreateTeamResponse The team an operation on one team answers with.
 type CreateTeamResponse = TeamResponse
 
@@ -165,6 +186,9 @@ type UpdateTeamErrorResponse = BadRequest
 type DeleteTeamResponse = TeamResponse
 
 type DeleteTeamErrorResponse = Unauthorized
+
+// DeleteTeamErrorResponseApplicationProblemPlusJSON RFC 9457 problem details, returned as application/problem+json for every non-2xx response. The type member is omitted, so it is about:blank and title is the HTTP status phrase. Clients branch on code, not on title or detail.
+type DeleteTeamErrorResponseApplicationProblemPlusJSON = ProblemDetails
 
 type ListTeamProjectsResponse struct {
 	Projects []ProjectSummary `json:"projects" validate:"required"`
@@ -198,7 +222,7 @@ type RemoveTeamUserResponse = EmptyResponse
 
 type RemoveTeamUserErrorResponse = Unauthorized
 
-// CreateOrglessInviteResponse Response from creating or processing an invitation. `invite` is a compact invite summary. An org-scoped invitation is always `sent`, whatever account the email maps to: the invitee joins through the emailed link, and `user` is empty (id 0) so the answer does not reveal whether the address has an account. An org-less invitation answers the invitee's public summary in `user`, and it is `accepted` with a response-only random `invite.id` when the email already maps to a confirmed user. `invite.orgId` is present for org-scoped actions.
+// CreateOrglessInviteResponse Response from creating or processing an invitation. `invite` is a compact invite summary. An org-scoped invitation is `sent`, whatever account the email maps to: the invitee joins through the emailed link, and `user` is empty (id 0) so the answer does not reveal whether the address has an account. It is `accepted`, with a response-only random `invite.id` and no email, when the address is already a member of the org. An org-less invitation answers the invitee's public summary in `user`, and it is `accepted` with a response-only random `invite.id` when the email already maps to a confirmed user. `invite.orgId` is present for org-scoped actions.
 type CreateOrglessInviteResponse = UserInviteResponse
 
 type CreateOrglessInviteErrorResponse = BadRequest
@@ -261,7 +285,7 @@ type UpdateNotificationChannelResponse = NotificationChannelResponse
 
 type UpdateNotificationChannelErrorResponse = BadRequest
 
-// DeleteNotificationChannelResponse The notification channel an operation on one channel answers with.
-type DeleteNotificationChannelResponse = NotificationChannelResponse
+// DeleteNotificationChannelResponse An empty object, which is what a route writes when it has acted and has nothing to report. It is a body rather than no body, so a client that parses every answer reads one shape everywhere.
+type DeleteNotificationChannelResponse = EmptyResponse
 
 type DeleteNotificationChannelErrorResponse = BadRequest

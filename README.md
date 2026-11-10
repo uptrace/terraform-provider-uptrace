@@ -116,7 +116,44 @@ Manages an ingest token for a project.
 
 Import: `terraform import uptrace_project_token.x <project_id>:<token_id>`
 
+### uptrace_org_member
+
+Makes the person at an email address a member of an organization with a role and a set of
+teams. A person who is not a member gets an invitation email, and the membership stays
+`pending` until they accept it; it is then `active`. An existing and a missing account get the
+same invitation. A change of the role or the teams of a pending membership sends no new email.
+Requires an app version that serves `/internal/v1/orgs/{org_id}/members/by-email`.
+
+| Field       | Type        | Required | Description                                                                  |
+|-------------|-------------|----------|------------------------------------------------------------------------------|
+| org_id      | string      | yes      | Organization ID. Forces replacement on change.                               |
+| email       | string      | yes      | Lowercase, trimmed. Forces replacement on change.                            |
+| role        | string      | yes      | One of `owner`, `admin`, `member`, `viewer`, `billing_manager`, `collaborator`. Updatable. |
+| team_ids    | set(string) | no       | The exact set of teams of the person. Empty when omitted. Updatable.         |
+| status      | string      | computed | `pending` or `active`.                                                       |
+| org_user_id | string      | computed | OrgUser ID of an active membership; null while pending.                      |
+| id          | string      | computed | `<org_id>:<email>`.                                                          |
+
+`team_ids` is authoritative: do not also manage the same person with `uptrace_team_user`.
+Destroy removes the member, or cancels the invitation. When the invitation expires or is
+canceled, the next plan creates it again.
+
+Import: `terraform import uptrace_org_member.x <org_id>:<email>`
+
+**Example -- invite a person to an organization and a team:**
+
+```hcl
+resource "uptrace_org_member" "alice" {
+  org_id   = uptrace_org.main.id
+  email    = "alice@example.com"
+  role     = "admin"
+  team_ids = [uptrace_team.platform.id]
+}
+```
+
 ### uptrace_user
+
+**Deprecated:** use `uptrace_org_member`. This resource is removed in the next major version.
 
 Invites a user to Uptrace. The backend sends an account-invitation email. If the email already
 belongs to a confirmed user, the existing user is adopted (no duplicate is created).
@@ -129,6 +166,11 @@ belongs to a confirmed user, the existing user is adopted (no duplicate is creat
 Delete removes the resource from state only -- the underlying user remains on the server.
 
 ### uptrace_org_user
+
+**Deprecated:** use `uptrace_org_member`. This resource is removed in the next major version.
+To move a membership, import it with `terraform import uptrace_org_member.x <org_id>:<email>`,
+then run `terraform state rm` on the `uptrace_org_user` before you remove it from the
+configuration: a destroy of `uptrace_org_user` removes the member.
 
 Adds a user to an organization with a role. Pair with `uptrace_user` to manage the full
 invite-to-membership lifecycle.
@@ -184,7 +226,8 @@ Import: `terraform import uptrace_team_project.x <org_id>:<team_id>:<project_id>
 
 ### uptrace_team_user
 
-Adds an organization user to a team. All fields force replacement.
+Adds an organization user to a team. All fields force replacement. Do not use it for a person
+that `uptrace_org_member` manages: its `team_ids` is the exact set of that person's teams.
 
 | Field       | Type   | Required | Description                                     |
 |-------------|--------|----------|-------------------------------------------------|

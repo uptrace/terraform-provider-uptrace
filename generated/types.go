@@ -422,7 +422,7 @@ type BaseMonitor struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval RepeatInterval `json:"repeatInterval"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc TrendAggFunc `json:"trendAggFunc" validate:"required"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -758,7 +758,7 @@ type ThresholdMonitorSummary struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval RepeatInterval `json:"repeatInterval"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc TrendAggFunc `json:"trendAggFunc" validate:"required"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -1115,7 +1115,7 @@ type AnomalyMonitorSummary struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval RepeatInterval `json:"repeatInterval"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc TrendAggFunc `json:"trendAggFunc" validate:"required"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -1385,7 +1385,7 @@ type OutlierMonitorSummary struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval RepeatInterval `json:"repeatInterval"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc TrendAggFunc `json:"trendAggFunc" validate:"required"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -1653,7 +1653,7 @@ type ForecastMonitorSummary struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval RepeatInterval `json:"repeatInterval"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc TrendAggFunc `json:"trendAggFunc" validate:"required"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -1844,7 +1844,7 @@ type ErrorMonitorSummary struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval RepeatInterval `json:"repeatInterval"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc TrendAggFunc `json:"trendAggFunc" validate:"required"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -2007,11 +2007,38 @@ func (s SloEventSli) Validate() error {
 	return errors
 }
 
+// SloUnreadableSli A stored SLI that this build cannot read: a kind it does not know, settings that do not decode, an SLI that does not decode at all, or no SLI. The server sends it so that a reader can still open the monitor. It is read-only. A save that sends it back is refused, so the author must replace it. A monitor that holds one does not evaluate.
+type SloUnreadableSli struct {
+	Type SloUnreadableSliType `json:"type" validate:"required"`
+
+	// StoredType The kind that the stored SLI names. It is absent when the stored SLI names no kind.
+	StoredType *string `json:"storedType,omitempty"`
+
+	// ErrorData Why this build cannot read the stored SLI.
+	ErrorData string `json:"error" validate:"required"`
+}
+
+func (s SloUnreadableSli) Validate() error {
+	var errors runtime.ValidationErrors
+	if v, ok := any(s.Type).(runtime.Validator); ok {
+		if err := v.Validate(); err != nil {
+			errors = errors.Append("Type", err)
+		}
+	}
+	if err := typesValidator.Var(s.ErrorData, "required"); err != nil {
+		errors = errors.Append("ErrorData", err)
+	}
+	if len(errors) == 0 {
+		return nil
+	}
+	return errors
+}
+
 // SloSli What an SLO measures, and how it is fetched. An SLI is one shape with a kind: the type field says which applies, and that kind's own knobs sit beside it. Whichever kind an SLO states, what reaches every figure the SLO carries is good and total counts per bucket — the burn rate, the error-budget measurement and the bad-ratio series read those and never the kind.
 type SloSli struct {
-	// Type What an SLI counts, and so the unit an SLO's good, total and bad counts are in. It is the tag that selects a member of SloSli, and the value a reader words a count with.
-	Type         *SloSliType   `json:"type,omitempty"`
-	SloSli_OneOf *SloSli_OneOf `json:"-"`
+	// Type The tag that selects a member of SloSli. It is each SloSliType value, plus unreadable for a stored SLI that this build cannot read. Only a read sends unreadable: it is never stored, and a save refuses it.
+	Type         *SloSliMemberType `json:"type,omitempty"`
+	SloSli_OneOf *SloSli_OneOf     `json:"-"`
 }
 
 func (s SloSli) Validate() error {
@@ -2196,12 +2223,51 @@ func (s SloBudgetConsumedRule) Validate() error {
 	return errors
 }
 
+// SloUnreadableRule A stored SLO rule that this build cannot read: a kind it does not know, settings that do not decode, or a rule that does not decode at all. The server sends it so that a reader can still open the monitor. It is read-only. A save that sends it back is refused, so the author must replace or delete the rule. A monitor that holds one does not evaluate.
+type SloUnreadableRule struct {
+	Type SloUnreadableRuleType `json:"type" validate:"required"`
+
+	// Name The stored name of the rule. It is absent when the rule itself does not decode, because the name is then unknown.
+	Name *string `json:"name,omitempty"`
+
+	// Priority Alert priority level.
+	Priority *AlertPriority `json:"priority,omitempty"`
+
+	// StoredType The kind that the stored rule names. It is absent when the stored rule names no kind.
+	StoredType *string `json:"storedType,omitempty"`
+
+	// ErrorData Why this build cannot read the stored rule.
+	ErrorData string `json:"error" validate:"required"`
+}
+
+func (s SloUnreadableRule) Validate() error {
+	var errors runtime.ValidationErrors
+	if v, ok := any(s.Type).(runtime.Validator); ok {
+		if err := v.Validate(); err != nil {
+			errors = errors.Append("Type", err)
+		}
+	}
+	if s.Priority != nil {
+		if v, ok := any(s.Priority).(runtime.Validator); ok {
+			if err := v.Validate(); err != nil {
+				errors = errors.Append("Priority", err)
+			}
+		}
+	}
+	if err := typesValidator.Var(s.ErrorData, "required"); err != nil {
+		errors = errors.Append("ErrorData", err)
+	}
+	if len(errors) == 0 {
+		return nil
+	}
+	return errors
+}
+
 // SloRule One rule an SLO evaluates, once per subject its grouping discovers. A rule is one shape with two kinds. The type field says which kind applies, and the kind's own knobs are under config.
 type SloRule struct {
-	// Type Which kind an SLO rule is, and so which quantity it reads. It is the tag that selects a member of SloRule, and the tag that selects a member of SloReading: a reading names the kind that took it, so a reader of a check has the kind without the rule beside it.
-	// Both kinds read the error budget. A third, sli, is retired: it read the SLI over one window instead, and a rule naming it is refused.
-	Type          *SloRuleType   `json:"type,omitempty"`
-	SloRule_OneOf *SloRule_OneOf `json:"-"`
+	// Type The tag that selects a member of SloRule, and of SloReading. It is each SloRuleType value, plus unreadable for a stored rule or reading that this build cannot read. Only a read sends unreadable: it is never stored, and a save refuses it.
+	Type          *SloRuleMemberType `json:"type,omitempty"`
+	SloRule_OneOf *SloRule_OneOf     `json:"-"`
 }
 
 func (s SloRule) Validate() error {
@@ -2378,7 +2444,7 @@ type SloMonitorSummary struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval RepeatInterval `json:"repeatInterval"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc TrendAggFunc `json:"trendAggFunc" validate:"required"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -2707,6 +2773,9 @@ func (m MonitorSummaryResponse) Validate() error {
 	return errors
 }
 
+// EmptyResponse An empty object, which is what a route writes when it has acted and has nothing to report. It is a body rather than no body, so a client that parses every answer reads one shape everywhere.
+type EmptyResponse = map[string]any
+
 // BaseMonitorRequest The settings every monitor type shares, as a create or an update writes them. Each monitor request adds the params of its own type.
 type BaseMonitorRequest struct {
 	// Key A stable identifier, unique in the project. A create that repeats a stored key answers with the stored monitor and changes nothing, which is what makes a retried create safe. An update that states no key keeps the stored one. The server truncates it at 100 characters.
@@ -2724,7 +2793,7 @@ type BaseMonitorRequest struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval *RepeatInterval `json:"repeatInterval,omitempty"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc *TrendAggFunc `json:"trendAggFunc,omitempty"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -2930,7 +2999,7 @@ type ThresholdMonitorRequest struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval *RepeatInterval `json:"repeatInterval,omitempty"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc *TrendAggFunc `json:"trendAggFunc,omitempty"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -3103,7 +3172,7 @@ type AnomalyMonitorRequest struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval *RepeatInterval `json:"repeatInterval,omitempty"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc *TrendAggFunc `json:"trendAggFunc,omitempty"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -3259,7 +3328,7 @@ type OutlierMonitorRequest struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval *RepeatInterval `json:"repeatInterval,omitempty"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc *TrendAggFunc `json:"trendAggFunc,omitempty"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -3411,7 +3480,7 @@ type ForecastMonitorRequest struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval *RepeatInterval `json:"repeatInterval,omitempty"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc *TrendAggFunc `json:"trendAggFunc,omitempty"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -3475,7 +3544,7 @@ type ErrorMonitorRequest struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval *RepeatInterval `json:"repeatInterval,omitempty"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc *TrendAggFunc `json:"trendAggFunc,omitempty"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -3609,7 +3678,7 @@ type SloMonitorRequest struct {
 	// RepeatInterval How often a firing alert repeats its notification. The strategy field says which member applies, and each member carries the knobs that strategy reads.
 	RepeatInterval *RepeatInterval `json:"repeatInterval,omitempty"`
 
-	// TrendAggFunc Aggregation that folds an hourly trend to one value.
+	// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 	TrendAggFunc *TrendAggFunc `json:"trendAggFunc,omitempty"`
 
 	// TrendSensitivity How readily an alert escalates on its hourly trend and how soon it declares recovery. It changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial, DetectorSensitivity, which shares this vocabulary and answers a different question.
@@ -3668,9 +3737,6 @@ type PublicUser struct {
 func (p PublicUser) Validate() error {
 	return runtime.ConvertValidatorError(typesValidator.Struct(p))
 }
-
-// EmptyResponse An empty object, which is what a route writes when it has acted and has nothing to report. It is a body rather than no body, so a client that parses every answer reads one shape everywhere.
-type EmptyResponse = map[string]any
 
 // Org An organization, with the requester's own org-level permissions. refusal is the code that the org's routes answer the requester with, because a rule of the org refuses them. It is absent when the org admits the requester.
 type Org struct {
@@ -3789,7 +3855,7 @@ func (o Org) Validate() error {
 
 // OrgCreateRequest The body that creates an organization.
 type OrgCreateRequest struct {
-	// Name Organization name.
+	// Name Organization name. It is trimmed, and a name that is empty after trimming is refused.
 	Name string `json:"name" validate:"required"`
 }
 
@@ -3818,8 +3884,11 @@ func (o OrgResponse) Validate() error {
 
 // OrgUpdateRequest The body that updates an organization's settings.
 type OrgUpdateRequest struct {
-	Name        string `json:"name" validate:"required"`
-	MfaRequired *bool  `json:"mfaRequired,omitempty"`
+	// Name Organization name. It is trimmed, and a name that is empty after trimming is refused.
+	Name string `json:"name" validate:"required"`
+
+	// MfaRequired Whether the org requires a second factor of every member. Absent keeps the current setting.
+	MfaRequired *bool `json:"mfaRequired,omitempty"`
 
 	// TokenLifetimeCapDays The longest lifetime, in days, of an API token that the org admits: 0 (no cap), 30, 90, 180 or 365. Absent keeps the current cap.
 	TokenLifetimeCapDays *int32 `json:"tokenLifetimeCapDays,omitempty"`
@@ -4565,7 +4634,7 @@ func (o OrgUser) Validate() error {
 	return errors
 }
 
-// OrgUserCreateRequest Body for POST /orgs/{org_id}/users. Creates an OrgUser membership for an existing User by ID. Idempotent — re-posting the same userId updates the role.
+// OrgUserCreateRequest Body for POST /orgs/{org_id}/users. Creates an OrgUser membership for an existing User by ID. Idempotent: re-posting the same userId keeps the stored role.
 type OrgUserCreateRequest struct {
 	// UserID ID of an existing User to attach to the org.
 	UserID uint64 `json:"userId" validate:"required"`
@@ -4838,7 +4907,7 @@ func (i InviteSummary) Validate() error {
 	return errors
 }
 
-// UserInviteResponse Response from creating or processing an invitation. `invite` is a compact invite summary. An org-scoped invitation is always `sent`, whatever account the email maps to: the invitee joins through the emailed link, and `user` is empty (id 0) so the answer does not reveal whether the address has an account. An org-less invitation answers the invitee's public summary in `user`, and it is `accepted` with a response-only random `invite.id` when the email already maps to a confirmed user. `invite.orgId` is present for org-scoped actions.
+// UserInviteResponse Response from creating or processing an invitation. `invite` is a compact invite summary. An org-scoped invitation is `sent`, whatever account the email maps to: the invitee joins through the emailed link, and `user` is empty (id 0) so the answer does not reveal whether the address has an account. It is `accepted`, with a response-only random `invite.id` and no email, when the address is already a member of the org. An org-less invitation answers the invitee's public summary in `user`, and it is `accepted` with a response-only random `invite.id` when the email already maps to a confirmed user. `invite.orgId` is present for org-scoped actions.
 type UserInviteResponse struct {
 	// User Safe user summary for UI display.
 	User PublicUser `json:"user"`
@@ -4865,8 +4934,106 @@ func (u UserInviteResponse) Validate() error {
 	return errors
 }
 
+// OrgMember One person's membership of an organization, named by the email address. It is pending while the invitation waits, and active after the person accepts it.
+type OrgMember struct {
+	// Status Where a membership set by email stands.
+	Status OrgMemberStatus `json:"status" validate:"required"`
+
+	// Email The address (lowercased, trimmed).
+	Email string `json:"email" validate:"required"`
+
+	// Role A user's role within an organization.
+	Role UserRole `json:"role" validate:"required"`
+
+	// TeamIds The teams of the membership, in ascending order. While the membership is pending, the teams the person joins on acceptance.
+	TeamIds []uint64 `json:"teamIds" validate:"required"`
+
+	// OrgUserID The membership's org user ID. Null while the membership is pending.
+	OrgUserID *uint64 `json:"orgUserId,omitempty" validate:"required"`
+}
+
+func (o OrgMember) Validate() error {
+	var errors runtime.ValidationErrors
+	if v, ok := any(o.Status).(runtime.Validator); ok {
+		if err := v.Validate(); err != nil {
+			errors = errors.Append("Status", err)
+		}
+	}
+	if err := typesValidator.Var(o.Email, "required"); err != nil {
+		errors = errors.Append("Email", err)
+	}
+	if v, ok := any(o.Role).(runtime.Validator); ok {
+		if err := v.Validate(); err != nil {
+			errors = errors.Append("Role", err)
+		}
+	}
+	if err := typesValidator.Var(o.TeamIds, "required"); err != nil {
+		errors = errors.Append("TeamIds", err)
+	}
+	if o.OrgUserID != nil {
+		if err := typesValidator.Var(o.OrgUserID, "required"); err != nil {
+			errors = errors.Append("OrgUserID", err)
+		}
+	}
+	if len(errors) == 0 {
+		return nil
+	}
+	return errors
+}
+
+// OrgMemberResponse Wraps one membership set by email under `member`.
+type OrgMemberResponse struct {
+	// Member One person's membership of an organization, named by the email address. It is pending while the invitation waits, and active after the person accepts it.
+	Member OrgMember `json:"member"`
+}
+
+func (o OrgMemberResponse) Validate() error {
+	var errors runtime.ValidationErrors
+	if v, ok := any(o.Member).(runtime.Validator); ok {
+		if err := v.Validate(); err != nil {
+			errors = errors.Append("Member", err)
+		}
+	}
+	if len(errors) == 0 {
+		return nil
+	}
+	return errors
+}
+
+// OrgMemberSetRequest Body that sets one person's membership of an organization by the email address. The role and the teams are the exact values to hold.
+type OrgMemberSetRequest struct {
+	// Email The address. It is lowercased and trimmed.
+	Email string `json:"email" validate:"required"`
+
+	// Role A user's role within an organization.
+	Role UserRole `json:"role" validate:"required"`
+
+	// TeamIds The exact set of teams of the membership. Each team must belong to the organization. An empty list removes the person from each team.
+	TeamIds []uint64 `json:"teamIds" validate:"required"`
+}
+
+func (o OrgMemberSetRequest) Validate() error {
+	var errors runtime.ValidationErrors
+	if err := typesValidator.Var(o.Email, "required"); err != nil {
+		errors = errors.Append("Email", err)
+	}
+	if v, ok := any(o.Role).(runtime.Validator); ok {
+		if err := v.Validate(); err != nil {
+			errors = errors.Append("Role", err)
+		}
+	}
+	if err := typesValidator.Var(o.TeamIds, "required"); err != nil {
+		errors = errors.Append("TeamIds", err)
+	}
+	if len(errors) == 0 {
+		return nil
+	}
+	return errors
+}
+
 // TeamCreateRequest The body that creates a team.
 type TeamCreateRequest struct {
+	// Name Team name. It is trimmed, and a name that is empty after trimming is refused.
 	Name string `json:"name" validate:"required"`
 
 	// PermLevel Project-level permission override (empty when unset).
@@ -4910,7 +5077,7 @@ func (t TeamResponse) Validate() error {
 	return errors
 }
 
-// TeamUpdateRequest Omitting or sending an empty `name` preserves the existing name. Omitting `permLevel` keeps the stored level.
+// TeamUpdateRequest The name is trimmed. Omitting `name`, or sending one that is empty after trimming, preserves the existing name. Omitting `permLevel` keeps the stored level.
 type TeamUpdateRequest struct {
 	Name *string `json:"name,omitempty"`
 
@@ -5110,7 +5277,7 @@ func (p ProjectToken) Validate() error {
 // ProjectTokenCreateRequest The body that creates a project token.
 type ProjectTokenCreateRequest struct {
 	// Name Human-readable token name. It is trimmed, and a name that is empty after trimming is refused.
-	Name string `json:"name" validate:"required"`
+	Name string `json:"name" validate:"required,max=500"`
 }
 
 func (p ProjectTokenCreateRequest) Validate() error {
@@ -5139,7 +5306,7 @@ func (p ProjectTokenResponse) Validate() error {
 // ProjectTokenUpdateRequest The body that renames a project token.
 type ProjectTokenUpdateRequest struct {
 	// Name Human-readable token name.
-	Name string `json:"name" validate:"required"`
+	Name string `json:"name" validate:"required,max=500"`
 }
 
 func (p ProjectTokenUpdateRequest) Validate() error {

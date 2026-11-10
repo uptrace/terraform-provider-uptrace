@@ -260,6 +260,33 @@ func (r RemoveOrgUserPath) Validate() error {
 	return runtime.ConvertValidatorError(typesValidator.Struct(r))
 }
 
+type GetOrgMemberPath struct {
+	// OrgID Organization ID.
+	OrgID OrgID `json:"org_id" validate:"required"`
+}
+
+func (g GetOrgMemberPath) Validate() error {
+	return runtime.ConvertValidatorError(typesValidator.Struct(g))
+}
+
+type SetOrgMemberPath struct {
+	// OrgID Organization ID.
+	OrgID OrgID `json:"org_id" validate:"required"`
+}
+
+func (s SetOrgMemberPath) Validate() error {
+	return runtime.ConvertValidatorError(typesValidator.Struct(s))
+}
+
+type RemoveOrgMemberPath struct {
+	// OrgID Organization ID.
+	OrgID OrgID `json:"org_id" validate:"required"`
+}
+
+func (r RemoveOrgMemberPath) Validate() error {
+	return runtime.ConvertValidatorError(typesValidator.Struct(r))
+}
+
 type CreateTeamPath struct {
 	// OrgID Organization ID.
 	OrgID OrgID `json:"org_id" validate:"required"`

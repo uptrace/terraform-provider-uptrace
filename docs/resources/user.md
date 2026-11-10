@@ -6,6 +6,7 @@ description: |-
   Manages a global Uptrace user. Creation issues an orgless invite that pre-creates the User row server-side and returns its ID. Pair with uptrace_org_user to grant org membership.
   The caller must be authenticated and have access to at least one organization with an active subscription; otherwise the backend returns 402. The backend sends an account-invitation email to the recipient with a link to confirm the email and set a password. If the email already maps to a confirmed user, no invite is created and the existing user ID is returned — apply adopts existing users by email, so importing is unnecessary and not supported.
   Email is immutable; changing it forces recreation. Delete removes the resource from Terraform state only — the underlying User row and any pending invite remain on the server, since the API has no global user-delete endpoint. Drift detection is not implemented: out-of-band changes to the underlying user are not reflected in plan output.
+  Deprecated: use uptrace_org_member, which invites a person to an organization by email and needs no user ID.
 ---
 
 # uptrace_user (Resource)
@@ -15,6 +16,8 @@ Manages a global Uptrace user. Creation issues an orgless invite that pre-create
 The caller must be authenticated and have access to at least one organization with an active subscription; otherwise the backend returns 402. The backend sends an account-invitation email to the recipient with a link to confirm the email and set a password. If the email already maps to a confirmed user, no invite is created and the existing user ID is returned — `apply` adopts existing users by email, so importing is unnecessary and not supported.
 
 Email is immutable; changing it forces recreation. Delete removes the resource from Terraform state only — the underlying User row and any pending invite remain on the server, since the API has no global user-delete endpoint. Drift detection is not implemented: out-of-band changes to the underlying user are not reflected in plan output.
+
+Deprecated: use `uptrace_org_member`, which invites a person to an organization by email and needs no user ID.
 
 ## Example Usage
 

@@ -20,6 +20,9 @@ filter:
       - get_org_user
       - update_org_user_role
       - remove_org_user
+      - set_org_member
+      - get_org_member
+      - remove_org_member
       - create_orgless_invite
       - create_team
       - get_team

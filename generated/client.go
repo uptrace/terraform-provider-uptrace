@@ -103,6 +103,15 @@ type ClientInterface interface {
 	// RemoveOrgUser Remove organization user
 	RemoveOrgUser(ctx context.Context, options *RemoveOrgUserRequestOptions, reqEditors ...runtime.RequestEditorFn) (*RemoveOrgUserResponse, error)
 
+	// GetOrgMember Get organization member by email
+	GetOrgMember(ctx context.Context, options *GetOrgMemberRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetOrgMemberResponse, error)
+
+	// SetOrgMember Set organization member by email
+	SetOrgMember(ctx context.Context, options *SetOrgMemberRequestOptions, reqEditors ...runtime.RequestEditorFn) (*SetOrgMemberResponse, error)
+
+	// RemoveOrgMember Remove organization member by email
+	RemoveOrgMember(ctx context.Context, options *RemoveOrgMemberRequestOptions, reqEditors ...runtime.RequestEditorFn) (*RemoveOrgMemberResponse, error)
+
 	// CreateTeam Create team
 	CreateTeam(ctx context.Context, options *CreateTeamRequestOptions, reqEditors ...runtime.RequestEditorFn) (*CreateTeamResponse, error)
 
@@ -1241,6 +1250,139 @@ func (c *Client) RemoveOrgUser(ctx context.Context, options *RemoveOrgUserReques
 	}
 
 	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/users/{org_user_id}")
+	if err != nil {
+		return nil, fmt.Errorf("error executing request: %w", err)
+	}
+	return responseParser(ctx, resp)
+}
+
+// GetOrgMember Get organization member by email
+func (c *Client) GetOrgMember(ctx context.Context, options *GetOrgMemberRequestOptions, reqEditors ...runtime.RequestEditorFn) (*GetOrgMemberResponse, error) {
+	var err error
+	reqParams := runtime.RequestOptionsParameters{
+		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/members/by-email",
+		Method:     "GET",
+		Options:    options,
+	}
+
+	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*GetOrgMemberResponse, error) {
+		bodyBytes := resp.Content
+		if resp.StatusCode != 200 {
+			target := new(GetOrgMemberErrorResponse)
+			err = json.Unmarshal(bodyBytes, target)
+			if err != nil {
+				return nil, fmt.Errorf("error decoding response: %w", err)
+			}
+
+			if errTarget, ok := any(*target).(error); ok {
+				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
+			}
+			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
+				runtime.WithStatusCode(resp.StatusCode))
+		}
+		target := new(GetOrgMemberResponse)
+		if err = json.Unmarshal(bodyBytes, target); err != nil {
+			err = fmt.Errorf("error decoding response: %w", err)
+			return nil, err
+		}
+		return target, nil
+	}
+
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/members/by-email")
+	if err != nil {
+		return nil, fmt.Errorf("error executing request: %w", err)
+	}
+	return responseParser(ctx, resp)
+}
+
+// SetOrgMember Set organization member by email
+func (c *Client) SetOrgMember(ctx context.Context, options *SetOrgMemberRequestOptions, reqEditors ...runtime.RequestEditorFn) (*SetOrgMemberResponse, error) {
+	var err error
+	reqParams := runtime.RequestOptionsParameters{
+		RequestURL:  c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/members/by-email",
+		Method:      "PUT",
+		Options:     options,
+		ContentType: "application/json",
+	}
+
+	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*SetOrgMemberResponse, error) {
+		bodyBytes := resp.Content
+		if resp.StatusCode != 200 {
+			target := new(SetOrgMemberErrorResponse)
+			err = json.Unmarshal(bodyBytes, target)
+			if err != nil {
+				return nil, fmt.Errorf("error decoding response: %w", err)
+			}
+
+			if errTarget, ok := any(*target).(error); ok {
+				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
+			}
+			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
+				runtime.WithStatusCode(resp.StatusCode))
+		}
+		target := new(SetOrgMemberResponse)
+		if err = json.Unmarshal(bodyBytes, target); err != nil {
+			err = fmt.Errorf("error decoding response: %w", err)
+			return nil, err
+		}
+		return target, nil
+	}
+
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/members/by-email")
+	if err != nil {
+		return nil, fmt.Errorf("error executing request: %w", err)
+	}
+	return responseParser(ctx, resp)
+}
+
+// RemoveOrgMember Remove organization member by email
+func (c *Client) RemoveOrgMember(ctx context.Context, options *RemoveOrgMemberRequestOptions, reqEditors ...runtime.RequestEditorFn) (*RemoveOrgMemberResponse, error) {
+	var err error
+	reqParams := runtime.RequestOptionsParameters{
+		RequestURL: c.apiClient.GetBaseURL() + "/internal/v1/orgs/{org_id}/members/by-email",
+		Method:     "DELETE",
+		Options:    options,
+	}
+
+	req, err := c.apiClient.CreateRequest(ctx, reqParams, reqEditors...)
+	if err != nil {
+		return nil, fmt.Errorf("error creating request: %w", err)
+	}
+
+	responseParser := func(ctx context.Context, resp *runtime.Response) (*RemoveOrgMemberResponse, error) {
+		bodyBytes := resp.Content
+		if resp.StatusCode != 200 {
+			target := new(RemoveOrgMemberErrorResponse)
+			err = json.Unmarshal(bodyBytes, target)
+			if err != nil {
+				return nil, fmt.Errorf("error decoding response: %w", err)
+			}
+
+			if errTarget, ok := any(*target).(error); ok {
+				return nil, runtime.NewClientAPIError(errTarget, runtime.WithStatusCode(resp.StatusCode))
+			}
+			return nil, runtime.NewClientAPIError(fmt.Errorf("API error (status %d): %v", resp.StatusCode, *target),
+				runtime.WithStatusCode(resp.StatusCode))
+		}
+		target := new(RemoveOrgMemberResponse)
+		if err = json.Unmarshal(bodyBytes, target); err != nil {
+			err = fmt.Errorf("error decoding response: %w", err)
+			return nil, err
+		}
+		return target, nil
+	}
+
+	resp, err := c.apiClient.ExecuteRequest(ctx, req, "/internal/v1/orgs/{org_id}/members/by-email")
 	if err != nil {
 		return nil, fmt.Errorf("error executing request: %w", err)
 	}

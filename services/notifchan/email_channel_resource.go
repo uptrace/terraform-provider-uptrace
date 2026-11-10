@@ -3,8 +3,6 @@ package notifchan
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -205,8 +203,10 @@ func buildEmailRequest(ctx context.Context, m *emailChannelModel) (*channelReque
 	}
 
 	// The spec requires both lists, so an empty one goes as [], never null.
-	teamIDs := parseIDSet(ctx, m.TeamIDs, path.Root("team_ids"), &diags)
-	userIDs := parseIDSet(ctx, m.UserIDs, path.Root("user_ids"), &diags)
+	teamIDs, d := tfutil.Uint64sFromSet(ctx, path.Root("team_ids"), m.TeamIDs)
+	diags.Append(d...)
+	userIDs, d := tfutil.Uint64sFromSet(ctx, path.Root("user_ids"), m.UserIDs)
+	diags.Append(d...)
 	if diags.HasError() {
 		return nil, diags
 	}
@@ -217,40 +217,6 @@ func buildEmailRequest(ctx context.Context, m *emailChannelModel) (*channelReque
 	}
 
 	return body, diags
-}
-
-// parseIDSet returns the decimal IDs of set, or an empty slice for a null or
-// unknown set.
-func parseIDSet(ctx context.Context, set types.Set, at path.Path, diags *diag.Diagnostics) []uint64 {
-	ids := []uint64{}
-	if set.IsNull() || set.IsUnknown() {
-		return ids
-	}
-	var elems []types.String
-	diags.Append(set.ElementsAs(ctx, &elems, false)...)
-	if diags.HasError() {
-		return nil
-	}
-	for _, e := range elems {
-		v, err := strconv.ParseUint(e.ValueString(), 10, 64)
-		if err != nil {
-			diags.AddAttributeError(at, "invalid id",
-				fmt.Sprintf("expected a decimal integer, got %q: %s", e.ValueString(), err.Error()))
-			return nil
-		}
-		ids = append(ids, v)
-	}
-	return ids
-}
-
-func idSetValue(ctx context.Context, ids []uint64, diags *diag.Diagnostics) types.Set {
-	vals := make([]types.String, len(ids))
-	for i, id := range ids {
-		vals[i] = types.StringValue(strconv.FormatUint(id, 10))
-	}
-	v, d := types.SetValueFrom(ctx, types.StringType, vals)
-	diags.Append(d...)
-	return v
 }
 
 func applyEmailToModel(ctx context.Context, ch *channelResponse, dst *emailChannelModel) diag.Diagnostics {
@@ -276,8 +242,12 @@ func applyEmailToModel(ctx context.Context, ch *channelResponse, dst *emailChann
 		return diags
 	}
 	dst.Everyone = types.BoolValue(p.Everyone)
-	dst.TeamIDs = idSetValue(ctx, p.TeamIds, &diags)
-	dst.UserIDs = idSetValue(ctx, p.UserIds, &diags)
+	teamIDs, d := tfutil.SetFromUint64s(p.TeamIds)
+	diags.Append(d...)
+	userIDs, d := tfutil.SetFromUint64s(p.UserIds)
+	diags.Append(d...)
+	dst.TeamIDs = teamIDs
+	dst.UserIDs = userIDs
 
 	return diags
 }

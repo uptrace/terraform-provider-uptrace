@@ -50,16 +50,19 @@ type UpdateOrgBudgetBody = OrgUpdateBudgetRequest
 // CreateProjectBody A project's own settings, as the create and the update both write them. The per-signal view defaults are not here: they are written by patch_project, and no group this body reaches has ever read them.
 type CreateProjectBody = ProjectCreateRequest
 
-// CreateOrgUserBody Body for POST /orgs/{org_id}/users. Creates an OrgUser membership for an existing User by ID. Idempotent — re-posting the same userId updates the role.
+// CreateOrgUserBody Body for POST /orgs/{org_id}/users. Creates an OrgUser membership for an existing User by ID. Idempotent: re-posting the same userId keeps the stored role.
 type CreateOrgUserBody = OrgUserCreateRequest
 
 // UpdateOrgUserRoleBody The body that sets an organization user's role.
 type UpdateOrgUserRoleBody = OrgUserRoleUpdateRequest
 
+// SetOrgMemberBody Body that sets one person's membership of an organization by the email address. The role and the teams are the exact values to hold.
+type SetOrgMemberBody = OrgMemberSetRequest
+
 // CreateTeamBody The body that creates a team.
 type CreateTeamBody = TeamCreateRequest
 
-// UpdateTeamBody Omitting or sending an empty `name` preserves the existing name. Omitting `permLevel` keeps the stored level.
+// UpdateTeamBody The name is trimmed. Omitting `name`, or sending one that is empty after trimming, preserves the existing name. Omitting `permLevel` keeps the stored level.
 type UpdateTeamBody = TeamUpdateRequest
 
 // CreateOrglessInviteBody Body for the top-level POST /invites (Terraform path). Only `email` is accepted; `role` and `teamIds` would be meaningless without an org. The caller must have access to at least one organization with an active subscription.

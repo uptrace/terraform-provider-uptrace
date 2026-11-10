@@ -16,6 +16,7 @@ func (Registration) Resources() []func() resource.Resource {
 	return []func() resource.Resource{
 		NewOrgResource,
 		NewOrgUserResource,
+		NewOrgMemberResource,
 	}
 }
 

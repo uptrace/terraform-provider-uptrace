@@ -219,55 +219,19 @@ func (r *RepeatInterval_OneOf) UnmarshalJSON(bts []byte) error {
 }
 
 type SloSli_OneOf struct {
-	union json.RawMessage
+	runtime.Either[SloEventSli, SloUnreadableSli]
 }
 
 func (s *SloSli_OneOf) Validate() error {
-	// NOTE: Validation is not supported for unions with more than 2 elements.
-	// Validating would require unmarshaling against each possible type, which is inefficient.
-	// Use AsValidated<Type>() methods to validate after retrieving the specific type.
-	return nil
-}
-
-// Raw returns the union data inside the SloSli_OneOf as bytes
-func (s *SloSli_OneOf) Raw() json.RawMessage {
-	return s.union
-}
-
-// AsSloEventSli returns the union data inside the SloSli_OneOf as a SloEventSli
-func (s *SloSli_OneOf) AsSloEventSli() (SloEventSli, error) {
-	return runtime.UnmarshalAs[SloEventSli](s.union)
-}
-
-// AsValidatedSloEventSli returns the union data inside the SloSli_OneOf as a validated SloEventSli
-func (s *SloSli_OneOf) AsValidatedSloEventSli() (SloEventSli, error) {
-	val, err := s.AsSloEventSli()
-	if err != nil {
-		var zero SloEventSli
-		return zero, err
+	if s.IsA() {
+		if v, ok := any(s.A).(runtime.Validator); ok {
+			return v.Validate()
+		}
 	}
-	if err := s.validateSloEventSli(val); err != nil {
-		var zero SloEventSli
-		return zero, err
-	}
-	return val, nil
-}
-
-// FromSloEventSli overwrites any union data inside the SloSli_OneOf as the provided SloEventSli
-func (s *SloSli_OneOf) FromSloEventSli(val SloEventSli) error {
-	// Validate before storing
-	if err := s.validateSloEventSli(val); err != nil {
-		return err
-	}
-	bts, err := json.Marshal(val)
-	s.union = bts
-	return err
-}
-
-// validateSloEventSli validates a SloEventSli value
-func (s *SloSli_OneOf) validateSloEventSli(val SloEventSli) error {
-	if v, ok := any(val).(runtime.Validator); ok {
-		return v.Validate()
+	if s.IsB() {
+		if v, ok := any(s.B).(runtime.Validator); ok {
+			return v.Validate()
+		}
 	}
 	return nil
 }
@@ -282,60 +246,7 @@ func (s SloSli_OneOf) discriminator(data []byte) (string, error) {
 	return discriminator.Value, nil
 }
 
-func (s SloSli_OneOf) ValueByDiscriminator() (any, error) {
-	discriminator, err := s.discriminator(s.union)
-	if err != nil {
-		return nil, err
-	}
-	switch discriminator {
-	case "event":
-		return s.AsSloEventSli()
-	default:
-		return nil, errors.New("unknown discriminator value: " + discriminator)
-	}
-}
-
-func (s SloSli_OneOf) MarshalJSON() ([]byte, error) {
-	bts, err := s.union.MarshalJSON()
-
-	return bts, err
-}
-
-func (s *SloSli_OneOf) UnmarshalJSON(bts []byte) error {
-	err := s.union.UnmarshalJSON(bts)
-
-	return err
-}
-
-type SloRule_OneOf struct {
-	runtime.Either[SloBurnRateRule, SloBudgetConsumedRule]
-}
-
-func (s *SloRule_OneOf) Validate() error {
-	if s.IsA() {
-		if v, ok := any(s.A).(runtime.Validator); ok {
-			return v.Validate()
-		}
-	}
-	if s.IsB() {
-		if v, ok := any(s.B).(runtime.Validator); ok {
-			return v.Validate()
-		}
-	}
-	return nil
-}
-
-func (s SloRule_OneOf) discriminator(data []byte) (string, error) {
-	var discriminator struct {
-		Value string `json:"type"`
-	}
-	if err := json.Unmarshal(data, &discriminator); err != nil {
-		return "", err
-	}
-	return discriminator.Value, nil
-}
-
-func (s *SloRule_OneOf) MarshalJSON() ([]byte, error) {
+func (s *SloSli_OneOf) MarshalJSON() ([]byte, error) {
 	data := s.Value()
 	if data == nil {
 		return []byte("null"), nil
@@ -353,33 +264,202 @@ func (s *SloRule_OneOf) MarshalJSON() ([]byte, error) {
 	return runtime.MarshalEitherWithDiscriminator(obj, "type", disc)
 }
 
-func (s *SloRule_OneOf) UnmarshalJSON(data []byte) error {
+func (s *SloSli_OneOf) UnmarshalJSON(data []byte) error {
 	discriminator, err := s.discriminator(data)
 	if err != nil {
 		return err
 	}
 
 	switch discriminator {
-	case "budget_consumed":
-		var res SloBudgetConsumedRule
-		if err = json.Unmarshal(data, &res); err != nil {
-			return err
-		}
-
-		s.B = res
-		s.N = 2
-	case "burn_rate":
-		var res SloBurnRateRule
+	case "event":
+		var res SloEventSli
 		if err = json.Unmarshal(data, &res); err != nil {
 			return err
 		}
 
 		s.A = res
 		s.N = 1
+	case "unreadable":
+		var res SloUnreadableSli
+		if err = json.Unmarshal(data, &res); err != nil {
+			return err
+		}
+
+		s.B = res
+		s.N = 2
 	default:
 		return errors.New("unknown discriminator value: " + discriminator)
 	}
 	return nil
+}
+
+type SloRule_OneOf struct {
+	union json.RawMessage
+}
+
+func (s *SloRule_OneOf) Validate() error {
+	// NOTE: Validation is not supported for unions with more than 2 elements.
+	// Validating would require unmarshaling against each possible type, which is inefficient.
+	// Use AsValidated<Type>() methods to validate after retrieving the specific type.
+	return nil
+}
+
+// Raw returns the union data inside the SloRule_OneOf as bytes
+func (s *SloRule_OneOf) Raw() json.RawMessage {
+	return s.union
+}
+
+// AsSloBurnRateRule returns the union data inside the SloRule_OneOf as a SloBurnRateRule
+func (s *SloRule_OneOf) AsSloBurnRateRule() (SloBurnRateRule, error) {
+	return runtime.UnmarshalAs[SloBurnRateRule](s.union)
+}
+
+// AsValidatedSloBurnRateRule returns the union data inside the SloRule_OneOf as a validated SloBurnRateRule
+func (s *SloRule_OneOf) AsValidatedSloBurnRateRule() (SloBurnRateRule, error) {
+	val, err := s.AsSloBurnRateRule()
+	if err != nil {
+		var zero SloBurnRateRule
+		return zero, err
+	}
+	if err := s.validateSloBurnRateRule(val); err != nil {
+		var zero SloBurnRateRule
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromSloBurnRateRule overwrites any union data inside the SloRule_OneOf as the provided SloBurnRateRule
+func (s *SloRule_OneOf) FromSloBurnRateRule(val SloBurnRateRule) error {
+	// Validate before storing
+	if err := s.validateSloBurnRateRule(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	s.union = bts
+	return err
+}
+
+// AsSloBudgetConsumedRule returns the union data inside the SloRule_OneOf as a SloBudgetConsumedRule
+func (s *SloRule_OneOf) AsSloBudgetConsumedRule() (SloBudgetConsumedRule, error) {
+	return runtime.UnmarshalAs[SloBudgetConsumedRule](s.union)
+}
+
+// AsValidatedSloBudgetConsumedRule returns the union data inside the SloRule_OneOf as a validated SloBudgetConsumedRule
+func (s *SloRule_OneOf) AsValidatedSloBudgetConsumedRule() (SloBudgetConsumedRule, error) {
+	val, err := s.AsSloBudgetConsumedRule()
+	if err != nil {
+		var zero SloBudgetConsumedRule
+		return zero, err
+	}
+	if err := s.validateSloBudgetConsumedRule(val); err != nil {
+		var zero SloBudgetConsumedRule
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromSloBudgetConsumedRule overwrites any union data inside the SloRule_OneOf as the provided SloBudgetConsumedRule
+func (s *SloRule_OneOf) FromSloBudgetConsumedRule(val SloBudgetConsumedRule) error {
+	// Validate before storing
+	if err := s.validateSloBudgetConsumedRule(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	s.union = bts
+	return err
+}
+
+// AsSloUnreadableRule returns the union data inside the SloRule_OneOf as a SloUnreadableRule
+func (s *SloRule_OneOf) AsSloUnreadableRule() (SloUnreadableRule, error) {
+	return runtime.UnmarshalAs[SloUnreadableRule](s.union)
+}
+
+// AsValidatedSloUnreadableRule returns the union data inside the SloRule_OneOf as a validated SloUnreadableRule
+func (s *SloRule_OneOf) AsValidatedSloUnreadableRule() (SloUnreadableRule, error) {
+	val, err := s.AsSloUnreadableRule()
+	if err != nil {
+		var zero SloUnreadableRule
+		return zero, err
+	}
+	if err := s.validateSloUnreadableRule(val); err != nil {
+		var zero SloUnreadableRule
+		return zero, err
+	}
+	return val, nil
+}
+
+// FromSloUnreadableRule overwrites any union data inside the SloRule_OneOf as the provided SloUnreadableRule
+func (s *SloRule_OneOf) FromSloUnreadableRule(val SloUnreadableRule) error {
+	// Validate before storing
+	if err := s.validateSloUnreadableRule(val); err != nil {
+		return err
+	}
+	bts, err := json.Marshal(val)
+	s.union = bts
+	return err
+}
+
+// validateSloBurnRateRule validates a SloBurnRateRule value
+func (s *SloRule_OneOf) validateSloBurnRateRule(val SloBurnRateRule) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateSloBudgetConsumedRule validates a SloBudgetConsumedRule value
+func (s *SloRule_OneOf) validateSloBudgetConsumedRule(val SloBudgetConsumedRule) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+// validateSloUnreadableRule validates a SloUnreadableRule value
+func (s *SloRule_OneOf) validateSloUnreadableRule(val SloUnreadableRule) error {
+	if v, ok := any(val).(runtime.Validator); ok {
+		return v.Validate()
+	}
+	return nil
+}
+
+func (s SloRule_OneOf) discriminator(data []byte) (string, error) {
+	var discriminator struct {
+		Value string `json:"type"`
+	}
+	if err := json.Unmarshal(data, &discriminator); err != nil {
+		return "", err
+	}
+	return discriminator.Value, nil
+}
+
+func (s SloRule_OneOf) ValueByDiscriminator() (any, error) {
+	discriminator, err := s.discriminator(s.union)
+	if err != nil {
+		return nil, err
+	}
+	switch discriminator {
+	case "budget_consumed":
+		return s.AsSloBudgetConsumedRule()
+	case "burn_rate":
+		return s.AsSloBurnRateRule()
+	case "unreadable":
+		return s.AsSloUnreadableRule()
+	default:
+		return nil, errors.New("unknown discriminator value: " + discriminator)
+	}
+}
+
+func (s SloRule_OneOf) MarshalJSON() ([]byte, error) {
+	bts, err := s.union.MarshalJSON()
+
+	return bts, err
+}
+
+func (s *SloRule_OneOf) UnmarshalJSON(bts []byte) error {
+	err := s.union.UnmarshalJSON(bts)
+
+	return err
 }
 
 type Monitor_OneOf struct {

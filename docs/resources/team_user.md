@@ -3,12 +3,12 @@
 page_title: "uptrace_team_user Resource - uptrace"
 subcategory: ""
 description: |-
-  Adds an organization user to a team. Idempotent — creating twice is a no-op server-side. The org_user_id is the ID of the OrgUser record linking the user to the organization (not the User ID).
+  Adds an organization user to a team. Idempotent — creating twice is a no-op server-side. The org_user_id is the ID of the OrgUser record linking the user to the organization (not the User ID). Do not use it for a person that uptrace_org_member manages: its team_ids is the exact set of that person's teams.
 ---
 
 # uptrace_team_user (Resource)
 
-Adds an organization user to a team. Idempotent — creating twice is a no-op server-side. The org_user_id is the ID of the OrgUser record linking the user to the organization (not the User ID).
+Adds an organization user to a team. Idempotent — creating twice is a no-op server-side. The org_user_id is the ID of the OrgUser record linking the user to the organization (not the User ID). Do not use it for a person that `uptrace_org_member` manages: its `team_ids` is the exact set of that person's teams.
 
 ## Example Usage
 

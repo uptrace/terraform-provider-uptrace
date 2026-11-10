@@ -140,6 +140,47 @@ func IntSetFromSlice(xs []int, prior types.Set) types.Set {
 	return s
 }
 
+// Uint64sFromSet decodes a types.Set of string-encoded IDs into []uint64. A
+// null or unknown set is an empty, non-nil slice, so a request that requires
+// the list sends [] and never null. A non-decimal element emits an attribute
+// diagnostic.
+func Uint64sFromSet(ctx context.Context, attrPath path.Path, s types.Set) ([]uint64, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	ids := []uint64{}
+	if s.IsNull() || s.IsUnknown() {
+		return ids, diags
+	}
+	var vals []types.String
+	diags.Append(s.ElementsAs(ctx, &vals, false)...)
+	if diags.HasError() {
+		return nil, diags
+	}
+	for _, v := range vals {
+		str := v.ValueString()
+		id, err := strconv.ParseUint(str, 10, 64)
+		if err != nil {
+			diags.AddAttributeError(
+				attrPath,
+				"invalid ID",
+				fmt.Sprintf("expected a decimal integer, got %q: %s", str, err.Error()),
+			)
+			return nil, diags
+		}
+		ids = append(ids, id)
+	}
+	return ids, diags
+}
+
+// SetFromUint64s maps a []uint64 API response to a types.Set of stringified
+// IDs. A nil or empty slice is an empty set, not a null one.
+func SetFromUint64s(ids []uint64) (types.Set, diag.Diagnostics) {
+	vals := make([]attr.Value, len(ids))
+	for i, id := range ids {
+		vals[i] = types.StringValue(strconv.FormatUint(id, 10))
+	}
+	return types.SetValue(types.StringType, vals)
+}
+
 // SliceFromIntSet decodes a types.Set of string-encoded IDs into []int.
 // A non-decimal element emits an attribute diagnostic.
 func SliceFromIntSet(ctx context.Context, attrPath path.Path, s types.Set) ([]int, diag.Diagnostics) {

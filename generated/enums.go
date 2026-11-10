@@ -34,7 +34,9 @@ const (
 	ErrorCodeEmailTaken                 ErrorCode = "email_taken"
 	ErrorCodeFileTooLarge               ErrorCode = "file_too_large"
 	ErrorCodeForbidden                  ErrorCode = "forbidden"
+	ErrorCodeGenAIProviderInUse         ErrorCode = "genai_provider_in_use"
 	ErrorCodeHetznerAPI                 ErrorCode = "hetzner_api"
+	ErrorCodeImpersonationRefused       ErrorCode = "impersonation_refused"
 	ErrorCodeIncidentFilter             ErrorCode = "incident_filter"
 	ErrorCodeIncorrectPassword          ErrorCode = "incorrect_password"
 	ErrorCodeInsufficientScope          ErrorCode = "insufficient_scope"
@@ -74,6 +76,7 @@ const (
 	ErrorCodeOwnLoginRequired           ErrorCode = "own_login_required"
 	ErrorCodePaddle                     ErrorCode = "paddle"
 	ErrorCodePaymentRequired            ErrorCode = "payment_required"
+	ErrorCodeProfileFilter              ErrorCode = "profile_filter"
 	ErrorCodeRateLimited                ErrorCode = "rate_limited"
 	ErrorCodeReadFailed                 ErrorCode = "read_failed"
 	ErrorCodeRecordChanged              ErrorCode = "record_changed"
@@ -81,10 +84,10 @@ const (
 	ErrorCodeRequestTimeout             ErrorCode = "request_timeout"
 	ErrorCodeRoleInvalid                ErrorCode = "role_invalid"
 	ErrorCodeRouteParam                 ErrorCode = "route_param"
-	ErrorCodeSLOConfig                  ErrorCode = "slo_config"
 	ErrorCodeSLOCorrectionFilter        ErrorCode = "slo_correction_filter"
 	ErrorCodeSLOSubjectFilter           ErrorCode = "slo_subject_filter"
 	ErrorCodeSSOLoginRequired           ErrorCode = "sso_login_required"
+	ErrorCodeSSOProviderUnavailable     ErrorCode = "sso_provider_unavailable"
 	ErrorCodeSSOSessionExpired          ErrorCode = "sso_session_expired"
 	ErrorCodeSearchScope                ErrorCode = "search_scope"
 	ErrorCodeSearchSyntax               ErrorCode = "search_syntax"
@@ -118,7 +121,7 @@ const (
 // Validate checks if the ErrorCode value is valid
 func (e ErrorCode) Validate() error {
 	switch e {
-	case ErrorCodeAlertFilter, ErrorCodeAlreadyInstalled, ErrorCodeAssistantMCPDisabled, ErrorCodeAssistantNotEnabled, ErrorCodeAuthDisabled, ErrorCodeBadRequest, ErrorCodeBase64CorruptInput, ErrorCodeCapabilitySuspended, ErrorCodeClickhouse, ErrorCodeConfirmEmail, ErrorCodeConflict, ErrorCodeConversationTooLong, ErrorCodeCredentialBlocked, ErrorCodeCredentialExpired, ErrorCodeCredentialLifetimeExceeded, ErrorCodeCredentialMFARequired, ErrorCodeCredentialSSORequired, ErrorCodeDecisionMismatch, ErrorCodeEOF, ErrorCodeEmailTaken, ErrorCodeFileTooLarge, ErrorCodeForbidden, ErrorCodeHetznerAPI, ErrorCodeIncidentFilter, ErrorCodeIncorrectPassword, ErrorCodeInsufficientScope, ErrorCodeInternal, ErrorCodeInvalidBody, ErrorCodeInvalidChunk, ErrorCodeInvalidCredentials, ErrorCodeInvalidForm, ErrorCodeInvalidPasscode, ErrorCodeInvalidSNSJSON, ErrorCodeInvalidSNSSignature, ErrorCodeInvalidSNSSubscribeURL, ErrorCodeInvalidSourcemap, ErrorCodeInvalidSymbolTable, ErrorCodeInviteAlreadyAccepted, ErrorCodeInviteExpired, ErrorCodeInviteLimitReached, ErrorCodeInviteNotFound, ErrorCodeInviteStatusUnsupported, ErrorCodeInviteUserMissing, ErrorCodeIssueTrackerRateLimited, ErrorCodeIssueTrackerUnavailable, ErrorCodeJSONSyntax, ErrorCodeJSONUnmarshal, ErrorCodeLicenseInactive, ErrorCodeLicenseRequired, ErrorCodeMCPDisabled, ErrorCodeMFAEnrollmentRequired, ErrorCodeMetricNotFound, ErrorCodeMissingFile, ErrorCodeMonitorFilter, ErrorCodeNotFound, ErrorCodeNotImplemented, ErrorCodeNotifChannel, ErrorCodeNotificationNotFound, ErrorCodeOTPRequired, ErrorCodeOwnLoginRequired, ErrorCodePaddle, ErrorCodePaymentRequired, ErrorCodeRateLimited, ErrorCodeReadFailed, ErrorCodeRecordChanged, ErrorCodeRequestBodyTooLarge, ErrorCodeRequestTimeout, ErrorCodeRoleInvalid, ErrorCodeRouteParam, ErrorCodeSLOConfig, ErrorCodeSLOCorrectionFilter, ErrorCodeSLOSubjectFilter, ErrorCodeSSOLoginRequired, ErrorCodeSSOSessionExpired, ErrorCodeSearchScope, ErrorCodeSearchSyntax, ErrorCodeServiceAccountLimitReached, ErrorCodeSourcemapLimitExceeded, ErrorCodeSpanFilter, ErrorCodeStagedQuotaExceeded, ErrorCodeStorageUnavailable, ErrorCodeStrconvNum, ErrorCodeSymbolTableLimitExceeded, ErrorCodeTemplateYAML, ErrorCodeTimeout, ErrorCodeTokenLimitReached, ErrorCodeTokenRequired, ErrorCodeTooManyChunks, ErrorCodeTraceLimitExceeded, ErrorCodeTurnInProgress, ErrorCodeTurnPaused, ErrorCodeURL, ErrorCodeUnauthorized, ErrorCodeUnknownRequest, ErrorCodeUnsupportedFormat, ErrorCodeUnsupportedMediaType, ErrorCodeUserIDRequired, ErrorCodeUserNotFound, ErrorCodeValidation, ErrorCodeXMLSyntax, ErrorCodeXMLUnmarshal:
+	case ErrorCodeAlertFilter, ErrorCodeAlreadyInstalled, ErrorCodeAssistantMCPDisabled, ErrorCodeAssistantNotEnabled, ErrorCodeAuthDisabled, ErrorCodeBadRequest, ErrorCodeBase64CorruptInput, ErrorCodeCapabilitySuspended, ErrorCodeClickhouse, ErrorCodeConfirmEmail, ErrorCodeConflict, ErrorCodeConversationTooLong, ErrorCodeCredentialBlocked, ErrorCodeCredentialExpired, ErrorCodeCredentialLifetimeExceeded, ErrorCodeCredentialMFARequired, ErrorCodeCredentialSSORequired, ErrorCodeDecisionMismatch, ErrorCodeEOF, ErrorCodeEmailTaken, ErrorCodeFileTooLarge, ErrorCodeForbidden, ErrorCodeGenAIProviderInUse, ErrorCodeHetznerAPI, ErrorCodeImpersonationRefused, ErrorCodeIncidentFilter, ErrorCodeIncorrectPassword, ErrorCodeInsufficientScope, ErrorCodeInternal, ErrorCodeInvalidBody, ErrorCodeInvalidChunk, ErrorCodeInvalidCredentials, ErrorCodeInvalidForm, ErrorCodeInvalidPasscode, ErrorCodeInvalidSNSJSON, ErrorCodeInvalidSNSSignature, ErrorCodeInvalidSNSSubscribeURL, ErrorCodeInvalidSourcemap, ErrorCodeInvalidSymbolTable, ErrorCodeInviteAlreadyAccepted, ErrorCodeInviteExpired, ErrorCodeInviteLimitReached, ErrorCodeInviteNotFound, ErrorCodeInviteStatusUnsupported, ErrorCodeInviteUserMissing, ErrorCodeIssueTrackerRateLimited, ErrorCodeIssueTrackerUnavailable, ErrorCodeJSONSyntax, ErrorCodeJSONUnmarshal, ErrorCodeLicenseInactive, ErrorCodeLicenseRequired, ErrorCodeMCPDisabled, ErrorCodeMFAEnrollmentRequired, ErrorCodeMetricNotFound, ErrorCodeMissingFile, ErrorCodeMonitorFilter, ErrorCodeNotFound, ErrorCodeNotImplemented, ErrorCodeNotifChannel, ErrorCodeNotificationNotFound, ErrorCodeOTPRequired, ErrorCodeOwnLoginRequired, ErrorCodePaddle, ErrorCodePaymentRequired, ErrorCodeProfileFilter, ErrorCodeRateLimited, ErrorCodeReadFailed, ErrorCodeRecordChanged, ErrorCodeRequestBodyTooLarge, ErrorCodeRequestTimeout, ErrorCodeRoleInvalid, ErrorCodeRouteParam, ErrorCodeSLOCorrectionFilter, ErrorCodeSLOSubjectFilter, ErrorCodeSSOLoginRequired, ErrorCodeSSOProviderUnavailable, ErrorCodeSSOSessionExpired, ErrorCodeSearchScope, ErrorCodeSearchSyntax, ErrorCodeServiceAccountLimitReached, ErrorCodeSourcemapLimitExceeded, ErrorCodeSpanFilter, ErrorCodeStagedQuotaExceeded, ErrorCodeStorageUnavailable, ErrorCodeStrconvNum, ErrorCodeSymbolTableLimitExceeded, ErrorCodeTemplateYAML, ErrorCodeTimeout, ErrorCodeTokenLimitReached, ErrorCodeTokenRequired, ErrorCodeTooManyChunks, ErrorCodeTraceLimitExceeded, ErrorCodeTurnInProgress, ErrorCodeTurnPaused, ErrorCodeURL, ErrorCodeUnauthorized, ErrorCodeUnknownRequest, ErrorCodeUnsupportedFormat, ErrorCodeUnsupportedMediaType, ErrorCodeUserIDRequired, ErrorCodeUserNotFound, ErrorCodeValidation, ErrorCodeXMLSyntax, ErrorCodeXMLUnmarshal:
 		return nil
 	default:
 		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid ErrorCode value, got: %v", e))
@@ -255,7 +258,7 @@ func (e ExponentialRepeatIntervalStrategy) Validate() error {
 	}
 }
 
-// TrendAggFunc Aggregation that folds an hourly trend to one value.
+// TrendAggFunc Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that states none takes last, and an error monitor sum.
 type TrendAggFunc string
 
 const (
@@ -316,7 +319,7 @@ func (m MetricWindowRule) Validate() error {
 	}
 }
 
-// AbsentPoints What a monitor does with a point its query reported no value for. zero reads it as a measured zero, ignore skips it, and alert treats it as a breach.
+// AbsentPoints What a monitor does with a point its query reported no value for. zero reads it as a measured zero, ignore skips it, and alert treats it as a breach. A monitor that states none takes alert.
 type AbsentPoints string
 
 const (
@@ -409,7 +412,7 @@ func (a AnomalyPreset) Validate() error {
 	}
 }
 
-// DetectorSensitivity How readily the anomaly and outlier kinds fire. very_low is strict, which is the widest expected range and the fewest alerts; very_high is lenient. It is a monitor param, and is not TrendSensitivity, which shares this vocabulary and drives an alert's lifecycle instead.
+// DetectorSensitivity How readily the anomaly and outlier kinds fire. very_low is strict, which is the widest expected range and the fewest alerts; very_high is lenient. It is a monitor param, and is not TrendSensitivity, which shares this vocabulary and drives an alert's lifecycle instead. A monitor that states none takes medium.
 type DetectorSensitivity string
 
 const (
@@ -551,20 +554,37 @@ func (s SloEventSliType) Validate() error {
 	}
 }
 
-// SloSliType What an SLI counts, and so the unit an SLO's good, total and bad counts are in. It is the tag that selects a member of SloSli, and the value a reader words a count with.
-type SloSliType string
+type SloUnreadableSliType string
 
 const (
-	SloSliTypeEvent SloSliType = "event"
+	SloUnreadableSliTypeUnreadable SloUnreadableSliType = "unreadable"
 )
 
-// Validate checks if the SloSliType value is valid
-func (s SloSliType) Validate() error {
+// Validate checks if the SloUnreadableSliType value is valid
+func (s SloUnreadableSliType) Validate() error {
 	switch s {
-	case SloSliTypeEvent:
+	case SloUnreadableSliTypeUnreadable:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloSliType value, got: %v", s))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloUnreadableSliType value, got: %v", s))
+	}
+}
+
+// SloSliMemberType The tag that selects a member of SloSli. It is each SloSliType value, plus unreadable for a stored SLI that this build cannot read. Only a read sends unreadable: it is never stored, and a save refuses it.
+type SloSliMemberType string
+
+const (
+	SloSliMemberTypeEvent      SloSliMemberType = "event"
+	SloSliMemberTypeUnreadable SloSliMemberType = "unreadable"
+)
+
+// Validate checks if the SloSliMemberType value is valid
+func (s SloSliMemberType) Validate() error {
+	switch s {
+	case SloSliMemberTypeEvent, SloSliMemberTypeUnreadable:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloSliMemberType value, got: %v", s))
 	}
 }
 
@@ -640,22 +660,38 @@ func (s SloBudgetConsumedRuleType) Validate() error {
 	}
 }
 
-// SloRuleType Which kind an SLO rule is, and so which quantity it reads. It is the tag that selects a member of SloRule, and the tag that selects a member of SloReading: a reading names the kind that took it, so a reader of a check has the kind without the rule beside it.
-// Both kinds read the error budget. A third, sli, is retired: it read the SLI over one window instead, and a rule naming it is refused.
-type SloRuleType string
+type SloUnreadableRuleType string
 
 const (
-	SloRuleTypeBudgetConsumed SloRuleType = "budget_consumed"
-	SloRuleTypeBurnRate       SloRuleType = "burn_rate"
+	SloUnreadableRuleTypeUnreadable SloUnreadableRuleType = "unreadable"
 )
 
-// Validate checks if the SloRuleType value is valid
-func (s SloRuleType) Validate() error {
+// Validate checks if the SloUnreadableRuleType value is valid
+func (s SloUnreadableRuleType) Validate() error {
 	switch s {
-	case SloRuleTypeBudgetConsumed, SloRuleTypeBurnRate:
+	case SloUnreadableRuleTypeUnreadable:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloRuleType value, got: %v", s))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloUnreadableRuleType value, got: %v", s))
+	}
+}
+
+// SloRuleMemberType The tag that selects a member of SloRule, and of SloReading. It is each SloRuleType value, plus unreadable for a stored rule or reading that this build cannot read. Only a read sends unreadable: it is never stored, and a save refuses it.
+type SloRuleMemberType string
+
+const (
+	SloRuleMemberTypeBudgetConsumed SloRuleMemberType = "budget_consumed"
+	SloRuleMemberTypeBurnRate       SloRuleMemberType = "burn_rate"
+	SloRuleMemberTypeUnreadable     SloRuleMemberType = "unreadable"
+)
+
+// Validate checks if the SloRuleMemberType value is valid
+func (s SloRuleMemberType) Validate() error {
+	switch s {
+	case SloRuleMemberTypeBudgetConsumed, SloRuleMemberTypeBurnRate, SloRuleMemberTypeUnreadable:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SloRuleMemberType value, got: %v", s))
 	}
 }
 
@@ -834,6 +870,24 @@ func (i InviteStatus) Validate() error {
 		return nil
 	default:
 		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid InviteStatus value, got: %v", i))
+	}
+}
+
+// OrgMemberStatus Where a membership set by email stands.
+type OrgMemberStatus string
+
+const (
+	OrgMemberStatusActive  OrgMemberStatus = "active"
+	OrgMemberStatusPending OrgMemberStatus = "pending"
+)
+
+// Validate checks if the OrgMemberStatus value is valid
+func (o OrgMemberStatus) Validate() error {
+	switch o {
+	case OrgMemberStatusActive, OrgMemberStatusPending:
+		return nil
+	default:
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid OrgMemberStatus value, got: %v", o))
 	}
 }
 
@@ -1502,28 +1556,28 @@ func (i IncidentioChannelRequestType) Validate() error {
 	}
 }
 
-// SsoErrorCode Why a single sign-on attempt stopped. A failed login sends the browser to the login page with this code in the error query parameter. The code names the class of the failure, which is what tells the person whether to try again, to correct something, or to ask an administrator.
-type SsoErrorCode string
+// LoginErrorCode Why a login through a provider stopped: a single sign-on, or a GitHub or Google login. A failed login sends the browser to the page it started from with this code in the error query parameter. The code names the class of the failure, which is what tells the person whether to try again, to correct something, or to ask an administrator.
+type LoginErrorCode string
 
 const (
-	SsoErrorCodeAssertionExpired    SsoErrorCode = "assertion_expired"
-	SsoErrorCodeAudienceMismatch    SsoErrorCode = "audience_mismatch"
-	SsoErrorCodeEmailMissing        SsoErrorCode = "email_missing"
-	SsoErrorCodeEmailNotAllowed     SsoErrorCode = "email_not_allowed"
-	SsoErrorCodeLinkRequired        SsoErrorCode = "link_required"
-	SsoErrorCodeLoginExpired        SsoErrorCode = "login_expired"
-	SsoErrorCodeLoginFailed         SsoErrorCode = "login_failed"
-	SsoErrorCodeProviderRefused     SsoErrorCode = "provider_refused"
-	SsoErrorCodeProviderUnreachable SsoErrorCode = "provider_unreachable"
-	SsoErrorCodeResponseInvalid     SsoErrorCode = "response_invalid"
+	LoginErrorCodeAssertionExpired    LoginErrorCode = "assertion_expired"
+	LoginErrorCodeAudienceMismatch    LoginErrorCode = "audience_mismatch"
+	LoginErrorCodeEmailMissing        LoginErrorCode = "email_missing"
+	LoginErrorCodeEmailNotAllowed     LoginErrorCode = "email_not_allowed"
+	LoginErrorCodeLinkRequired        LoginErrorCode = "link_required"
+	LoginErrorCodeLoginExpired        LoginErrorCode = "login_expired"
+	LoginErrorCodeLoginFailed         LoginErrorCode = "login_failed"
+	LoginErrorCodeProviderRefused     LoginErrorCode = "provider_refused"
+	LoginErrorCodeProviderUnreachable LoginErrorCode = "provider_unreachable"
+	LoginErrorCodeResponseInvalid     LoginErrorCode = "response_invalid"
 )
 
-// Validate checks if the SsoErrorCode value is valid
-func (s SsoErrorCode) Validate() error {
-	switch s {
-	case SsoErrorCodeAssertionExpired, SsoErrorCodeAudienceMismatch, SsoErrorCodeEmailMissing, SsoErrorCodeEmailNotAllowed, SsoErrorCodeLinkRequired, SsoErrorCodeLoginExpired, SsoErrorCodeLoginFailed, SsoErrorCodeProviderRefused, SsoErrorCodeProviderUnreachable, SsoErrorCodeResponseInvalid:
+// Validate checks if the LoginErrorCode value is valid
+func (l LoginErrorCode) Validate() error {
+	switch l {
+	case LoginErrorCodeAssertionExpired, LoginErrorCodeAudienceMismatch, LoginErrorCodeEmailMissing, LoginErrorCodeEmailNotAllowed, LoginErrorCodeLinkRequired, LoginErrorCodeLoginExpired, LoginErrorCodeLoginFailed, LoginErrorCodeProviderRefused, LoginErrorCodeProviderUnreachable, LoginErrorCodeResponseInvalid:
 		return nil
 	default:
-		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid SsoErrorCode value, got: %v", s))
+		return runtime.NewValidationErrorsFromString("Enum", fmt.Sprintf("must be a valid LoginErrorCode value, got: %v", l))
 	}
 }

@@ -44,7 +44,8 @@ func (r *TeamUserResource) Metadata(_ context.Context, req resource.MetadataRequ
 
 func (r *TeamUserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Adds an organization user to a team. Idempotent — creating twice is a no-op server-side. The org_user_id is the ID of the OrgUser record linking the user to the organization (not the User ID).",
+		Description: "Adds an organization user to a team. Idempotent — creating twice is a no-op server-side. The org_user_id is the ID of the OrgUser record linking the user to the organization (not the User ID). " +
+			"Do not use it for a person that `uptrace_org_member` manages: its `team_ids` is the exact set of that person's teams.",
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,

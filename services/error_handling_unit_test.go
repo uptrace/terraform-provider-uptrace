@@ -10,6 +10,7 @@ func TestServiceAPIErrorHandlingUsesTFUtilHelpers(t *testing.T) {
 	files := []string{
 		"monitor/resource.go",
 		"notifchan/crud.go",
+		"org/org_member_resource.go",
 		"org/org_resource.go",
 		"project/project_resource.go",
 		"project/project_token_resource.go",

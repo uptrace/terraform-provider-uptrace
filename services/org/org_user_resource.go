@@ -4,7 +4,6 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -37,6 +36,13 @@ type orgUserModel struct {
 	Role   types.String `tfsdk:"role"`
 }
 
+// orgUserDeprecation names the replacement of uptrace_org_user. The app
+// deprecated the route it calls, and removes it after one app minor release.
+const orgUserDeprecation = "uptrace_org_user is deprecated and will be removed in the next major version of the provider. " +
+	"Use uptrace_org_member, which takes the email address and invites a person who is not a member. " +
+	"Move an existing membership with: terraform import uptrace_org_member.<name> <org_id>:<email>, " +
+	"then remove uptrace_org_user from the state with terraform state rm."
+
 func NewOrgUserResource() resource.Resource {
 	return &OrgUserResource{}
 }
@@ -47,7 +53,9 @@ func (r *OrgUserResource) Metadata(_ context.Context, req resource.MetadataReque
 
 func (r *OrgUserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Adds an existing user to an organization with a role. Idempotent — creating twice updates the role server-side. Pair with `uptrace_user` to manage the underlying user.",
+		Description: "Adds an existing user to an organization with a role. Idempotent — creating twice updates the role server-side. Pair with `uptrace_user` to manage the underlying user. " +
+			"Deprecated: use `uptrace_org_member`, which takes the email address instead of a user ID.",
+		DeprecationMessage: orgUserDeprecation,
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				Computed:    true,
@@ -73,16 +81,7 @@ func (r *OrgUserResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 			"role": schema.StringAttribute{
 				Required:    true,
 				Description: "Organization role: owner, admin, member, viewer, billing_manager, or collaborator.",
-				Validators: []validator.String{
-					stringvalidator.OneOf(
-						string(generated.UserRoleOwner),
-						string(generated.UserRoleAdmin),
-						string(generated.UserRoleMember),
-						string(generated.UserRoleViewer),
-						string(generated.UserRoleBillingManager),
-						string(generated.UserRoleCollaborator),
-					),
-				},
+				Validators:  []validator.String{userRoleValidator},
 			},
 		},
 	}

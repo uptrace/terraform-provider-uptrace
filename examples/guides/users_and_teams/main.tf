@@ -20,25 +20,18 @@ resource "uptrace_project" "api" {
 
 # --- Users and teams ---
 
-resource "uptrace_user" "alice" {
-  email = "alice@example.com"
-}
-
-resource "uptrace_org_user" "alice" {
-  org_id  = uptrace_org.main.id
-  user_id = uptrace_user.alice.id
-  role    = "admin"
-}
-
 resource "uptrace_team" "platform" {
   org_id = uptrace_org.main.id
   name   = "Platform"
 }
 
-resource "uptrace_team_user" "alice_platform" {
-  org_id      = uptrace_org.main.id
-  team_id     = uptrace_team.platform.id
-  org_user_id = uptrace_org_user.alice.id
+# Invites alice@example.com to the organization and the team. She joins when
+# she accepts the emailed invitation.
+resource "uptrace_org_member" "alice" {
+  org_id   = uptrace_org.main.id
+  email    = "alice@example.com"
+  role     = "admin"
+  team_ids = [uptrace_team.platform.id]
 }
 
 resource "uptrace_team_project" "platform_api" {
