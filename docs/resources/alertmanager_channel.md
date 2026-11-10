@@ -56,7 +56,7 @@ resource "uptrace_alertmanager_channel" "bearer" {
 
 - `auth_method` (String) Authentication method: none, basic_auth, or bearer.
 - `condition` (String) Alert condition expression.
-- `match_all` (Boolean) Match all monitors. If false, monitor_ids must be provided.
+- `match_all` (Boolean) Match all monitors. If false, only the monitors in monitor_ids, or the monitors that name the channel in their channel_ids, route here.
 - `monitor_ids` (Set of String) Monitor IDs to match when match_all is false. Omit to leave the links alone, as when monitors name the channel in their channel_ids; set [] to detach every monitor.
 - `password` (String, Sensitive) Password for basic_auth.
 - `token` (String, Sensitive) Token for bearer auth.

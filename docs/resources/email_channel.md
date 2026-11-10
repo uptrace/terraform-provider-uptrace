@@ -63,7 +63,7 @@ resource "uptrace_email_channel" "oncall" {
 
 - `condition` (String) Alert condition expression.
 - `everyone` (Boolean) Email every member of the project, resolved on each delivery, so a later member is included. Conflicts with team_ids and user_ids.
-- `match_all` (Boolean) Match all monitors. If false, monitor_ids must be provided.
+- `match_all` (Boolean) Match all monitors. If false, only the monitors in monitor_ids, or the monitors that name the channel in their channel_ids, route here.
 - `monitor_ids` (Set of String) Monitor IDs to match when match_all is false. Omit to leave the links alone, as when monitors name the channel in their channel_ids; set [] to detach every monitor.
 - `team_ids` (Set of String) IDs of the teams whose members get the email. Set everyone, or at least one of team_ids and user_ids.
 - `user_ids` (Set of String) IDs of the users who get the email. Set everyone, or at least one of team_ids and user_ids.

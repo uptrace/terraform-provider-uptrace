@@ -208,7 +208,7 @@ type-specific configuration.
 | name        | string       | yes      | Channel name. Updatable.                                              |
 | priorities  | list(string) | yes      | Alert priorities to match: `info`, `low`, `medium`, `high`.          |
 | match_all   | bool         | no       | Defaults to `true`. Set `false` to restrict to `monitor_ids`.        |
-| monitor_ids | list(string) | no       | Required when `match_all = false`. Omit to leave the links alone; `[]` detaches every monitor. |
+| monitor_ids | list(string) | no       | Read when `match_all = false`. Omit to leave the links alone; `[]` detaches every monitor. |
 | condition   | string       | no       | Alert condition expression.                                           |
 | id          | string       | computed |                                                                       |
 | status      | string       | computed | One of `delivering`, `paused`, `disabled`, `draft`.                  |
@@ -325,3 +325,8 @@ terraform import uptrace_slack_channel.alerts 456:789
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for building from source, running tests, and development
 setup.
+
+github.com/uptrace/terraform-provider-uptrace is a mirror. The provider is developed in the
+Uptrace application repository, and the CI of that repository copies each change here. A pull
+request on the mirror is not merged directly: a maintainer moves the change into the application
+repository.

@@ -2,6 +2,12 @@
 
 Development guide for building and testing the Uptrace Terraform provider.
 
+The provider is developed in the `terraform/` directory of the uptrace/app repository. It is a
+separate Go module. github.com/uptrace/terraform-provider-uptrace is a mirror that the app CI
+writes to; send changes to uptrace/app, not to the mirror. The commands below use
+[Task](https://taskfile.dev). Run them in `terraform/`, or from the app root with the `terraform:`
+prefix, for example `task terraform:test`.
+
 ## Building from source
 
 ```bash
@@ -37,11 +43,12 @@ export TF_CLI_CONFIG_FILE=/path/to/terraform-provider-uptrace/.terraformrc
 Run without external dependencies:
 
 ```bash
-make test
+task test
 ```
 
-Covers pure mapping and request-building helpers, import paths, and ID validation. Runs in CI on
-every push and pull request.
+Covers pure mapping and request-building helpers, import paths, and ID validation. The
+`build-terraform` job of the app CI runs them on each pull request that changes `terraform/`, and
+on each push to `dev`.
 
 ### Acceptance tests
 
@@ -57,10 +64,18 @@ Gated behind the `TF_ACC` environment variable.
 2. Run:
 
    ```bash
-   make testacc
+   task testacc
    ```
 
-Without `TF_ACC=1`, acceptance tests are automatically skipped.
+Without `TF_ACC=1`, acceptance tests are automatically skipped. `task testacc` downloads the
+terraform CLI that `TF_VERSION` of `Taskfile.yml` pins; set `TF_ACC_TERRAFORM_PATH` to use a
+local binary.
+
+The `terraform-acceptance` job of the app CI runs them on each pull request that changes
+`terraform/`, and on each push to `dev`. It builds a cloud server from the same commit, starts it
+on a fresh test database (`config/test_cloud.default.yml`), and authenticates with the user token
+that the config seeds. `.forgejo/ci/terraform-acceptance-config.cjs` gives the seeded org a
+subscription, because the cloud build invites a user only for a member of a subscribed org.
 
 ### Writing tests
 
@@ -72,13 +87,15 @@ Without `TF_ACC=1`, acceptance tests are automatically skipped.
 
 ## Updating the API client
 
-`internal/generated/` is generated from `openapi/openapi.yaml`, a bundled copy of the spec that
-lives in the uptrace/app repository. Vendor it from an app checkout, then regenerate:
+`generated/` is generated from `openapi/openapi.yaml`, a bundled copy of the spec that
+lives in `openapi/` of the app. Vendor it from the app at a ref, then regenerate:
 
 ```bash
-make sync-spec APP_DIR=../app APP_REF=origin/prod
-make generate
+task sync-spec REF=origin/prod
+task generate
 ```
+
+`APP_DIR` names a different app checkout; the default is the parent directory.
 
 Bundle from the oldest app version the provider must support. The server refuses a request key
 its spec does not list, so a client built from a newer spec can send a key an older server
@@ -90,10 +107,12 @@ be sent as `null` or `[]`); its comments say why each action exists.
 Registry documentation in `docs/` is generated from schema descriptions and the `examples/` directory:
 
 ```bash
-make docs
+task docs
 ```
 
 Re-run this after changing resource schemas, descriptions, or example files, and commit the result.
+It downloads the terraform CLI that `TF_VERSION` of `Taskfile.yml` pins, so each run reads the
+schema through the same CLI.
 
 ## Files not in git
 

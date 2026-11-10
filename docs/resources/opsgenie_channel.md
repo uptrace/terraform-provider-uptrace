@@ -47,7 +47,7 @@ resource "uptrace_opsgenie_channel" "example" {
 - `api_provider` (String) Alert API that receives the alerts: opsgenie (the default), jsm (Jira Service Management), or custom.
 - `condition` (String) Alert condition expression.
 - `endpoint` (String) Alert API URL. Required when api_provider is custom; leave unset for opsgenie and jsm.
-- `match_all` (Boolean) Match all monitors. If false, monitor_ids must be provided.
+- `match_all` (Boolean) Match all monitors. If false, only the monitors in monitor_ids, or the monitors that name the channel in their channel_ids, route here.
 - `monitor_ids` (Set of String) Monitor IDs to match when match_all is false. Omit to leave the links alone, as when monitors name the channel in their channel_ids; set [] to detach every monitor.
 
 ### Read-Only

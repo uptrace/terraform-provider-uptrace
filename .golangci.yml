@@ -12,4 +12,4 @@ linters:
     - unused
   exclusions:
     paths:
-      - internal/generated
+      - generated

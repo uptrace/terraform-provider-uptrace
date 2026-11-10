@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 
-	"github.com/uptrace/terraform/internal/provider"
+	"github.com/uptrace/terraform/provider"
 	"github.com/uptrace/terraform/version"
 )
 

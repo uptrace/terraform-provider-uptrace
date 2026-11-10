@@ -1,6 +1,6 @@
 package: generated
 output:
-  directory: internal
+  directory: .
 generate:
   client: true
   # Name every enum constant <Type><Value>, so a constant keeps its name when

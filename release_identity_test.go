@@ -14,6 +14,8 @@ const (
 	expectedReleaseProject  = "terraform-provider-uptrace"
 )
 
+// TestReleaseIdentityMatchesRegistryProviderName pins terraform:G1.
+// It holds terraform:F1: the registry address and the release artifact names.
 func TestReleaseIdentityMatchesRegistryProviderName(t *testing.T) {
 	t.Helper()
 
@@ -25,9 +27,9 @@ func TestReleaseIdentityMatchesRegistryProviderName(t *testing.T) {
 		t.Fatalf("main.go provider address must be %q", expectedProviderAddress)
 	}
 
-	makefile := readReleaseFile(t, "GNUmakefile")
-	requireLine(t, makefile, `PKG_NAME\s*:=\s*`+regexp.QuoteMeta(expectedModulePath), "makefile package path")
-	requireLine(t, makefile, `BINARY\s*:=\s*`+regexp.QuoteMeta(expectedReleaseProject), "makefile binary name")
+	taskfile := readReleaseFile(t, "Taskfile.yml")
+	requireLine(t, taskfile, `\s*PKG_NAME:\s*`+regexp.QuoteMeta(expectedModulePath), "Taskfile package path")
+	requireLine(t, taskfile, `\s*BINARY:\s*`+regexp.QuoteMeta(expectedReleaseProject), "Taskfile binary name")
 
 	goreleaser := readReleaseFile(t, ".goreleaser.yml")
 	requireLine(t, goreleaser, `project_name:\s*`+regexp.QuoteMeta(expectedReleaseProject), "GoReleaser project name")
