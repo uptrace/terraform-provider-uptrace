@@ -46,10 +46,10 @@ func TestRetryableHTTPClientRetriesOnlySafeMethodsAfterTransportError(t *testing
 				return responseWithStatus(req, http.StatusOK), nil
 			})
 
-			req, err := http.NewRequest(tt.method, "https://example.test/resource", strings.NewReader("payload"))
+			req, err := http.NewRequestWithContext(context.Background(), tt.method, "https://example.test/resource", strings.NewReader("payload"))
 			require.NoError(t, err)
 
-			resp, err := (&httpDoerAdapter{client: rc.StandardClient()}).Do(context.Background(), req)
+			resp, err := (&httpDoerAdapter{client: rc.StandardClient()}).Do(req)
 			if resp != nil {
 				defer func() { _ = resp.Body.Close() }()
 			}
@@ -100,10 +100,10 @@ func TestRetryableHTTPClientRetriesOnlySafeMethodsAfterServerError(t *testing.T)
 				return responseWithStatus(req, http.StatusOK), nil
 			})
 
-			req, err := http.NewRequest(tt.method, "https://example.test/resource", strings.NewReader("payload"))
+			req, err := http.NewRequestWithContext(context.Background(), tt.method, "https://example.test/resource", strings.NewReader("payload"))
 			require.NoError(t, err)
 
-			resp, err := (&httpDoerAdapter{client: rc.StandardClient()}).Do(context.Background(), req)
+			resp, err := (&httpDoerAdapter{client: rc.StandardClient()}).Do(req)
 			require.NoError(t, err)
 			defer func() { _ = resp.Body.Close() }()
 

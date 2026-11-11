@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -162,7 +162,7 @@ func buildPushoverRequest(ctx context.Context, m *pushoverChannelModel) (*channe
 		return nil, diags
 	}
 
-	p := generated.PushoverParams{
+	p := api.PushoverParams{
 		Token:   m.Token.ValueString(),
 		UserKey: m.UserKey.ValueString(),
 	}
@@ -197,7 +197,7 @@ func applyPushoverToModel(ctx context.Context, ch *channelResponse, dst *pushove
 		return diags
 	}
 
-	var p generated.PushoverParams
+	var p api.PushoverParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode pushover params", err.Error())
 		return diags

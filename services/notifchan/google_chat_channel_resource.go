@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -141,7 +141,7 @@ func buildGoogleChatRequest(ctx context.Context, m *googleChatChannelModel) (*ch
 		return nil, diags
 	}
 
-	body.Params = generated.GoogleChatParams{
+	body.Params = api.GoogleChatParams{
 		WebhookURL: m.WebhookURL.ValueString(),
 	}
 
@@ -169,7 +169,7 @@ func applyGoogleChatToModel(ctx context.Context, ch *channelResponse, dst *googl
 		dst.WebhookURL = tfutil.PreferPrior(dst.WebhookURL, types.StringNull())
 		return diags
 	}
-	var p generated.GoogleChatParams
+	var p api.GoogleChatParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode google_chat params", err.Error())
 		return diags

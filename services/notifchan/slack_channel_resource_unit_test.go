@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/uptrace/terraform/generated"
+	"github.com/uptrace/terraform/api"
 )
 
 // --- builder ---
@@ -32,9 +32,9 @@ func TestBuildSlackRequest_webhookAuth(t *testing.T) {
 	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
 	require.Equal(t, "slack", body.Type)
 
-	p, ok := body.Params.(generated.SlackParams)
+	p, ok := body.Params.(api.SlackParams)
 	require.True(t, ok)
-	require.Equal(t, generated.SlackAuthMethod("webhook"), p.AuthMethod)
+	require.Equal(t, api.SlackAuthMethod("webhook"), p.AuthMethod)
 	require.Equal(t, "https://hooks.slack.com/X", p.WebhookURL)
 	// The server requires every key: the unused ones go as empty strings.
 	require.Empty(t, p.Token)
@@ -57,7 +57,7 @@ func TestBuildSlackRequest_tokenAuth(t *testing.T) {
 	body, diags := buildSlackRequest(context.Background(), m)
 	require.False(t, diags.HasError())
 
-	p, ok := body.Params.(generated.SlackParams)
+	p, ok := body.Params.(api.SlackParams)
 	require.True(t, ok)
 	require.Empty(t, p.WebhookURL, "webhook_url goes empty for token auth")
 	require.Equal(t, "xoxb-t", p.Token)
@@ -71,12 +71,12 @@ func TestBuildSlackRequest_tokenAuth(t *testing.T) {
 // preserve the prior state value in that case so the user's input doesn't
 // disappear from state on refresh.
 func TestApplySlackToModel_preservesRedactedSensitiveValues(t *testing.T) {
-	raw, _ := json.Marshal(generated.SlackParams{
-		AuthMethod: generated.SlackAuthMethodToken,
+	raw, _ := json.Marshal(api.SlackParams{
+		AuthMethod: api.SlackAuthMethodToken,
 		// WebhookURL/Token/Channel are all redacted as empty strings.
 	})
 	ch := &channelResponse{
-		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 7, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		BaseNotificationChannel: api.BaseNotificationChannel{ID: 7, Name: "c", Status: api.NotificationChannelStatusDelivering},
 		Type:                    "slack",
 		Params:                  raw,
 	}

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/uptrace/terraform/generated"
+	"github.com/uptrace/terraform/api"
 )
 
 // --- builder ---
@@ -29,11 +29,10 @@ func TestBuildWebhookRequest_withPayload(t *testing.T) {
 	body, diags := buildWebhookRequest(context.Background(), m)
 	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
 
-	p, ok := body.Params.(generated.WebhookParams)
+	p, ok := body.Params.(api.WebhookParams)
 	require.True(t, ok)
 	require.Equal(t, "https://example.com/hook", p.URL)
-	require.Equal(t, "uptrace", p.Payload["source"])
-	require.Equal(t, "high", p.Payload["severity"])
+	require.Equal(t, map[string]any{"source": "uptrace", "severity": "high"}, p.Payload)
 }
 
 func TestBuildWebhookRequest_invalidPayload(t *testing.T) {
@@ -57,12 +56,12 @@ func TestBuildWebhookRequest_invalidPayload(t *testing.T) {
 // backend echoes an empty object — otherwise plan-after-apply produces
 // "inconsistent result" errors.
 func TestApplyWebhookToModel_emptyPayloadStaysNull(t *testing.T) {
-	raw, _ := json.Marshal(generated.WebhookParams{
+	raw, _ := json.Marshal(api.WebhookParams{
 		URL:     "https://example.com/hook",
 		Payload: map[string]any{},
 	})
 	ch := &channelResponse{
-		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 7, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		BaseNotificationChannel: api.BaseNotificationChannel{ID: 7, Name: "c", Status: api.NotificationChannelStatusDelivering},
 		Type:                    "webhook",
 		Params:                  raw,
 	}
@@ -76,12 +75,12 @@ func TestApplyWebhookToModel_emptyPayloadStaysNull(t *testing.T) {
 }
 
 func TestApplyWebhookToModel_payloadRoundTrip(t *testing.T) {
-	raw, _ := json.Marshal(generated.WebhookParams{
+	raw, _ := json.Marshal(api.WebhookParams{
 		URL:     "https://example.com/hook",
 		Payload: map[string]any{"source": "uptrace"},
 	})
 	ch := &channelResponse{
-		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 7, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		BaseNotificationChannel: api.BaseNotificationChannel{ID: 7, Name: "c", Status: api.NotificationChannelStatusDelivering},
 		Type:                    "webhook",
 		Params:                  raw,
 	}
@@ -102,10 +101,10 @@ func TestApplyWebhookToModel_payloadRoundTrip(t *testing.T) {
 func TestApplyWebhookToModel_equivalentPayloadKeepsTheConfiguredString(t *testing.T) {
 	respond := func(t *testing.T, payload map[string]any) *channelResponse {
 		t.Helper()
-		raw, err := json.Marshal(generated.WebhookParams{URL: "https://example.com/hook", Payload: payload})
+		raw, err := json.Marshal(api.WebhookParams{URL: "https://example.com/hook", Payload: payload})
 		require.NoError(t, err)
 		return &channelResponse{
-			BaseNotificationChannel: generated.BaseNotificationChannel{ID: 7, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+			BaseNotificationChannel: api.BaseNotificationChannel{ID: 7, Name: "c", Status: api.NotificationChannelStatusDelivering},
 			Type:                    "webhook",
 			Params:                  raw,
 		}

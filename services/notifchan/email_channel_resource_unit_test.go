@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/uptrace/terraform/generated"
+	"github.com/uptrace/terraform/api"
 )
 
 func idSet(ids ...string) types.Set {
@@ -50,11 +50,11 @@ func TestBuildEmailRequest_lists(t *testing.T) {
 	body, diags := buildEmailRequest(context.Background(), emailModel(false, idSet("7"), idSet("3", "5")))
 	require.False(t, diags.HasError(), "unexpected errors: %v", diags)
 
-	p, ok := body.Params.(generated.EmailParams)
+	p, ok := body.Params.(api.EmailParams)
 	require.True(t, ok)
 	require.False(t, p.Everyone)
-	require.Equal(t, []uint64{7}, p.TeamIds)
-	require.ElementsMatch(t, []uint64{3, 5}, p.UserIds)
+	require.Equal(t, []uint64{7}, p.TeamIDs)
+	require.ElementsMatch(t, []uint64{3, 5}, p.UserIDs)
 }
 
 func TestBuildEmailRequest_rejectsNonNumericID(t *testing.T) {
@@ -63,9 +63,9 @@ func TestBuildEmailRequest_rejectsNonNumericID(t *testing.T) {
 }
 
 func TestApplyEmailToModel_roundTripsAudience(t *testing.T) {
-	raw, _ := json.Marshal(generated.EmailParams{TeamIds: []uint64{7}, UserIds: []uint64{}})
+	raw, _ := json.Marshal(api.EmailParams{TeamIDs: []uint64{7}, UserIDs: []uint64{}})
 	ch := &channelResponse{
-		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 9, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		BaseNotificationChannel: api.BaseNotificationChannel{ID: 9, Name: "c", Status: api.NotificationChannelStatusDelivering},
 		Type:                    "email",
 		Params:                  raw,
 	}

@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -110,12 +110,10 @@ func (r *OrgUserResource) Create(ctx context.Context, req resource.CreateRequest
 		"role":    plan.Role.ValueString(),
 	})
 
-	out, err := r.client.API.CreateOrgUser(ctx, &generated.CreateOrgUserRequestOptions{
-		PathParams: &generated.CreateOrgUserPath{OrgID: orgID},
-		Body: &generated.OrgUserCreateRequest{
-			UserID: userID,
-			Role:   generated.UserRole(plan.Role.ValueString()),
-		},
+	//nolint:staticcheck // SA1019: the resource is deprecated with the operation; uptrace_org_member replaces both, and the next major provider version removes them.
+	out, err := r.client.API.CreateOrgUser(ctx, api.CreateOrgUserRequest{OrgID: orgID}, api.OrgUserCreateRequest{
+		UserID: userID,
+		Role:   api.UserRole(plan.Role.ValueString()),
 	})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "create org_user failed", err)
@@ -145,9 +143,7 @@ func (r *OrgUserResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	out, err := r.client.API.GetOrgUser(ctx, &generated.GetOrgUserRequestOptions{
-		PathParams: &generated.GetOrgUserPath{OrgID: orgID, OrgUserID: orgUserID},
-	})
+	out, err := r.client.API.GetOrgUser(ctx, api.GetOrgUserRequest{OrgID: orgID, OrgUserID: orgUserID})
 	if err != nil {
 		if client.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -186,11 +182,8 @@ func (r *OrgUserResource) Update(ctx context.Context, req resource.UpdateRequest
 		"role":        plan.Role.ValueString(),
 	})
 
-	out, err := r.client.API.UpdateOrgUserRole(ctx, &generated.UpdateOrgUserRoleRequestOptions{
-		PathParams: &generated.UpdateOrgUserRolePath{OrgID: orgID, OrgUserID: orgUserID},
-		Body: &generated.OrgUserRoleUpdateRequest{
-			Role: generated.UserRole(plan.Role.ValueString()),
-		},
+	out, err := r.client.API.UpdateOrgUserRole(ctx, api.UpdateOrgUserRoleRequest{OrgID: orgID, OrgUserID: orgUserID}, api.OrgUserRoleUpdateRequest{
+		Role: api.UserRole(plan.Role.ValueString()),
 	})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "update org_user role failed", err)
@@ -222,9 +215,7 @@ func (r *OrgUserResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	tflog.Info(ctx, "deleting org_user", map[string]any{"id": state.ID.ValueString()})
 
-	_, err = r.client.API.RemoveOrgUser(ctx, &generated.RemoveOrgUserRequestOptions{
-		PathParams: &generated.RemoveOrgUserPath{OrgID: orgID, OrgUserID: orgUserID},
-	})
+	_, err = r.client.API.RemoveOrgUser(ctx, api.RemoveOrgUserRequest{OrgID: orgID, OrgUserID: orgUserID})
 	if err != nil && !client.IsNotFound(err) {
 		tfutil.AddAPIError(&resp.Diagnostics, "delete org_user failed", err)
 	}

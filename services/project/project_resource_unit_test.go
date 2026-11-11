@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	str2duration "github.com/xhit/go-str2duration/v2"
 
-	"github.com/uptrace/terraform/generated"
+	"github.com/uptrace/terraform/api"
 )
 
 // durationMs parses a duration string with the same library the resource
@@ -56,14 +56,14 @@ func projectResourceTestPlan(t *testing.T, m projectModel) tfsdk.Plan {
 }
 
 func TestProjectToModel_fullPayload(t *testing.T) {
-	p := &generated.Project{
+	p := &api.Project{
 		ID:                      7,
 		OrgID:                   42,
 		Name:                    "api",
 		GroupByEnv:              true,
 		GroupFuncsByService:     false,
 		SkipMonitorStatusEmails: true,
-		SemconvVersion:          generated.SemconvVersionV1330,
+		SemconvVersion:          api.SemconvVersionV1330,
 	}
 	var m projectModel
 
@@ -85,7 +85,7 @@ func TestProjectToModel_retentionAndTimeRangeNotOverwritten(t *testing.T) {
 		MetricRetention: types.StringValue("720h"),
 		SpanTimeRange:   types.StringValue("24h"),
 	}
-	apiResp := &generated.Project{
+	apiResp := &api.Project{
 		ID:              1,
 		Name:            "api",
 		SpanRetention:   1_209_600_000, // 336h — the CE override
@@ -163,7 +163,7 @@ func TestProjectRequestFields_semconvEnumIsPassedThrough(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NotNil(t, body.SemconvVersion)
-	require.Equal(t, generated.SemconvVersionV1250, *body.SemconvVersion)
+	require.Equal(t, api.SemconvVersionV1250, *body.SemconvVersion)
 }
 
 func TestProjectImportState_rejectsInvalidOrgID(t *testing.T) {

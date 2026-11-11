@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -29,30 +29,38 @@ type channelCRUD[M any] struct {
 // channelRequest is a channel create or update body: the fields every type
 // shares, the type, and that type's params. Each resource fills Params with
 // its generated params struct, so the body names only keys the spec lists.
+//
+// The shared fields are spelled here rather than taken from
+// api.BaseNotificationChannelRequest, which holds matchAll and condition as
+// values. The body must tell an omitted key from false and from the empty
+// string, and the members of api.NotificationChannelRequest, which the body
+// is decoded into, hold those fields as pointers.
 type channelRequest struct {
-	generated.BaseNotificationChannelRequest
-	Type   string `json:"type"`
-	Params any    `json:"params"`
+	Name       string              `json:"name"`
+	MatchAll   *bool               `json:"matchAll,omitzero"`
+	MonitorIDs *[]uint64           `json:"monitorIds,omitzero"`
+	Condition  *string             `json:"condition,omitzero"`
+	Priorities []api.AlertPriority `json:"priorities"`
+	Type       string              `json:"type"`
+	Params     any                 `json:"params"`
 }
 
 // channelResponse is a channel as the server returns it: the shared fields,
 // the type, and the type's params left raw for the resource to decode.
 type channelResponse struct {
-	generated.BaseNotificationChannel
+	api.BaseNotificationChannel
 	Type   string          `json:"type"`
 	Params json.RawMessage `json:"params"`
 }
 
-// toAPI converts the body to the generated union through its JSON form. The
-// generated From* constructors validate every params key as non-empty, while
-// the server accepts an empty value for some of them (a Slack token next to a
-// webhook URL), so they cannot build the body.
-func (r *channelRequest) toAPI() (*generated.NotificationChannelRequest, error) {
+// toAPI converts the body to the generated union through its JSON form, so
+// one builder serves every transport.
+func (r *channelRequest) toAPI() (*api.NotificationChannelRequest, error) {
 	b, err := json.Marshal(r)
 	if err != nil {
 		return nil, err
 	}
-	out := new(generated.NotificationChannelRequest)
+	out := new(api.NotificationChannelRequest)
 	if err := json.Unmarshal(b, out); err != nil {
 		return nil, err
 	}
@@ -60,7 +68,7 @@ func (r *channelRequest) toAPI() (*generated.NotificationChannelRequest, error) 
 }
 
 // channelFromAPI decodes the union the server answered with.
-func channelFromAPI(ch *generated.NotificationChannel) (*channelResponse, error) {
+func channelFromAPI(ch *api.NotificationChannel) (*channelResponse, error) {
 	b, err := json.Marshal(ch)
 	if err != nil {
 		return nil, err
@@ -73,7 +81,7 @@ func channelFromAPI(ch *generated.NotificationChannel) (*channelResponse, error)
 }
 
 // applyAPI decodes ch and hands it to the resource's Apply hook.
-func applyAPI[M any](ctx context.Context, h channelCRUD[M], ch *generated.NotificationChannel, m *M) diag.Diagnostics {
+func applyAPI[M any](ctx context.Context, h channelCRUD[M], ch *api.NotificationChannel, m *M) diag.Diagnostics {
 	var diags diag.Diagnostics
 	resp, err := channelFromAPI(ch)
 	if err != nil {
@@ -85,7 +93,7 @@ func applyAPI[M any](ctx context.Context, h channelCRUD[M], ch *generated.Notifi
 }
 
 // buildAPI runs the resource's Build hook and converts its body.
-func buildAPI[M any](ctx context.Context, h channelCRUD[M], m *M) (*generated.NotificationChannelRequest, diag.Diagnostics) {
+func buildAPI[M any](ctx context.Context, h channelCRUD[M], m *M) (*api.NotificationChannelRequest, diag.Diagnostics) {
 	body, diags := h.Build(ctx, m)
 	if diags.HasError() {
 		return nil, diags
@@ -119,10 +127,7 @@ func channelCreate[M any](ctx context.Context, c *client.Client, plan *M, h chan
 		"name":       h.Name(plan).ValueString(),
 	})
 
-	out, err := c.API.CreateNotificationChannel(ctx, &generated.CreateNotificationChannelRequestOptions{
-		PathParams: &generated.CreateNotificationChannelPath{ProjectID: projectID},
-		Body:       body,
-	})
+	out, err := c.API.CreateNotificationChannel(ctx, api.CreateNotificationChannelRequest{ProjectID: projectID}, *body)
 	if err != nil {
 		tfutil.AddAPIError(&diags, "create "+h.TypeName+" failed", err)
 		return diags
@@ -147,9 +152,7 @@ func channelRead[M any](ctx context.Context, c *client.Client, state *M, h chann
 		return false, diags
 	}
 
-	out, err := c.API.GetNotificationChannel(ctx, &generated.GetNotificationChannelRequestOptions{
-		PathParams: &generated.GetNotificationChannelPath{ProjectID: projectID, ChannelID: channelID},
-	})
+	out, err := c.API.GetNotificationChannel(ctx, api.GetNotificationChannelRequest{ProjectID: projectID, ChannelID: channelID})
 	if err != nil {
 		if client.IsNotFound(err) {
 			return true, diags
@@ -185,10 +188,7 @@ func channelUpdate[M any](ctx context.Context, c *client.Client, plan *M, h chan
 
 	tflog.Info(ctx, "updating "+h.TypeName, map[string]any{"id": h.ID(plan).ValueString()})
 
-	out, err := c.API.UpdateNotificationChannel(ctx, &generated.UpdateNotificationChannelRequestOptions{
-		PathParams: &generated.UpdateNotificationChannelPath{ProjectID: projectID, ChannelID: channelID},
-		Body:       body,
-	})
+	out, err := c.API.UpdateNotificationChannel(ctx, api.UpdateNotificationChannelRequest{ProjectID: projectID, ChannelID: channelID}, *body)
 	if err != nil {
 		tfutil.AddAPIError(&diags, "update "+h.TypeName+" failed", err)
 		return diags
@@ -215,9 +215,7 @@ func channelDelete[M any](ctx context.Context, c *client.Client, state *M, h cha
 
 	tflog.Info(ctx, "deleting "+h.TypeName, map[string]any{"id": h.ID(state).ValueString()})
 
-	_, err = c.API.DeleteNotificationChannel(ctx, &generated.DeleteNotificationChannelRequestOptions{
-		PathParams: &generated.DeleteNotificationChannelPath{ProjectID: projectID, ChannelID: channelID},
-	})
+	_, err = c.API.DeleteNotificationChannel(ctx, api.DeleteNotificationChannelRequest{ProjectID: projectID, ChannelID: channelID})
 	if err != nil && !client.IsNotFound(err) {
 		tfutil.AddAPIError(&diags, "delete "+h.TypeName+" failed", err)
 	}

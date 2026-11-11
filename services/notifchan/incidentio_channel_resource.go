@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -146,7 +146,7 @@ func buildIncidentioRequest(ctx context.Context, m *incidentioChannelModel) (*ch
 		return nil, diags
 	}
 
-	body.Params = generated.IncidentioParams{
+	body.Params = api.IncidentioParams{
 		URL:    m.URL.ValueString(),
 		APIKey: m.APIKey.ValueString(),
 	}
@@ -171,7 +171,7 @@ func applyIncidentioToModel(ctx context.Context, ch *channelResponse, dst *incid
 		return diags
 	}
 
-	var p generated.IncidentioParams
+	var p api.IncidentioParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode incidentio params", err.Error())
 		return diags

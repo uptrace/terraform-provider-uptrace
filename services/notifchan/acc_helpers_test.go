@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/testutil"
 )
 
@@ -31,12 +31,7 @@ func testAccCheckChannelDestroy(t *testing.T, resourceType string) resource.Test
 			if err != nil {
 				return fmt.Errorf("invalid project ID %q: %w", rs.Primary.Attributes["project_id"], err)
 			}
-			_, err = c.API.GetNotificationChannel(context.Background(), &generated.GetNotificationChannelRequestOptions{
-				PathParams: &generated.GetNotificationChannelPath{
-					ProjectID: uint32(projectID),
-					ChannelID: channelID,
-				},
-			})
+			_, err = c.API.GetNotificationChannel(context.Background(), api.GetNotificationChannelRequest{ProjectID: uint32(projectID), ChannelID: channelID})
 			if err == nil {
 				return fmt.Errorf("notification channel %s still exists after destroy", rs.Primary.ID)
 			}
@@ -63,12 +58,7 @@ func deleteChannelOutOfBand(t *testing.T, projectIDStr, channelIDStr string) {
 	}
 
 	c := testutil.TestAccClient(t)
-	_, err = c.API.DeleteNotificationChannel(context.Background(), &generated.DeleteNotificationChannelRequestOptions{
-		PathParams: &generated.DeleteNotificationChannelPath{
-			ProjectID: uint32(projectID),
-			ChannelID: channelID,
-		},
-	})
+	_, err = c.API.DeleteNotificationChannel(context.Background(), api.DeleteNotificationChannelRequest{ProjectID: uint32(projectID), ChannelID: channelID})
 	if err != nil && !client.IsNotFound(err) {
 		t.Fatalf("delete channel %d out-of-band: %v", channelID, err)
 	}

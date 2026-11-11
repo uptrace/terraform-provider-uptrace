@@ -8,9 +8,8 @@ import (
 	"time"
 
 	retryablehttp "github.com/hashicorp/go-retryablehttp"
-	"github.com/uptrace/oapi-codegen-dd/v3/pkg/runtime"
 
-	"github.com/uptrace/terraform/generated"
+	"github.com/uptrace/terraform/api"
 )
 
 const (
@@ -21,10 +20,10 @@ const (
 
 type retryMethodContextKey struct{}
 
-// Client wraps the generated OpenAPI client with retry and auth configuration.
+// Client wraps the generated API client with retry and auth configuration.
 type Client struct {
-	// API is the oapi-codegen generated client for all spec-defined endpoints.
-	API *generated.Client
+	// API is the client cmd/apigen of the app generates from its contract.
+	API *api.Client
 }
 
 // New creates a client with retryable HTTP transport and bearer token auth.
@@ -37,18 +36,15 @@ func New(endpoint, token, providerVersion string) (*Client, error) {
 		return nil
 	}
 
-	apiClient, err := runtime.NewAPIClient(
+	apiClient, err := api.NewClient(
 		endpoint,
-		runtime.WithHTTPClient(&httpDoerAdapter{client: rc.StandardClient()}),
-		runtime.WithRequestEditorFn(setHeaders),
+		api.WithHTTPClient(&httpDoerAdapter{client: rc.StandardClient()}),
+		api.WithRequestEditor(setHeaders),
 	)
 	if err != nil {
 		return nil, err
 	}
-
-	return &Client{
-		API: generated.NewClient(apiClient),
-	}, nil
+	return &Client{API: apiClient}, nil
 }
 
 func newRetryableHTTPClient() *retryablehttp.Client {
@@ -101,8 +97,7 @@ func IsForbidden(err error) bool {
 }
 
 // APIErrorMessage returns the server-side message from an API error, or
-// err.Error() otherwise. Needed because the generated ProblemDetails.Error()
-// is a stub that returns "unmapped client error" for every API response.
+// err.Error() otherwise.
 //
 // The server answers every error with an RFC 9457 problem: detail holds the
 // whole message, and errors names each invalid input of a validation problem.
@@ -110,10 +105,11 @@ func APIErrorMessage(err error) string {
 	if err == nil {
 		return ""
 	}
-	problem, ok := apiProblem(err)
+	apiErr, ok := errors.AsType[*api.Error](err)
 	if !ok {
 		return err.Error()
 	}
+	problem := apiErr.Problem
 	msg := problem.Detail
 	if msg == "" {
 		msg = problem.Title
@@ -130,32 +126,19 @@ func APIErrorMessage(err error) string {
 	return msg
 }
 
-// apiProblem unwraps the ClientAPIError envelope to the decoded problem. The
-// runtime wraps the decoded error as a value (not pointer), so we match on the
-// value type.
-func apiProblem(err error) (generated.ProblemDetails, bool) {
-	clientErr, ok := errors.AsType[*runtime.ClientAPIError](err)
-	if !ok {
-		return generated.ProblemDetails{}, false
-	}
-	return errors.AsType[generated.ProblemDetails](clientErr.Unwrap())
-}
-
 func hasStatusCode(err error, code int) bool {
-	clientErr, ok := errors.AsType[*runtime.ClientAPIError](err)
-	if !ok {
-		return false
-	}
-	return clientErr.StatusCode() == code
+	apiErr, ok := errors.AsType[*api.Error](err)
+	return ok && apiErr.StatusCode == code
 }
 
-// httpDoerAdapter adapts a standard *http.Client to the runtime.HttpRequestDoer
-// interface which expects Do(context.Context, *http.Request).
+// httpDoerAdapter puts the method of each request in its context, where
+// retryPolicyForSafeMethods reads it: the retry policy sees no response, and so
+// no request, when the transport fails.
 type httpDoerAdapter struct {
 	client *http.Client
 }
 
-func (a *httpDoerAdapter) Do(ctx context.Context, req *http.Request) (*http.Response, error) {
-	ctx = context.WithValue(ctx, retryMethodContextKey{}, req.Method)
+func (a *httpDoerAdapter) Do(req *http.Request) (*http.Response, error) {
+	ctx := context.WithValue(req.Context(), retryMethodContextKey{}, req.Method)
 	return a.client.Do(req.WithContext(ctx))
 }

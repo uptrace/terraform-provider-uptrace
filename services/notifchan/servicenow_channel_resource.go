@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -200,34 +200,22 @@ func buildServicenowRequest(ctx context.Context, m *servicenowChannelModel) (*ch
 		return nil, diags
 	}
 
-	p := generated.ServicenowParams{
+	p := api.ServicenowParams{
 		URL:      m.URL.ValueString(),
 		Username: m.Username.ValueString(),
 		Password: m.Password.ValueString(),
 	}
-	p.Category = valueStringToPtr(m.Category)
-	p.Subcategory = valueStringToPtr(m.Subcategory)
-	if !m.Impact.IsNull() && !m.Impact.IsUnknown() {
-		v := generated.ServicenowImpact(m.Impact.ValueString())
-		p.Impact = &v
-	}
-	if !m.Urgency.IsNull() && !m.Urgency.IsUnknown() {
-		v := generated.ServicenowUrgency(m.Urgency.ValueString())
-		p.Urgency = &v
-	}
-	if !m.Severity.IsNull() && !m.Severity.IsUnknown() {
-		v := generated.ServicenowSeverity(m.Severity.ValueString())
-		p.Severity = &v
-	}
-	p.CallerID = valueStringToPtr(m.CallerID)
-	p.Group = valueStringToPtr(m.Group)
-	p.AssignedTo = valueStringToPtr(m.AssignedTo)
-	p.OpenedBy = valueStringToPtr(m.OpenedBy)
-	if !m.Notify.IsNull() && !m.Notify.IsUnknown() {
-		v := generated.ServicenowNotify(m.Notify.ValueString())
-		p.Notify = &v
-	}
-	p.DueDate = valueStringToPtr(m.DueDate)
+	p.Category = m.Category.ValueString()
+	p.Subcategory = m.Subcategory.ValueString()
+	p.Impact = api.ServicenowImpact(m.Impact.ValueString())
+	p.Urgency = api.ServicenowUrgency(m.Urgency.ValueString())
+	p.Severity = api.ServicenowSeverity(m.Severity.ValueString())
+	p.CallerID = m.CallerID.ValueString()
+	p.Group = m.Group.ValueString()
+	p.AssignedTo = m.AssignedTo.ValueString()
+	p.OpenedBy = m.OpenedBy.ValueString()
+	p.Notify = api.ServicenowNotify(m.Notify.ValueString())
+	p.DueDate = m.DueDate.ValueString()
 
 	body.Params = p
 
@@ -251,7 +239,7 @@ func applyServicenowToModel(ctx context.Context, ch *channelResponse, dst *servi
 		return diags
 	}
 
-	var p generated.ServicenowParams
+	var p api.ServicenowParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode servicenow params", err.Error())
 		return diags
@@ -259,17 +247,17 @@ func applyServicenowToModel(ctx context.Context, ch *channelResponse, dst *servi
 	dst.URL = tfutil.PreserveIfEmpty(p.URL, dst.URL)
 	dst.Username = types.StringValue(p.Username)
 	dst.Password = tfutil.PreserveIfEmpty(p.Password, dst.Password)
-	dst.Category = tfutil.StringFromPtr(p.Category)
-	dst.Subcategory = tfutil.StringFromPtr(p.Subcategory)
-	dst.Impact = tfutil.EnumToValue(p.Impact)
-	dst.Urgency = tfutil.EnumToValue(p.Urgency)
-	dst.Severity = tfutil.EnumToValue(p.Severity)
-	dst.CallerID = tfutil.StringFromPtr(p.CallerID)
-	dst.Group = tfutil.StringFromPtr(p.Group)
-	dst.AssignedTo = tfutil.StringFromPtr(p.AssignedTo)
-	dst.OpenedBy = tfutil.StringFromPtr(p.OpenedBy)
-	dst.Notify = tfutil.EnumToValue(p.Notify)
-	dst.DueDate = tfutil.StringFromPtr(p.DueDate)
+	dst.Category = tfutil.StringFromPtr(&p.Category)
+	dst.Subcategory = tfutil.StringFromPtr(&p.Subcategory)
+	dst.Impact = tfutil.EnumToValue(&p.Impact)
+	dst.Urgency = tfutil.EnumToValue(&p.Urgency)
+	dst.Severity = tfutil.EnumToValue(&p.Severity)
+	dst.CallerID = tfutil.StringFromPtr(&p.CallerID)
+	dst.Group = tfutil.StringFromPtr(&p.Group)
+	dst.AssignedTo = tfutil.StringFromPtr(&p.AssignedTo)
+	dst.OpenedBy = tfutil.StringFromPtr(&p.OpenedBy)
+	dst.Notify = tfutil.EnumToValue(&p.Notify)
+	dst.DueDate = tfutil.StringFromPtr(&p.DueDate)
 
 	return diags
 }

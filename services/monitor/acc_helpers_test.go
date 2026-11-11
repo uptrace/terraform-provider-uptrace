@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/testutil"
 )
 
@@ -32,12 +32,7 @@ func testAccCheckMonitorDestroy(t *testing.T, resourceType string) resource.Test
 			if err != nil {
 				return fmt.Errorf("invalid project ID %q: %w", rs.Primary.Attributes["project_id"], err)
 			}
-			_, err = c.API.GetMonitor(context.Background(), &generated.GetMonitorRequestOptions{
-				PathParams: &generated.GetMonitorPath{
-					ProjectID: uint32(projectID),
-					MonitorID: monitorID,
-				},
-			})
+			_, err = c.API.GetMonitor(context.Background(), api.GetMonitorRequest{ProjectID: uint32(projectID), MonitorID: monitorID})
 			if err == nil {
 				return fmt.Errorf("monitor %s still exists after destroy", rs.Primary.ID)
 			}
@@ -64,12 +59,7 @@ func deleteMonitorOutOfBand(t *testing.T, projectIDStr, monitorIDStr string) {
 	}
 
 	c := testutil.TestAccClient(t)
-	_, err = c.API.DeleteMonitor(context.Background(), &generated.DeleteMonitorRequestOptions{
-		PathParams: &generated.DeleteMonitorPath{
-			ProjectID: uint32(projectID),
-			MonitorID: monitorID,
-		},
-	})
+	_, err = c.API.DeleteMonitor(context.Background(), api.DeleteMonitorRequest{ProjectID: uint32(projectID), MonitorID: monitorID})
 	if err != nil && !client.IsNotFound(err) {
 		t.Fatalf("delete monitor %d out-of-band: %v", monitorID, err)
 	}

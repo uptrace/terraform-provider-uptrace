@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -211,14 +211,11 @@ func buildAlertmanagerRequest(ctx context.Context, m *alertmanagerChannelModel) 
 		return nil, diags
 	}
 
-	p := generated.AlertmanagerParams{URL: m.URL.ValueString()}
-	if !m.AuthMethod.IsNull() && !m.AuthMethod.IsUnknown() {
-		v := generated.HTTPAuthMethod(m.AuthMethod.ValueString())
-		p.AuthMethod = &v
-	}
-	p.Username = valueStringToPtr(m.Username)
-	p.Password = valueStringToPtr(m.Password)
-	p.Token = valueStringToPtr(m.Token)
+	p := api.AlertmanagerParams{URL: m.URL.ValueString()}
+	p.AuthMethod = api.HTTPAuthMethod(m.AuthMethod.ValueString())
+	p.Username = m.Username.ValueString()
+	p.Password = m.Password.ValueString()
+	p.Token = m.Token.ValueString()
 
 	body.Params = p
 
@@ -242,16 +239,16 @@ func applyAlertmanagerToModel(ctx context.Context, ch *channelResponse, dst *ale
 		return diags
 	}
 
-	var p generated.AlertmanagerParams
+	var p api.AlertmanagerParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode alertmanager params", err.Error())
 		return diags
 	}
 	dst.URL = types.StringValue(p.URL)
-	dst.AuthMethod = tfutil.EnumToValue(p.AuthMethod)
-	dst.Username = tfutil.StringFromPtr(p.Username)
-	dst.Password = tfutil.PreserveIfEmptyPtr(p.Password, dst.Password)
-	dst.Token = tfutil.PreserveIfEmptyPtr(p.Token, dst.Token)
+	dst.AuthMethod = tfutil.EnumToValue(&p.AuthMethod)
+	dst.Username = tfutil.StringFromPtr(&p.Username)
+	dst.Password = tfutil.PreserveIfEmpty(p.Password, dst.Password)
+	dst.Token = tfutil.PreserveIfEmpty(p.Token, dst.Token)
 
 	return diags
 }

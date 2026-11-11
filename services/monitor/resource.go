@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -45,8 +45,8 @@ type kind struct {
 
 	// create and update decode body into the type's generated request and
 	// send it on the type's route.
-	create func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*generated.MonitorSummaryResponse, error)
-	update func(ctx context.Context, c *client.Client, projectID uint32, monitorID uint64, body []byte) (*generated.MonitorSummaryResponse, error)
+	create func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*api.MonitorSummaryResponse, error)
+	update func(ctx context.Context, c *client.Client, projectID uint32, monitorID uint64, body []byte) (*api.MonitorSummaryResponse, error)
 }
 
 func (k *kind) paramsAttrTypes() map[string]attr.Type {
@@ -89,7 +89,7 @@ type repeatIntervalJSON struct {
 type monitorRequest struct {
 	Name             string              `json:"name"`
 	Description      *string             `json:"description,omitempty"`
-	ChannelIds       []uint64            `json:"channelIds"`
+	ChannelIDs       *[]uint64           `json:"channelIds,omitzero"`
 	RepeatInterval   *repeatIntervalJSON `json:"repeatInterval,omitempty"`
 	TrendAggFunc     *string             `json:"trendAggFunc,omitempty"`
 	TrendSensitivity *string             `json:"trendSensitivity,omitempty"`
@@ -104,7 +104,7 @@ type monitorResponse struct {
 	Name             string             `json:"name"`
 	Description      string             `json:"description"`
 	Status           string             `json:"status"`
-	ChannelIds       []uint64           `json:"channelIds"`
+	ChannelIDs       []uint64           `json:"channelIds"`
 	RepeatInterval   repeatIntervalJSON `json:"repeatInterval"`
 	TrendAggFunc     string             `json:"trendAggFunc"`
 	TrendSensitivity string             `json:"trendSensitivity"`
@@ -167,12 +167,12 @@ func (r *monitorResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Description: "Notification channel IDs, such as uptrace_telegram_channel.id. Omit to leave the links alone, as when channels name the monitor in their monitor_ids; set [] to detach every channel.",
 			},
 			"trend_agg_func": optionalComputedEnum(
-				"How a series' points combine into the trend an alert shows.", generated.TrendAggFuncSum,
-				generated.TrendAggFuncAvg, generated.TrendAggFuncMedian, generated.TrendAggFuncLast),
+				"How a series' points combine into the trend an alert shows.", api.TrendAggFuncSum,
+				api.TrendAggFuncAvg, api.TrendAggFuncMedian, api.TrendAggFuncLast),
 			"trend_sensitivity": optionalComputedEnum(
-				"How much a value must move before the alert trend reports it.", generated.TrendSensitivityVeryLow,
-				generated.TrendSensitivityLow, generated.TrendSensitivityMedium,
-				generated.TrendSensitivityHigh, generated.TrendSensitivityVeryHigh),
+				"How much a value must move before the alert trend reports it.", api.TrendSensitivityVeryLow,
+				api.TrendSensitivityLow, api.TrendSensitivityMedium,
+				api.TrendSensitivityHigh, api.TrendSensitivityVeryHigh),
 			"repeat_interval": schema.SingleNestedAttribute{
 				Optional:      true,
 				Computed:      true,
@@ -241,7 +241,7 @@ func (r *monitorResource) validateWindowRule(ctx context.Context, req resource.V
 	}
 
 	countImpliesRule := rule.IsNull() && !count.IsNull() && count.ValueInt64() > 0
-	if rule.ValueString() != string(generated.MetricWindowRuleAtLeast) && !countImpliesRule {
+	if rule.ValueString() != string(api.MetricWindowRuleAtLeast) && !countImpliesRule {
 		if !count.IsNull() && count.ValueInt64() != 0 {
 			resp.Diagnostics.AddAttributeError(p.AtName("min_breach_points"), "invalid min_breach_points",
 				"only the at_least window rule counts breaching points; the server stores 0 under any other rule")
@@ -374,7 +374,7 @@ func (r *monitorResource) planWindowRule(ctx context.Context, req resource.Modif
 		return
 	}
 	counts := !count.IsNull() && count.ValueInt64() > 0 &&
-		(rule.IsNull() || rule.ValueString() == string(generated.MetricWindowRuleAtLeast))
+		(rule.IsNull() || rule.ValueString() == string(api.MetricWindowRuleAtLeast))
 	if counts && width.IsNull() {
 		var planned types.Int64
 		resp.Diagnostics.Append(resp.Plan.GetAttribute(ctx, p.AtName("num_eval_points"), &planned)...)
@@ -392,8 +392,8 @@ func (r *monitorResource) planWindowRule(ctx context.Context, req resource.Modif
 	switch {
 	case rule.IsNull() && !count.IsNull() && count.ValueInt64() > 0:
 		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, p.AtName("window_rule"),
-			types.StringValue(string(generated.MetricWindowRuleAtLeast)))...)
-	case !rule.IsNull() && rule.ValueString() != string(generated.MetricWindowRuleAtLeast) && count.IsNull():
+			types.StringValue(string(api.MetricWindowRuleAtLeast)))...)
+	case !rule.IsNull() && rule.ValueString() != string(api.MetricWindowRuleAtLeast) && count.IsNull():
 		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, p.AtName("min_breach_points"), types.Int64Value(0))...)
 	}
 }
@@ -448,9 +448,7 @@ func (r *monitorResource) Read(ctx context.Context, req resource.ReadRequest, re
 		return
 	}
 
-	out, err := r.client.API.GetMonitor(ctx, &generated.GetMonitorRequestOptions{
-		PathParams: &generated.GetMonitorPath{ProjectID: projectID, MonitorID: monitorID},
-	})
+	out, err := r.client.API.GetMonitor(ctx, api.GetMonitorRequest{ProjectID: projectID, MonitorID: monitorID})
 	if err != nil {
 		if client.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -532,9 +530,7 @@ func (r *monitorResource) Delete(ctx context.Context, req resource.DeleteRequest
 	}
 
 	tflog.Info(ctx, "deleting "+r.kind.name+" monitor", map[string]any{"id": monitorID})
-	_, err := r.client.API.DeleteMonitor(ctx, &generated.DeleteMonitorRequestOptions{
-		PathParams: &generated.DeleteMonitorPath{ProjectID: projectID, MonitorID: monitorID},
-	})
+	_, err := r.client.API.DeleteMonitor(ctx, api.DeleteMonitorRequest{ProjectID: projectID, MonitorID: monitorID})
 	if err != nil && !client.IsNotFound(err) {
 		tfutil.AddAPIError(&resp.Diagnostics, "delete "+r.kind.name+" monitor failed", err)
 	}
@@ -565,10 +561,11 @@ func (r *monitorResource) requestBody(ctx context.Context, m *monitorModel) ([]b
 	}
 
 	// A monitor and a channel share their links, and either side may declare
-	// them. An unset channel_ids sends null, which keeps the stored links, so a
-	// channel's monitor_ids can own them; a set one replaces them, [] included.
+	// them. An unset channel_ids omits the key, which keeps the stored links, so
+	// a channel's monitor_ids can own them; a set one replaces them, [] included.
 	if !m.ChannelIDs.IsNull() && !m.ChannelIDs.IsUnknown() {
-		body.ChannelIds = []uint64{}
+		channelIDs := []uint64{}
+		body.ChannelIDs = &channelIDs
 		var ids []string
 		diags.Append(m.ChannelIDs.ElementsAs(ctx, &ids, false)...)
 		for _, s := range ids {
@@ -578,7 +575,7 @@ func (r *monitorResource) requestBody(ctx context.Context, m *monitorModel) ([]b
 					fmt.Sprintf("expected a decimal integer, got %q", s))
 				continue
 			}
-			body.ChannelIds = append(body.ChannelIds, id)
+			channelIDs = append(channelIDs, id)
 		}
 	}
 
@@ -663,8 +660,8 @@ func (r *monitorResource) apply(ctx context.Context, monitor any, m *monitorMode
 	// An unset channel_ids does not manage the links (see requestBody), so it
 	// stays null whatever links the channels declared.
 	if !m.ChannelIDs.IsNull() {
-		ids := make([]string, len(mon.ChannelIds))
-		for i, id := range mon.ChannelIds {
+		ids := make([]string, len(mon.ChannelIDs))
+		for i, id := range mon.ChannelIDs {
 			ids[i] = strconv.FormatUint(id, 10)
 		}
 		v, d := types.SetValueFrom(ctx, types.StringType, ids)

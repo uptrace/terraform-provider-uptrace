@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -79,13 +79,13 @@ func (r *OpsgenieChannelResource) Schema(_ context.Context, _ resource.SchemaReq
 	attrs["api_provider"] = schema.StringAttribute{
 		Optional:    true,
 		Computed:    true,
-		Default:     stringdefault.StaticString(string(generated.OpsgenieProviderOpsgenie)),
+		Default:     stringdefault.StaticString(string(api.OpsgenieProviderOpsgenie)),
 		Description: "Alert API that receives the alerts: opsgenie (the default), jsm (Jira Service Management), or custom.",
 		Validators: []validator.String{
 			stringvalidator.OneOf(
-				string(generated.OpsgenieProviderOpsgenie),
-				string(generated.OpsgenieProviderJSM),
-				string(generated.OpsgenieProviderCustom),
+				string(api.OpsgenieProviderOpsgenie),
+				string(api.OpsgenieProviderJSM),
+				string(api.OpsgenieProviderCustom),
 			),
 		},
 	}
@@ -173,10 +173,10 @@ func buildOpsgenieRequest(ctx context.Context, m *opsgenieChannelModel) (*channe
 		return nil, diags
 	}
 
-	body.Params = generated.OpsgenieParams{
+	body.Params = api.OpsgenieParams{
 		APIKey:   m.APIKey.ValueString(),
-		Priority: generated.OpsgeniePriority(m.Priority.ValueString()),
-		Provider: generated.OpsgenieProvider(m.Provider.ValueString()),
+		Priority: api.OpsgeniePriority(m.Priority.ValueString()),
+		Provider: api.OpsgenieProvider(m.Provider.ValueString()),
 		Endpoint: m.Endpoint.ValueString(),
 	}
 
@@ -200,7 +200,7 @@ func applyOpsgenieToModel(ctx context.Context, ch *channelResponse, dst *opsgeni
 		return diags
 	}
 
-	var p generated.OpsgenieParams
+	var p api.OpsgenieParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode opsgenie params", err.Error())
 		return diags

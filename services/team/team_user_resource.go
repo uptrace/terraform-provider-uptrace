@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -101,13 +101,7 @@ func (r *TeamUserResource) Create(ctx context.Context, req resource.CreateReques
 		"org_user_id": plan.OrgUserID.ValueString(),
 	})
 
-	_, err := r.client.API.AddTeamUser(ctx, &generated.AddTeamUserRequestOptions{
-		PathParams: &generated.AddTeamUserPath{
-			OrgID:     orgID,
-			TeamID:    teamID,
-			OrgUserID: orgUserID,
-		},
-	})
+	_, err := r.client.API.AddTeamUser(ctx, api.AddTeamUserRequest{OrgID: orgID, TeamID: teamID, OrgUserID: orgUserID})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "add team user failed", err)
 		return
@@ -130,9 +124,7 @@ func (r *TeamUserResource) Read(ctx context.Context, req resource.ReadRequest, r
 		return
 	}
 
-	out, err := r.client.API.ListTeamUsers(ctx, &generated.ListTeamUsersRequestOptions{
-		PathParams: &generated.ListTeamUsersPath{OrgID: orgID, TeamID: teamID},
-	})
+	out, err := r.client.API.ListTeamUsers(ctx, api.ListTeamUsersRequest{OrgID: orgID, TeamID: teamID})
 	if err != nil {
 		if client.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -180,13 +172,7 @@ func (r *TeamUserResource) Delete(ctx context.Context, req resource.DeleteReques
 		"org_user_id": state.OrgUserID.ValueString(),
 	})
 
-	_, err := r.client.API.RemoveTeamUser(ctx, &generated.RemoveTeamUserRequestOptions{
-		PathParams: &generated.RemoveTeamUserPath{
-			OrgID:     orgID,
-			TeamID:    teamID,
-			OrgUserID: orgUserID,
-		},
-	})
+	_, err := r.client.API.RemoveTeamUser(ctx, api.RemoveTeamUserRequest{OrgID: orgID, TeamID: teamID, OrgUserID: orgUserID})
 	if err != nil && !client.IsNotFound(err) {
 		tfutil.AddAPIError(&resp.Diagnostics, "remove team user failed", err)
 	}

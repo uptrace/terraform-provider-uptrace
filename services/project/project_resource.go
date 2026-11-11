@@ -17,8 +17,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	str2duration "github.com/xhit/go-str2duration/v2"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -165,11 +165,8 @@ func (r *ProjectResource) Create(ctx context.Context, req resource.CreateRequest
 		resp.Diagnostics.AddError("invalid project configuration", err.Error())
 		return
 	}
-	body := generated.ProjectCreateRequest(fields)
-	out, err := r.client.API.CreateProject(ctx, &generated.CreateProjectRequestOptions{
-		PathParams: &generated.CreateProjectPath{OrgID: orgID},
-		Body:       &body,
-	})
+	body := api.ProjectCreateRequest(fields)
+	out, err := r.client.API.CreateProject(ctx, api.CreateProjectRequest{OrgID: orgID}, body)
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "create project failed", err)
 		return
@@ -203,9 +200,7 @@ func (r *ProjectResource) Read(ctx context.Context, req resource.ReadRequest, re
 	}
 	projectID := uint32(projectID64)
 
-	out, err := r.client.API.GetProject(ctx, &generated.GetProjectRequestOptions{
-		PathParams: &generated.GetProjectPath{ProjectID: projectID},
-	})
+	out, err := r.client.API.GetProject(ctx, api.GetProjectRequest{ProjectID: projectID})
 	if err != nil {
 		if client.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -244,7 +239,7 @@ func (r *ProjectResource) Update(ctx context.Context, req resource.UpdateRequest
 		resp.Diagnostics.AddError("invalid project configuration", err.Error())
 		return
 	}
-	body := generated.ProjectUpdateRequest{
+	body := api.ProjectUpdateRequest{
 		Name:                      fields.Name,
 		GroupByEnv:                fields.GroupByEnv,
 		GroupFuncsByService:       fields.GroupFuncsByService,
@@ -257,10 +252,7 @@ func (r *ProjectResource) Update(ctx context.Context, req resource.UpdateRequest
 		MetricRetention:           fields.MetricRetention,
 		ProfileRetention:          fields.ProfileRetention,
 	}
-	out, err := r.client.API.UpdateProject(ctx, &generated.UpdateProjectRequestOptions{
-		PathParams: &generated.UpdateProjectPath{ProjectID: projectID},
-		Body:       &body,
-	})
+	out, err := r.client.API.UpdateProject(ctx, api.UpdateProjectRequest{ProjectID: projectID}, body)
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "update project failed", err)
 		return
@@ -294,9 +286,7 @@ func (r *ProjectResource) Delete(ctx context.Context, req resource.DeleteRequest
 
 	tflog.Info(ctx, "deleting project", map[string]any{"id": state.ID.ValueString()})
 
-	_, err = r.client.API.DeleteProject(ctx, &generated.DeleteProjectRequestOptions{
-		PathParams: &generated.DeleteProjectPath{ProjectID: projectID},
-	})
+	_, err = r.client.API.DeleteProject(ctx, api.DeleteProjectRequest{ProjectID: projectID})
 	if err != nil && !client.IsNotFound(err) {
 		tfutil.AddAPIError(&resp.Diagnostics, "delete project failed", err)
 	}
@@ -314,8 +304,8 @@ func (r *ProjectResource) ImportState(ctx context.Context, req resource.ImportSt
 // projectRequestFields builds the fields a project create and a project update
 // share. The server refuses a key its request does not list, so every field
 // here exists in both.
-func projectRequestFields(m *projectModel) (generated.ProjectCreateRequest, error) {
-	body := generated.ProjectCreateRequest{
+func projectRequestFields(m *projectModel) (api.ProjectCreateRequest, error) {
+	body := api.ProjectCreateRequest{
 		Name: m.Name.ValueString(),
 	}
 
@@ -325,7 +315,7 @@ func projectRequestFields(m *projectModel) (generated.ProjectCreateRequest, erro
 	body.SkipMonitorDisabledEmails = boolPtrIfSet(m.SkipMonitorDisabledEmails)
 
 	if !m.SemconvVersion.IsNull() && !m.SemconvVersion.IsUnknown() {
-		v := generated.SemconvVersion(m.SemconvVersion.ValueString())
+		v := api.SemconvVersion(m.SemconvVersion.ValueString())
 		body.SemconvVersion = &v
 	}
 
@@ -353,8 +343,8 @@ func projectRequestFields(m *projectModel) (generated.ProjectCreateRequest, erro
 // viewSettingsRequest returns the PATCH body for the default query time
 // ranges, or nil when the config sets none of them. They are view settings,
 // which the server keeps apart from the project's create and update requests.
-func viewSettingsRequest(m *projectModel) (*generated.ProjectViewSettingsRequest, error) {
-	body := &generated.ProjectViewSettingsRequest{}
+func viewSettingsRequest(m *projectModel) (*api.ProjectViewSettingsRequest, error) {
+	body := &api.ProjectViewSettingsRequest{}
 	set := false
 	for _, f := range []struct {
 		name string
@@ -383,7 +373,7 @@ func viewSettingsRequest(m *projectModel) (*generated.ProjectViewSettingsRequest
 // patchViewSettings applies the configured time ranges to the project and
 // refreshes project from the answer. It reports false after adding an error.
 func (r *ProjectResource) patchViewSettings(
-	ctx context.Context, projectID uint32, m *projectModel, project *generated.Project, diags *diag.Diagnostics,
+	ctx context.Context, projectID uint32, m *projectModel, project *api.Project, diags *diag.Diagnostics,
 ) bool {
 	body, err := viewSettingsRequest(m)
 	if err != nil {
@@ -393,10 +383,7 @@ func (r *ProjectResource) patchViewSettings(
 	if body == nil {
 		return true
 	}
-	out, err := r.client.API.PatchProject(ctx, &generated.PatchProjectRequestOptions{
-		PathParams: &generated.PatchProjectPath{ProjectID: projectID},
-		Body:       body,
-	})
+	out, err := r.client.API.PatchProject(ctx, api.PatchProjectRequest{ProjectID: projectID}, *body)
 	if err != nil {
 		tfutil.AddAPIError(diags, "update project time ranges failed", err)
 		return false
@@ -451,7 +438,7 @@ func (durationStringValidator) ValidateString(_ context.Context, req validator.S
 	}
 }
 
-func projectToModel(p *generated.Project, m *projectModel) {
+func projectToModel(p *api.Project, m *projectModel) {
 	m.ID = types.StringValue(strconv.FormatInt(int64(p.ID), 10))
 	m.Name = types.StringValue(p.Name)
 	m.OrgID = types.StringValue(strconv.FormatUint(p.OrgID, 10))

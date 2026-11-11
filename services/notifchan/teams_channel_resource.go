@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -141,7 +141,7 @@ func buildTeamsRequest(ctx context.Context, m *teamsChannelModel) (*channelReque
 		return nil, diags
 	}
 
-	body.Params = generated.TeamsParams{
+	body.Params = api.TeamsParams{
 		WebhookURL: m.WebhookURL.ValueString(),
 	}
 
@@ -169,7 +169,7 @@ func applyTeamsToModel(ctx context.Context, ch *channelResponse, dst *teamsChann
 		dst.WebhookURL = tfutil.PreferPrior(dst.WebhookURL, types.StringNull())
 		return diags
 	}
-	var p generated.TeamsParams
+	var p api.TeamsParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode teams params", err.Error())
 		return diags

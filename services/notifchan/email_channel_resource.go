@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/setdefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -210,10 +210,10 @@ func buildEmailRequest(ctx context.Context, m *emailChannelModel) (*channelReque
 	if diags.HasError() {
 		return nil, diags
 	}
-	body.Params = generated.EmailParams{
+	body.Params = api.EmailParams{
 		Everyone: m.Everyone.ValueBool(),
-		TeamIds:  teamIDs,
-		UserIds:  userIDs,
+		TeamIDs:  teamIDs,
+		UserIDs:  userIDs,
 	}
 
 	return body, diags
@@ -236,15 +236,15 @@ func applyEmailToModel(ctx context.Context, ch *channelResponse, dst *emailChann
 		return diags
 	}
 
-	var p generated.EmailParams
+	var p api.EmailParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode email params", err.Error())
 		return diags
 	}
 	dst.Everyone = types.BoolValue(p.Everyone)
-	teamIDs, d := tfutil.SetFromUint64s(p.TeamIds)
+	teamIDs, d := tfutil.SetFromUint64s(p.TeamIDs)
 	diags.Append(d...)
-	userIDs, d := tfutil.SetFromUint64s(p.UserIds)
+	userIDs, d := tfutil.SetFromUint64s(p.UserIDs)
 	diags.Append(d...)
 	dst.TeamIDs = teamIDs
 	dst.UserIDs = userIDs

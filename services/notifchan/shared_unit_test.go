@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/uptrace/terraform/generated"
+	"github.com/uptrace/terraform/api"
 )
 
 type testChannelModel struct {
@@ -23,7 +23,7 @@ type testChannelModel struct {
 
 func TestApplyShared_monitorIDsExplicitEmptyPreserved(t *testing.T) {
 	ch := &channelResponse{
-		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 42, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		BaseNotificationChannel: api.BaseNotificationChannel{ID: 42, Name: "c", Status: api.NotificationChannelStatusDelivering},
 		Type:                    "slack",
 	}
 	priorEmpty, _ := types.SetValueFrom(context.Background(), types.StringType, []string{})
@@ -44,7 +44,7 @@ func TestApplyShared_monitorIDsExplicitEmptyPreserved(t *testing.T) {
 
 func TestApplyShared_monitorIDsNilBecomesNull(t *testing.T) {
 	ch := &channelResponse{
-		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 42, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		BaseNotificationChannel: api.BaseNotificationChannel{ID: 42, Name: "c", Status: api.NotificationChannelStatusDelivering},
 		Type:                    "slack",
 	}
 	var (
@@ -63,7 +63,7 @@ func TestApplyShared_monitorIDsNilBecomesNull(t *testing.T) {
 
 func TestApplyShared_unsetMonitorIDsIgnoreLinksFromMonitors(t *testing.T) {
 	ch := &channelResponse{
-		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 42, Name: "c", MonitorIds: []uint64{7}},
+		BaseNotificationChannel: api.BaseNotificationChannel{ID: 42, Name: "c", MonitorIDs: []uint64{7}},
 		Type:                    "slack",
 	}
 	var (
@@ -82,7 +82,7 @@ func TestApplyShared_unsetMonitorIDsIgnoreLinksFromMonitors(t *testing.T) {
 
 func TestApplyShared_conditionNilBecomesNull(t *testing.T) {
 	ch := &channelResponse{
-		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 42, Name: "c", Status: generated.NotificationChannelStatusDelivering},
+		BaseNotificationChannel: api.BaseNotificationChannel{ID: 42, Name: "c", Status: api.NotificationChannelStatusDelivering},
 		Type:                    "slack",
 	}
 	var (
@@ -101,7 +101,7 @@ func TestApplyShared_conditionNilBecomesNull(t *testing.T) {
 
 func TestApplyShared_matchAllFollowsAPI(t *testing.T) {
 	ch := &channelResponse{
-		BaseNotificationChannel: generated.BaseNotificationChannel{ID: 42, Name: "c", Status: generated.NotificationChannelStatusDelivering, MatchAll: true},
+		BaseNotificationChannel: api.BaseNotificationChannel{ID: 42, Name: "c", Status: api.NotificationChannelStatusDelivering, MatchAll: true},
 		Type:                    "slack",
 	}
 	var (
@@ -153,10 +153,10 @@ func TestBuildSharedRequest_prioritiesRoundTrip(t *testing.T) {
 		Priorities: &priorities, MonitorIDs: &monitorIDs,
 	}, body)
 	require.False(t, diags.HasError())
-	require.Equal(t, []generated.AlertPriority{
+	require.Equal(t, []api.AlertPriority{
 		"high", "medium",
 	}, body.Priorities)
-	require.Nil(t, body.MonitorIds, "unset monitor_ids sends null, which keeps the links monitors declared")
+	require.Nil(t, body.MonitorIDs, "unset monitor_ids omits the key, which keeps the links monitors declared")
 }
 
 // The server keeps the stored condition when the key is absent and clears it
@@ -183,14 +183,14 @@ func TestBuildSharedRequest_nullConditionClears(t *testing.T) {
 // --- channelRequest / channelResponse ---
 
 func TestChannelRequest_toAPIKeepsEveryKey(t *testing.T) {
+	condition := ""
 	body := &channelRequest{
-		BaseNotificationChannelRequest: generated.BaseNotificationChannelRequest{
-			Name:       "tg",
-			MonitorIds: []uint64{},
-			Priorities: []generated.AlertPriority{"high"},
-		},
-		Type:   "telegram",
-		Params: generated.TelegramParams{ChatID: -100},
+		Name:       "tg",
+		MonitorIDs: &[]uint64{},
+		Condition:  &condition,
+		Priorities: []api.AlertPriority{"high"},
+		Type:       "telegram",
+		Params:     api.TelegramParams{ChatID: -100},
 	}
 
 	req, err := body.toAPI()
@@ -203,11 +203,12 @@ func TestChannelRequest_toAPIKeepsEveryKey(t *testing.T) {
 	require.Equal(t, "telegram", got["type"])
 	require.Equal(t, "tg", got["name"])
 	require.Equal(t, []any{}, got["monitorIds"], "an empty list must be sent, not omitted")
+	require.Equal(t, "", got["condition"], "an empty condition must be sent, not omitted")
 	require.Equal(t, map[string]any{"chatId": float64(-100)}, got["params"])
 }
 
 func TestChannelFromAPI_decodesBaseTypeAndParams(t *testing.T) {
-	var ch generated.NotificationChannel
+	var ch api.NotificationChannel
 	require.NoError(t, json.Unmarshal([]byte(`{
 		"id": 9, "projectId": 1, "name": "tg", "status": "delivering", "pausedUntil": 0,
 		"error": "", "matchAll": false, "condition": "", "priorities": ["high"],
@@ -218,34 +219,24 @@ func TestChannelFromAPI_decodesBaseTypeAndParams(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, uint64(9), resp.ID)
 	require.Equal(t, "telegram", resp.Type)
-	require.Equal(t, []uint64{3}, resp.MonitorIds)
+	require.Equal(t, []uint64{3}, resp.MonitorIDs)
 
-	var p generated.TelegramParams
+	var p api.TelegramParams
 	require.NoError(t, json.Unmarshal(resp.Params, &p))
 	require.Equal(t, int64(-100), p.ChatID)
-}
-
-// --- valueStringToPtr ---
-
-func TestValueStringToPtr(t *testing.T) {
-	require.Nil(t, valueStringToPtr(types.StringNull()))
-	require.Nil(t, valueStringToPtr(types.StringUnknown()))
-	v := valueStringToPtr(types.StringValue("x"))
-	require.NotNil(t, v)
-	require.Equal(t, "x", *v)
 }
 
 // --- rejectChannelType ---
 
 func TestRejectChannelType_mismatch(t *testing.T) {
-	ch := &channelResponse{BaseNotificationChannel: generated.BaseNotificationChannel{ID: 1}, Type: "slack"}
+	ch := &channelResponse{BaseNotificationChannel: api.BaseNotificationChannel{ID: 1}, Type: "slack"}
 	var diags diag.Diagnostics
 	rejectChannelType("webhook", ch, &diags)
 	require.True(t, diags.HasError())
 }
 
 func TestRejectChannelType_match(t *testing.T) {
-	ch := &channelResponse{BaseNotificationChannel: generated.BaseNotificationChannel{ID: 1}, Type: "slack"}
+	ch := &channelResponse{BaseNotificationChannel: api.BaseNotificationChannel{ID: 1}, Type: "slack"}
 	var diags diag.Diagnostics
 	rejectChannelType("slack", ch, &diags)
 	require.False(t, diags.HasError())

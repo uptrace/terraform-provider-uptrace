@@ -10,6 +10,5 @@ linters:
     - ineffassign
     - staticcheck
     - unused
-  exclusions:
-    paths:
-      - generated
+  # api/ is written by cmd/apigen of the app; golangci-lint skips it by the
+  # generated header each file opens with.

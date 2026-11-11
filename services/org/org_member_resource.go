@@ -20,8 +20,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -34,12 +34,12 @@ var (
 // userRoleValidator accepts the organization roles. uptrace_org_member and
 // uptrace_org_user share it, so the two list the same roles.
 var userRoleValidator = stringvalidator.OneOf(
-	string(generated.UserRoleOwner),
-	string(generated.UserRoleAdmin),
-	string(generated.UserRoleMember),
-	string(generated.UserRoleViewer),
-	string(generated.UserRoleBillingManager),
-	string(generated.UserRoleCollaborator),
+	string(api.UserRoleOwner),
+	string(api.UserRoleAdmin),
+	string(api.UserRoleMember),
+	string(api.UserRoleViewer),
+	string(api.UserRoleBillingManager),
+	string(api.UserRoleCollaborator),
 )
 
 // OrgMemberResource manages one person's membership of an organization by the
@@ -160,10 +160,7 @@ func (r *OrgMemberResource) Read(ctx context.Context, req resource.ReadRequest, 
 		return
 	}
 
-	out, err := r.client.API.GetOrgMember(ctx, &generated.GetOrgMemberRequestOptions{
-		PathParams: &generated.GetOrgMemberPath{OrgID: orgID},
-		Query:      &generated.GetOrgMemberQuery{Email: state.Email.ValueString()},
-	})
+	out, err := r.client.API.GetOrgMember(ctx, api.GetOrgMemberRequest{OrgID: orgID, Email: state.Email.ValueString()})
 	if err != nil {
 		// No member and no live invitation: an expired or canceled one, or a
 		// person removed outside Terraform. The next apply invites again.
@@ -207,10 +204,7 @@ func (r *OrgMemberResource) Delete(ctx context.Context, req resource.DeleteReque
 
 	tflog.Info(ctx, "deleting org_member", map[string]any{"id": state.ID.ValueString()})
 
-	_, err = r.client.API.RemoveOrgMember(ctx, &generated.RemoveOrgMemberRequestOptions{
-		PathParams: &generated.RemoveOrgMemberPath{OrgID: orgID},
-		Query:      &generated.RemoveOrgMemberQuery{Email: state.Email.ValueString()},
-	})
+	_, err = r.client.API.RemoveOrgMember(ctx, api.RemoveOrgMemberRequest{OrgID: orgID, Email: state.Email.ValueString()})
 	if err != nil && !client.IsNotFound(err) {
 		tfutil.AddAPIError(&resp.Diagnostics, "delete org_member failed", err)
 	}
@@ -257,13 +251,10 @@ func (r *OrgMemberResource) set(ctx context.Context, plan *orgMemberModel, faile
 		"role":   plan.Role.ValueString(),
 	})
 
-	out, err := r.client.API.SetOrgMember(ctx, &generated.SetOrgMemberRequestOptions{
-		PathParams: &generated.SetOrgMemberPath{OrgID: orgID},
-		Body: &generated.OrgMemberSetRequest{
-			Email:   plan.Email.ValueString(),
-			Role:    generated.UserRole(plan.Role.ValueString()),
-			TeamIds: teamIDs,
-		},
+	out, err := r.client.API.SetOrgMember(ctx, api.SetOrgMemberRequest{OrgID: orgID}, api.OrgMemberSetRequest{
+		Email:   plan.Email.ValueString(),
+		Role:    api.UserRole(plan.Role.ValueString()),
+		TeamIDs: teamIDs,
 	})
 	if err != nil {
 		tfutil.AddAPIError(&diags, failed, err)
@@ -275,7 +266,7 @@ func (r *OrgMemberResource) set(ctx context.Context, plan *orgMemberModel, faile
 }
 
 // applyOrgMember writes what the server stores into m.
-func applyOrgMember(m *orgMemberModel, member *generated.OrgMember) diag.Diagnostics {
+func applyOrgMember(m *orgMemberModel, member *api.OrgMember) diag.Diagnostics {
 	m.ID = types.StringValue(m.OrgID.ValueString() + ":" + member.Email)
 	m.Email = types.StringValue(member.Email)
 	m.Role = types.StringValue(string(member.Role))
@@ -285,7 +276,7 @@ func applyOrgMember(m *orgMemberModel, member *generated.OrgMember) diag.Diagnos
 		m.OrgUserID = types.StringValue(strconv.FormatUint(*member.OrgUserID, 10))
 	}
 
-	set, diags := tfutil.SetFromUint64s(member.TeamIds)
+	set, diags := tfutil.SetFromUint64s(member.TeamIDs)
 	m.TeamIDs = set
 	return diags
 }

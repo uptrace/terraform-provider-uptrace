@@ -12,15 +12,12 @@ the module is shaped this way.
 - **The root rules that name an app package do not apply.** The module cannot import
   `pkg/json`, `pkg/validerr`, `pkg/httperr`, `pkg/httpkit`, `pkg/pg` or `pkg/fx`. Use
   `encoding/json`, the diagnostics and validators of the plugin framework, and the generated
-  client in `generated/`. The rules on `pkg/api`, `api_out.go`, migrations, build tags and
+  client in `api/`. The rules on `pkg/api`, `api_out.go`, migrations, build tags and
   `featflag` are about the app and do not apply either.
-- **Do not edit `generated/` or `docs/`.** Run `task generate` after a change to
-  `openapi/openapi.yaml`, `openapi/overlay.yaml` or `oapi-codegen.yaml`, and `task docs` after a
-  change to a schema description or to `examples/`. Commit the result. The `build-terraform`
-  job fails when either one is stale.
-- **Bundle the contract from the oldest supported app version.** Run
-  `task sync-spec REF=<ref>` from this directory, not from the newest commit: the server
-  refuses a request key that its contract does not list (`DESIGN.md` D2).
+- **Do not edit `api/` or `docs/`.** `api/` is written by `task generate:api` at the app root,
+  from `openapi/` of the same commit and the operations of `cmd/apigen/terraform.yaml`
+  (`DESIGN.md` D5). Run `task docs` after a change to a schema description or to `examples/`.
+  Commit the result. CI fails when either one is stale.
 - **Tests follow `CONTRIBUTING.md` § Writing tests**, not `docs/go-test-conventions.md`: a unit
   test sits in a `*_unit_test.go` file of the package; an acceptance test sits in a
   `*_acc_test.go` file of the external test package, starts with `TestAcc`, and holds

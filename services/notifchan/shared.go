@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/uptrace/terraform/generated"
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -121,8 +121,8 @@ func applyShared(ctx context.Context, ch *channelResponse, f sharedFields) diag.
 	// An unset monitor_ids does not manage the links (see buildSharedRequest),
 	// so it stays null whatever links the monitors declared.
 	if !f.MonitorIDs.IsNull() {
-		vals := make([]types.String, len(ch.MonitorIds))
-		for i, id := range ch.MonitorIds {
+		vals := make([]types.String, len(ch.MonitorIDs))
+		for i, id := range ch.MonitorIDs {
 			vals[i] = types.StringValue(strconv.FormatUint(id, 10))
 		}
 		v, d := types.SetValueFrom(ctx, types.StringType, vals)
@@ -159,14 +159,15 @@ func buildSharedRequest(ctx context.Context, f sharedFields, body *channelReques
 		return diags
 	}
 	for _, p := range priorities {
-		body.Priorities = append(body.Priorities, generated.AlertPriority(p.ValueString()))
+		body.Priorities = append(body.Priorities, api.AlertPriority(p.ValueString()))
 	}
 
 	// A channel and a monitor share their links, and either side may declare
-	// them. An unset monitor_ids sends null, which keeps the stored links, so a
+	// them. An unset monitor_ids omits the key, which keeps the stored links, so a
 	// monitor's channel_ids can own them; a set one replaces them, [] included.
 	if !f.MonitorIDs.IsNull() && !f.MonitorIDs.IsUnknown() {
-		body.MonitorIds = []uint64{}
+		ids := []uint64{}
+		body.MonitorIDs = &ids
 		var monitorIDs []types.String
 		diags.Append(f.MonitorIDs.ElementsAs(ctx, &monitorIDs, false)...)
 		if diags.HasError() {
@@ -182,7 +183,7 @@ func buildSharedRequest(ctx context.Context, f sharedFields, body *channelReques
 				)
 				return diags
 			}
-			body.MonitorIds = append(body.MonitorIds, v)
+			ids = append(ids, v)
 		}
 	}
 
@@ -200,17 +201,6 @@ func rejectChannelType(expected string, ch *channelResponse, diags *diag.Diagnos
 		"channel type mismatch",
 		"expected notification channel of type "+expected+", but channel id="+strconv.FormatUint(ch.ID, 10)+" is type "+ch.Type+".",
 	)
-}
-
-// valueStringToPtr returns nil for null/unknown, else a pointer to the
-// underlying string. Used when building API requests where an absent
-// optional field must serialize as "omitted", not "present and empty".
-func valueStringToPtr(v types.String) *string {
-	if v.IsNull() || v.IsUnknown() {
-		return nil
-	}
-	s := v.ValueString()
-	return &s
 }
 
 // importChannel accepts "<project_id>:<channel_id>". It sets monitor_ids to

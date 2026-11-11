@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -141,7 +141,7 @@ func buildMattermostRequest(ctx context.Context, m *mattermostChannelModel) (*ch
 		return nil, diags
 	}
 
-	body.Params = generated.MattermostParams{
+	body.Params = api.MattermostParams{
 		WebhookURL: m.WebhookURL.ValueString(),
 	}
 
@@ -169,7 +169,7 @@ func applyMattermostToModel(ctx context.Context, ch *channelResponse, dst *matte
 		dst.WebhookURL = tfutil.PreferPrior(dst.WebhookURL, types.StringNull())
 		return diags
 	}
-	var p generated.MattermostParams
+	var p api.MattermostParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode mattermost params", err.Error())
 		return diags

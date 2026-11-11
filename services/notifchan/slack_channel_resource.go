@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -190,8 +190,8 @@ func buildSlackRequest(ctx context.Context, m *slackChannelModel) (*channelReque
 
 	// The server requires every key; the ones the auth method does not use go
 	// as empty strings.
-	p := generated.SlackParams{
-		AuthMethod: generated.SlackAuthMethod(m.AuthMethod.ValueString()),
+	p := api.SlackParams{
+		AuthMethod: api.SlackAuthMethod(m.AuthMethod.ValueString()),
 		WebhookURL: m.WebhookURL.ValueString(),
 		Token:      m.Token.ValueString(),
 		Channel:    m.Channel.ValueString(),
@@ -219,7 +219,7 @@ func applySlackToModel(ctx context.Context, ch *channelResponse, dst *slackChann
 		return diags
 	}
 
-	var p generated.SlackParams
+	var p api.SlackParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode slack params", err.Error())
 		return diags

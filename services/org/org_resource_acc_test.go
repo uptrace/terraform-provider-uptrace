@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/testutil"
 )
 
@@ -42,9 +42,7 @@ func testAccCheckOrgDestroy(t *testing.T) resource.TestCheckFunc {
 			if err != nil {
 				return fmt.Errorf("invalid org ID %q: %w", rs.Primary.ID, err)
 			}
-			_, err = c.API.GetOrg(context.Background(), &generated.GetOrgRequestOptions{
-				PathParams: &generated.GetOrgPath{OrgID: orgID},
-			})
+			_, err = c.API.GetOrg(context.Background(), api.GetOrgRequest{OrgID: orgID})
 			if err == nil {
 				return fmt.Errorf("org %s still exists after destroy", rs.Primary.ID)
 			}
@@ -141,9 +139,7 @@ func deleteOrgOutOfBand(t *testing.T, orgID string) {
 	}
 
 	c := testutil.TestAccClient(t)
-	_, err = c.API.DeleteOrg(context.Background(), &generated.DeleteOrgRequestOptions{
-		PathParams: &generated.DeleteOrgPath{OrgID: id},
-	})
+	_, err = c.API.DeleteOrg(context.Background(), api.DeleteOrgRequest{OrgID: id})
 	if err != nil && !client.IsNotFound(err) {
 		t.Fatalf("delete org %d out-of-band: %v", id, err)
 	}

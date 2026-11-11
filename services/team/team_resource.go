@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -107,18 +107,15 @@ func (r *TeamResource) Create(ctx context.Context, req resource.CreateRequest, r
 		"name":   plan.Name.ValueString(),
 	})
 
-	body := &generated.TeamCreateRequest{
+	body := &api.TeamCreateRequest{
 		Name: plan.Name.ValueString(),
 	}
 	if !plan.PermLevel.IsNull() && !plan.PermLevel.IsUnknown() {
-		p := generated.PermLevel(plan.PermLevel.ValueString())
+		p := api.PermLevel(plan.PermLevel.ValueString())
 		body.PermLevel = &p
 	}
 
-	out, err := r.client.API.CreateTeam(ctx, &generated.CreateTeamRequestOptions{
-		PathParams: &generated.CreateTeamPath{OrgID: orgID},
-		Body:       body,
-	})
+	out, err := r.client.API.CreateTeam(ctx, api.CreateTeamRequest{OrgID: orgID}, *body)
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "create team failed", err)
 		return
@@ -146,9 +143,7 @@ func (r *TeamResource) Read(ctx context.Context, req resource.ReadRequest, resp 
 		return
 	}
 
-	out, err := r.client.API.GetTeam(ctx, &generated.GetTeamRequestOptions{
-		PathParams: &generated.GetTeamPath{OrgID: orgID, TeamID: teamID},
-	})
+	out, err := r.client.API.GetTeam(ctx, api.GetTeamRequest{OrgID: orgID, TeamID: teamID})
 	if err != nil {
 		if client.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -183,16 +178,13 @@ func (r *TeamResource) Update(ctx context.Context, req resource.UpdateRequest, r
 	tflog.Info(ctx, "updating team", map[string]any{"id": plan.ID.ValueString()})
 
 	name := plan.Name.ValueString()
-	body := &generated.TeamUpdateRequest{Name: &name}
+	body := &api.TeamUpdateRequest{Name: &name}
 	if !plan.PermLevel.IsNull() && !plan.PermLevel.IsUnknown() {
-		p := generated.PermLevel(plan.PermLevel.ValueString())
+		p := api.PermLevel(plan.PermLevel.ValueString())
 		body.PermLevel = &p
 	}
 
-	out, err := r.client.API.UpdateTeam(ctx, &generated.UpdateTeamRequestOptions{
-		PathParams: &generated.UpdateTeamPath{OrgID: orgID, TeamID: teamID},
-		Body:       body,
-	})
+	out, err := r.client.API.UpdateTeam(ctx, api.UpdateTeamRequest{OrgID: orgID, TeamID: teamID}, *body)
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "update team failed", err)
 		return
@@ -222,9 +214,7 @@ func (r *TeamResource) Delete(ctx context.Context, req resource.DeleteRequest, r
 
 	tflog.Info(ctx, "deleting team", map[string]any{"id": state.ID.ValueString()})
 
-	_, err = r.client.API.DeleteTeam(ctx, &generated.DeleteTeamRequestOptions{
-		PathParams: &generated.DeleteTeamPath{OrgID: orgID, TeamID: teamID},
-	})
+	_, err = r.client.API.DeleteTeam(ctx, api.DeleteTeamRequest{OrgID: orgID, TeamID: teamID})
 	if err != nil && !client.IsNotFound(err) {
 		tfutil.AddAPIError(&resp.Diagnostics, "delete team failed", err)
 	}
@@ -238,7 +228,7 @@ func (r *TeamResource) ImportState(ctx context.Context, req resource.ImportState
 	)
 }
 
-func teamToModel(t *generated.Team, m *teamModel) {
+func teamToModel(t *api.Team, m *teamModel) {
 	m.ID = types.StringValue(strconv.FormatUint(t.ID, 10))
 	m.OrgID = types.StringValue(strconv.FormatUint(t.OrgID, 10))
 	m.Name = types.StringValue(t.Name)

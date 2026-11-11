@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/testutil"
 )
 
@@ -56,9 +56,7 @@ func testAccCheckTeamDestroy(t *testing.T) resource.TestCheckFunc {
 			if err != nil {
 				return fmt.Errorf("invalid team ID %q: %w", rs.Primary.ID, err)
 			}
-			_, err = c.API.GetTeam(context.Background(), &generated.GetTeamRequestOptions{
-				PathParams: &generated.GetTeamPath{OrgID: orgID, TeamID: teamID},
-			})
+			_, err = c.API.GetTeam(context.Background(), api.GetTeamRequest{OrgID: orgID, TeamID: teamID})
 			if err == nil {
 				return fmt.Errorf("team %d still exists after destroy", teamID)
 			}
@@ -179,9 +177,7 @@ func deleteTeamOutOfBand(t *testing.T, orgIDStr, teamIDStr string) {
 		t.Fatalf("invalid team_id %q: %v", teamIDStr, err)
 	}
 	c := testutil.TestAccClient(t)
-	_, err = c.API.DeleteTeam(context.Background(), &generated.DeleteTeamRequestOptions{
-		PathParams: &generated.DeleteTeamPath{OrgID: orgID, TeamID: teamID},
-	})
+	_, err = c.API.DeleteTeam(context.Background(), api.DeleteTeamRequest{OrgID: orgID, TeamID: teamID})
 	if err != nil && !client.IsNotFound(err) {
 		t.Fatalf("delete team %d out-of-band: %v", teamID, err)
 	}

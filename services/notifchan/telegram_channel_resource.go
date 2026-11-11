@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -140,7 +140,7 @@ func buildTelegramRequest(ctx context.Context, m *telegramChannelModel) (*channe
 		return nil, diags
 	}
 
-	body.Params = generated.TelegramParams{
+	body.Params = api.TelegramParams{
 		ChatID: m.ChatID.ValueInt64(),
 	}
 
@@ -164,7 +164,7 @@ func applyTelegramToModel(ctx context.Context, ch *channelResponse, dst *telegra
 		return diags
 	}
 
-	var p generated.TelegramParams
+	var p api.TelegramParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode telegram params", err.Error())
 		return diags

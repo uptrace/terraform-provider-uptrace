@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -100,13 +100,7 @@ func (r *TeamProjectResource) Create(ctx context.Context, req resource.CreateReq
 		"project_id": plan.ProjectID.ValueString(),
 	})
 
-	_, err := r.client.API.AddTeamProject(ctx, &generated.AddTeamProjectRequestOptions{
-		PathParams: &generated.AddTeamProjectPath{
-			OrgID:     orgID,
-			TeamID:    teamID,
-			ProjectID: projectID,
-		},
-	})
+	_, err := r.client.API.AddTeamProject(ctx, api.AddTeamProjectRequest{OrgID: orgID, TeamID: teamID, ProjectID: projectID})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "add team project failed", err)
 		return
@@ -129,9 +123,7 @@ func (r *TeamProjectResource) Read(ctx context.Context, req resource.ReadRequest
 		return
 	}
 
-	out, err := r.client.API.ListTeamProjects(ctx, &generated.ListTeamProjectsRequestOptions{
-		PathParams: &generated.ListTeamProjectsPath{OrgID: orgID, TeamID: teamID},
-	})
+	out, err := r.client.API.ListTeamProjects(ctx, api.ListTeamProjectsRequest{OrgID: orgID, TeamID: teamID})
 	if err != nil {
 		// Parent team (or org) is gone — the membership is implicitly gone too.
 		if client.IsNotFound(err) {
@@ -182,13 +174,7 @@ func (r *TeamProjectResource) Delete(ctx context.Context, req resource.DeleteReq
 		"project_id": state.ProjectID.ValueString(),
 	})
 
-	_, err := r.client.API.RemoveTeamProject(ctx, &generated.RemoveTeamProjectRequestOptions{
-		PathParams: &generated.RemoveTeamProjectPath{
-			OrgID:     orgID,
-			TeamID:    teamID,
-			ProjectID: projectID,
-		},
-	})
+	_, err := r.client.API.RemoveTeamProject(ctx, api.RemoveTeamProjectRequest{OrgID: orgID, TeamID: teamID, ProjectID: projectID})
 	if err != nil && !client.IsNotFound(err) {
 		tfutil.AddAPIError(&resp.Diagnostics, "remove team project failed", err)
 	}

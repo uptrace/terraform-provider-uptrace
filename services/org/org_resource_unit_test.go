@@ -6,11 +6,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/uptrace/terraform/generated"
+	"github.com/uptrace/terraform/api"
 )
 
 func TestOrgToModel_basic(t *testing.T) {
-	org := &generated.Org{ID: 42, Name: "Acme", Budget: 100.0}
+	org := &api.Org{ID: 42, Name: "Acme", Budget: 100.0}
 	var m orgModel
 
 	orgToModel(org, &m)
@@ -27,7 +27,7 @@ func TestOrgToModel_budgetFollowsAPI(t *testing.T) {
 		Budget: types.Float64Value(250),
 	}
 
-	orgToModel(&generated.Org{ID: 42, Name: "new-name", Budget: 0}, &model)
+	orgToModel(&api.Org{ID: 42, Name: "new-name", Budget: 0}, &model)
 
 	require.Equal(t, types.StringValue("42"), model.ID)
 	require.Equal(t, types.StringValue("new-name"), model.Name)

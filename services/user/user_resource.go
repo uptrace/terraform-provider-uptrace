@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -87,10 +87,9 @@ func (r *UserResource) Create(ctx context.Context, req resource.CreateRequest, r
 
 	tflog.Info(ctx, "creating user (orgless invite)", map[string]any{"email": plan.Email.ValueString()})
 
-	out, err := r.client.API.CreateOrglessInvite(ctx, &generated.CreateOrglessInviteRequestOptions{
-		Body: &generated.OrglessUserInviteCreateRequest{
-			Email: plan.Email.ValueString(),
-		},
+	//nolint:staticcheck // SA1019: the resource is deprecated with the operation; uptrace_org_member replaces both, and the next major provider version removes them.
+	out, err := r.client.API.CreateOrglessInvite(ctx, api.OrglessUserInviteCreateRequest{
+		Email: plan.Email.ValueString(),
 	})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "create user invite failed", err)

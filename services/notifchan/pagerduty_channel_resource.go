@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -153,9 +153,9 @@ func buildPagerdutyRequest(ctx context.Context, m *pagerdutyChannelModel) (*chan
 		return nil, diags
 	}
 
-	body.Params = generated.PagerdutyParams{
+	body.Params = api.PagerdutyParams{
 		RoutingKey: m.RoutingKey.ValueString(),
-		Severity:   generated.PagerdutySeverity(m.Severity.ValueString()),
+		Severity:   api.PagerdutySeverity(m.Severity.ValueString()),
 	}
 
 	return body, diags
@@ -178,7 +178,7 @@ func applyPagerdutyToModel(ctx context.Context, ch *channelResponse, dst *pagerd
 		return diags
 	}
 
-	var p generated.PagerdutyParams
+	var p api.PagerdutyParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode pagerduty params", err.Error())
 		return diags

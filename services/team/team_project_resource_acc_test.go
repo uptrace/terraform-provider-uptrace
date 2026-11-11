@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/testutil"
 )
 
@@ -62,9 +62,7 @@ func testAccCheckTeamProjectDestroy(t *testing.T) resource.TestCheckFunc {
 			}
 			projectID := uint32(projectID64)
 
-			out, err := c.API.ListTeamProjects(context.Background(), &generated.ListTeamProjectsRequestOptions{
-				PathParams: &generated.ListTeamProjectsPath{OrgID: orgID, TeamID: teamID},
-			})
+			out, err := c.API.ListTeamProjects(context.Background(), api.ListTeamProjectsRequest{OrgID: orgID, TeamID: teamID})
 			if err != nil {
 				if client.IsNotFound(err) {
 					continue
@@ -160,13 +158,7 @@ func removeTeamProjectOutOfBand(t *testing.T, orgIDStr, teamIDStr, projectIDStr 
 		t.Fatalf("invalid project_id %q: %v", projectIDStr, err)
 	}
 	c := testutil.TestAccClient(t)
-	_, err = c.API.RemoveTeamProject(context.Background(), &generated.RemoveTeamProjectRequestOptions{
-		PathParams: &generated.RemoveTeamProjectPath{
-			OrgID:     orgID,
-			TeamID:    teamID,
-			ProjectID: uint32(pid64),
-		},
-	})
+	_, err = c.API.RemoveTeamProject(context.Background(), api.RemoveTeamProjectRequest{OrgID: orgID, TeamID: teamID, ProjectID: uint32(pid64)})
 	if err != nil && !client.IsNotFound(err) {
 		t.Fatalf("remove team project out-of-band: %v", err)
 	}

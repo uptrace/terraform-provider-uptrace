@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -152,7 +152,7 @@ func buildWebhookRequest(ctx context.Context, m *webhookChannelModel) (*channelR
 		return nil, diags
 	}
 
-	p := generated.WebhookParams{URL: m.URL.ValueString()}
+	p := api.WebhookParams{URL: m.URL.ValueString()}
 	if !m.Payload.IsNull() && !m.Payload.IsUnknown() {
 		var payload map[string]any
 		if err := json.Unmarshal([]byte(m.Payload.ValueString()), &payload); err != nil {
@@ -184,20 +184,23 @@ func applyWebhookToModel(ctx context.Context, ch *channelResponse, dst *webhookC
 		return diags
 	}
 
-	var p generated.WebhookParams
+	var p api.WebhookParams
 	if err := json.Unmarshal(ch.Params, &p); err != nil {
 		diags.AddWarning("failed to decode webhook params", err.Error())
 		return diags
 	}
 	dst.URL = tfutil.PreserveIfEmpty(p.URL, dst.URL)
-	if payloadEquivalent(dst.Payload, p.Payload) {
+	// The contract states no type for the payload, so it decodes as any: an
+	// object is a map, and null is nil.
+	payload, _ := p.Payload.(map[string]any)
+	if payloadEquivalent(dst.Payload, payload) {
 		// The configured spelling stays the source of truth while the server
 		// echoes the same value (an empty object included): a re-encoded
 		// string would differ from the plan and fail the apply.
 		return diags
 	}
-	if len(p.Payload) > 0 {
-		buf, err := json.Marshal(p.Payload)
+	if len(payload) > 0 {
+		buf, err := json.Marshal(payload)
 		if err != nil {
 			diags.AddWarning(
 				"failed to encode webhook payload",

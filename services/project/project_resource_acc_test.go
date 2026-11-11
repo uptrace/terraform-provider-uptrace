@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/testutil"
 )
 
@@ -53,9 +53,7 @@ func testAccCheckProjectDestroy(t *testing.T) resource.TestCheckFunc {
 			if err != nil {
 				return fmt.Errorf("invalid project ID %q: %w", rs.Primary.ID, err)
 			}
-			_, err = c.API.GetProject(context.Background(), &generated.GetProjectRequestOptions{
-				PathParams: &generated.GetProjectPath{ProjectID: uint32(projectID)},
-			})
+			_, err = c.API.GetProject(context.Background(), api.GetProjectRequest{ProjectID: uint32(projectID)})
 			if err == nil {
 				return fmt.Errorf("project %s still exists after destroy", rs.Primary.ID)
 			}
@@ -191,9 +189,7 @@ func deleteProjectOutOfBand(t *testing.T, projectID string) {
 	}
 
 	c := testutil.TestAccClient(t)
-	_, err = c.API.DeleteProject(context.Background(), &generated.DeleteProjectRequestOptions{
-		PathParams: &generated.DeleteProjectPath{ProjectID: uint32(id)},
-	})
+	_, err = c.API.DeleteProject(context.Background(), api.DeleteProjectRequest{ProjectID: uint32(id)})
 	if err != nil && !client.IsNotFound(err) {
 		t.Fatalf("delete project %d out-of-band: %v", id, err)
 	}

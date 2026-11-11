@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/testutil"
 )
 
@@ -66,9 +66,7 @@ func testAccCheckTeamUserDestroy(t *testing.T) resource.TestCheckFunc {
 				return fmt.Errorf("invalid org_user_id: %w", err)
 			}
 
-			out, err := c.API.ListTeamUsers(context.Background(), &generated.ListTeamUsersRequestOptions{
-				PathParams: &generated.ListTeamUsersPath{OrgID: orgID, TeamID: teamID},
-			})
+			out, err := c.API.ListTeamUsers(context.Background(), api.ListTeamUsersRequest{OrgID: orgID, TeamID: teamID})
 			if err != nil {
 				if client.IsNotFound(err) {
 					continue
@@ -165,13 +163,7 @@ func removeTeamUserOutOfBand(t *testing.T, orgIDStr, teamIDStr, orgUserIDStr str
 		t.Fatalf("invalid org_user_id %q: %v", orgUserIDStr, err)
 	}
 	c := testutil.TestAccClient(t)
-	_, err = c.API.RemoveTeamUser(context.Background(), &generated.RemoveTeamUserRequestOptions{
-		PathParams: &generated.RemoveTeamUserPath{
-			OrgID:     orgID,
-			TeamID:    teamID,
-			OrgUserID: orgUserID,
-		},
-	})
+	_, err = c.API.RemoveTeamUser(context.Background(), api.RemoveTeamUserRequest{OrgID: orgID, TeamID: teamID, OrgUserID: orgUserID})
 	if err != nil && !client.IsNotFound(err) {
 		t.Fatalf("remove team user out-of-band: %v", err)
 	}

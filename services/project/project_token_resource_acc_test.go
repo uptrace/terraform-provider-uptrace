@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/testutil"
 )
 
@@ -47,12 +47,7 @@ func testAccCheckProjectTokenDestroy(t *testing.T) resource.TestCheckFunc {
 			if err != nil {
 				return fmt.Errorf("invalid project ID %q: %w", rs.Primary.Attributes["project_id"], err)
 			}
-			_, err = c.API.GetProjectToken(context.Background(), &generated.GetProjectTokenRequestOptions{
-				PathParams: &generated.GetProjectTokenPath{
-					ProjectID: uint32(projectID),
-					TokenID:   tokenID,
-				},
-			})
+			_, err = c.API.GetProjectToken(context.Background(), api.GetProjectTokenRequest{ProjectID: uint32(projectID), TokenID: tokenID})
 			if err == nil {
 				return fmt.Errorf("project token %s still exists after destroy", rs.Primary.ID)
 			}
@@ -183,12 +178,7 @@ func deleteProjectTokenOutOfBand(t *testing.T, projectIDStr, tokenIDStr string) 
 	}
 
 	c := testutil.TestAccClient(t)
-	_, err = c.API.DeleteProjectToken(context.Background(), &generated.DeleteProjectTokenRequestOptions{
-		PathParams: &generated.DeleteProjectTokenPath{
-			ProjectID: uint32(projectID),
-			TokenID:   tokenID,
-		},
-	})
+	_, err = c.API.DeleteProjectToken(context.Background(), api.DeleteProjectTokenRequest{ProjectID: uint32(projectID), TokenID: tokenID})
 	if err != nil && !client.IsNotFound(err) {
 		t.Fatalf("delete project token %d out-of-band: %v", tokenID, err)
 	}

@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/testutil"
 )
 
@@ -46,10 +46,7 @@ func testAccCheckOrgMemberDestroy(t *testing.T) resource.TestCheckFunc {
 				return fmt.Errorf("invalid org_id: %w", err)
 			}
 			email := rs.Primary.Attributes["email"]
-			_, err = c.API.GetOrgMember(context.Background(), &generated.GetOrgMemberRequestOptions{
-				PathParams: &generated.GetOrgMemberPath{OrgID: orgID},
-				Query:      &generated.GetOrgMemberQuery{Email: email},
-			})
+			_, err = c.API.GetOrgMember(context.Background(), api.GetOrgMemberRequest{OrgID: orgID, Email: email})
 			if err == nil {
 				return fmt.Errorf("org_member %s still exists in org %d after destroy", email, orgID)
 			}

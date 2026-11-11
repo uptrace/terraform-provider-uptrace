@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	"github.com/stretchr/testify/require"
 
-	"github.com/uptrace/terraform/generated"
+	"github.com/uptrace/terraform/api"
 )
 
 // serverParams is a params object per kind as the server returns it.
@@ -94,17 +95,17 @@ func generatedRoundTrip(t *testing.T, kindName string, body []byte) map[string]a
 	var req any
 	switch kindName {
 	case "threshold":
-		req = new(generated.ThresholdMonitorRequest)
+		req = new(api.ThresholdMonitorRequest)
 	case "anomaly":
-		req = new(generated.AnomalyMonitorRequest)
+		req = new(api.AnomalyMonitorRequest)
 	case "outlier":
-		req = new(generated.OutlierMonitorRequest)
+		req = new(api.OutlierMonitorRequest)
 	case "forecast":
-		req = new(generated.ForecastMonitorRequest)
+		req = new(api.ForecastMonitorRequest)
 	case "error":
-		req = new(generated.ErrorMonitorRequest)
+		req = new(api.ErrorMonitorRequest)
 	case "slo":
-		req = new(generated.SloMonitorRequest)
+		req = new(api.SLOMonitorRequest)
 	}
 	require.NoError(t, json.Unmarshal(body, req))
 	wire, err := json.Marshal(req)
@@ -112,6 +113,40 @@ func generatedRoundTrip(t *testing.T, kindName string, body []byte) map[string]a
 	var out map[string]any
 	require.NoError(t, json.Unmarshal(wire, &out))
 	return out
+}
+
+// requireSameWire checks that the client sends what the resource encoded: it
+// adds no key, and it changes no value. It may drop a key whose value is
+// zero, because such a key is optional in the generated request, and the
+// server reads an omitted optional key as zero.
+func requireSameWire(t *testing.T, at string, sent, wire any) {
+	t.Helper()
+	sentMap, ok := sent.(map[string]any)
+	if !ok {
+		if sentList, ok := sent.([]any); ok {
+			wireList, ok := wire.([]any)
+			require.True(t, ok, "%s: sent a list, and the client writes %#v", at, wire)
+			require.Len(t, wireList, len(sentList), "%s", at)
+			for i := range sentList {
+				requireSameWire(t, fmt.Sprintf("%s[%d]", at, i), sentList[i], wireList[i])
+			}
+			return
+		}
+		require.Equal(t, sent, wire, "%s", at)
+		return
+	}
+	wireMap, ok := wire.(map[string]any)
+	require.True(t, ok, "%s: sent an object, and the client writes %#v", at, wire)
+	for key, value := range wireMap {
+		require.Contains(t, sentMap, key, "%s: the client adds the key %s", at, key)
+		requireSameWire(t, at+"."+key, sentMap[key], value)
+	}
+	for key, value := range sentMap {
+		if _, kept := wireMap[key]; !kept {
+			require.Contains(t, []any{nil, float64(0), "", false}, value,
+				"%s: the client drops the key %s, which holds %#v", at, key, value)
+		}
+	}
 }
 
 func testModel(t *testing.T, k *kind, params types.Object) *monitorModel {
@@ -150,10 +185,9 @@ func TestRequestBody_survivesGeneratedRequest(t *testing.T) {
 
 			var sent map[string]any
 			require.NoError(t, json.Unmarshal(body, &sent))
-			require.Equal(t, sent, generatedRoundTrip(t, k.name, body))
+			requireSameWire(t, "", sent, generatedRoundTrip(t, k.name, body))
 
-			require.Contains(t, sent, "channelIds")
-			require.Nil(t, sent["channelIds"], "an unset channel_ids sends null, which keeps the stored links")
+			require.NotContains(t, sent, "channelIds", "an unset channel_ids omits the key, which keeps the stored links")
 			require.Equal(t, map[string]any{"strategy": "fixed", "interval": float64(3_600_000)}, sent["repeatInterval"])
 			require.NotContains(t, sent, "type", "the route states the type; the body must not")
 		})

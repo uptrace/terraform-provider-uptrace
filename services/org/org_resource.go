@@ -15,8 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -87,9 +87,7 @@ func (r *OrgResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	tflog.Info(ctx, "creating org", map[string]any{"name": plan.Name.ValueString()})
 
-	out, err := r.client.API.CreateOrg(ctx, &generated.CreateOrgRequestOptions{
-		Body: &generated.OrgCreateRequest{Name: plan.Name.ValueString()},
-	})
+	out, err := r.client.API.CreateOrg(ctx, api.OrgCreateRequest{Name: plan.Name.ValueString()})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "create org failed", err)
 		return
@@ -98,10 +96,7 @@ func (r *OrgResource) Create(ctx context.Context, req resource.CreateRequest, re
 
 	// The create request takes no budget: a configured one is a second call.
 	if !plan.Budget.IsNull() && !plan.Budget.IsUnknown() {
-		budgetOut, err := r.client.API.UpdateOrgBudget(ctx, &generated.UpdateOrgBudgetRequestOptions{
-			PathParams: &generated.UpdateOrgBudgetPath{OrgID: org.ID},
-			Body:       &generated.OrgUpdateBudgetRequest{Budget: plan.Budget.ValueFloat64()},
-		})
+		budgetOut, err := r.client.API.UpdateOrgBudget(ctx, api.UpdateOrgBudgetRequest{OrgID: org.ID}, api.OrgUpdateBudgetRequest{Budget: plan.Budget.ValueFloat64()})
 		if err != nil {
 			// The org exists: keep it in state so the next apply retries the budget.
 			orgToModel(&org, &plan)
@@ -129,9 +124,7 @@ func (r *OrgResource) Read(ctx context.Context, req resource.ReadRequest, resp *
 		return
 	}
 
-	out, err := r.client.API.GetOrg(ctx, &generated.GetOrgRequestOptions{
-		PathParams: &generated.GetOrgPath{OrgID: orgID},
-	})
+	out, err := r.client.API.GetOrg(ctx, api.GetOrgRequest{OrgID: orgID})
 	if err != nil {
 		if client.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -161,11 +154,8 @@ func (r *OrgResource) Update(ctx context.Context, req resource.UpdateRequest, re
 
 	tflog.Info(ctx, "updating org", map[string]any{"id": plan.ID.ValueString()})
 
-	out, err := r.client.API.UpdateOrg(ctx, &generated.UpdateOrgRequestOptions{
-		PathParams: &generated.UpdateOrgPath{OrgID: orgID},
-		Body: &generated.OrgUpdateRequest{
-			Name: plan.Name.ValueString(),
-		},
+	out, err := r.client.API.UpdateOrg(ctx, api.UpdateOrgRequest{OrgID: orgID}, api.OrgUpdateRequest{
+		Name: plan.Name.ValueString(),
 	})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "update org failed", err)
@@ -174,11 +164,8 @@ func (r *OrgResource) Update(ctx context.Context, req resource.UpdateRequest, re
 	org := out.Org
 
 	if !plan.Budget.IsNull() && !plan.Budget.IsUnknown() && !plan.Budget.Equal(state.Budget) {
-		budgetOut, err := r.client.API.UpdateOrgBudget(ctx, &generated.UpdateOrgBudgetRequestOptions{
-			PathParams: &generated.UpdateOrgBudgetPath{OrgID: orgID},
-			Body: &generated.OrgUpdateBudgetRequest{
-				Budget: plan.Budget.ValueFloat64(),
-			},
+		budgetOut, err := r.client.API.UpdateOrgBudget(ctx, api.UpdateOrgBudgetRequest{OrgID: orgID}, api.OrgUpdateBudgetRequest{
+			Budget: plan.Budget.ValueFloat64(),
 		})
 		if err != nil {
 			tfutil.AddAPIError(&resp.Diagnostics, "update org budget failed", err)
@@ -206,9 +193,7 @@ func (r *OrgResource) Delete(ctx context.Context, req resource.DeleteRequest, re
 
 	tflog.Info(ctx, "deleting org", map[string]any{"id": state.ID.ValueString()})
 
-	_, err = r.client.API.DeleteOrg(ctx, &generated.DeleteOrgRequestOptions{
-		PathParams: &generated.DeleteOrgPath{OrgID: orgID},
-	})
+	_, err = r.client.API.DeleteOrg(ctx, api.DeleteOrgRequest{OrgID: orgID})
 	if err != nil && !client.IsNotFound(err) {
 		tfutil.AddAPIError(&resp.Diagnostics, "delete org failed", err)
 	}
@@ -218,7 +203,7 @@ func (r *OrgResource) ImportState(ctx context.Context, req resource.ImportStateR
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
-func orgToModel(org *generated.Org, m *orgModel) {
+func orgToModel(org *api.Org, m *orgModel) {
 	m.ID = types.StringValue(strconv.FormatUint(org.ID, 10))
 	m.Name = types.StringValue(org.Name)
 	m.Budget = types.Float64Value(org.Budget)

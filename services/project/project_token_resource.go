@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 	"github.com/uptrace/terraform/tfutil"
 )
 
@@ -105,14 +105,11 @@ func (r *ProjectTokenResource) Create(ctx context.Context, req resource.CreateRe
 		"project_id": plan.ProjectID.ValueString(),
 	})
 
-	body := &generated.ProjectTokenCreateRequest{
+	body := &api.ProjectTokenCreateRequest{
 		Name: plan.Name.ValueString(),
 	}
 
-	out, err := r.client.API.CreateProjectToken(ctx, &generated.CreateProjectTokenRequestOptions{
-		PathParams: &generated.CreateProjectTokenPath{ProjectID: projectID},
-		Body:       body,
-	})
+	out, err := r.client.API.CreateProjectToken(ctx, api.CreateProjectTokenRequest{ProjectID: projectID}, *body)
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "create project token failed", err)
 		return
@@ -142,12 +139,7 @@ func (r *ProjectTokenResource) Read(ctx context.Context, req resource.ReadReques
 		return
 	}
 
-	out, err := r.client.API.GetProjectToken(ctx, &generated.GetProjectTokenRequestOptions{
-		PathParams: &generated.GetProjectTokenPath{
-			ProjectID: projectID,
-			TokenID:   tokenID,
-		},
-	})
+	out, err := r.client.API.GetProjectToken(ctx, api.GetProjectTokenRequest{ProjectID: projectID, TokenID: tokenID})
 	if err != nil {
 		if client.IsNotFound(err) {
 			resp.State.RemoveResource(ctx)
@@ -185,14 +177,8 @@ func (r *ProjectTokenResource) Update(ctx context.Context, req resource.UpdateRe
 	tflog.Info(ctx, "updating project token", map[string]any{"id": plan.ID.ValueString()})
 
 	name := plan.Name.ValueString()
-	out, err := r.client.API.UpdateProjectToken(ctx, &generated.UpdateProjectTokenRequestOptions{
-		PathParams: &generated.UpdateProjectTokenPath{
-			ProjectID: projectID,
-			TokenID:   tokenID,
-		},
-		Body: &generated.ProjectTokenUpdateRequest{
-			Name: name,
-		},
+	out, err := r.client.API.UpdateProjectToken(ctx, api.UpdateProjectTokenRequest{ProjectID: projectID, TokenID: tokenID}, api.ProjectTokenUpdateRequest{
+		Name: name,
 	})
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "update project token failed", err)
@@ -228,12 +214,7 @@ func (r *ProjectTokenResource) Delete(ctx context.Context, req resource.DeleteRe
 
 	tflog.Info(ctx, "deleting project token", map[string]any{"id": state.ID.ValueString()})
 
-	_, err = r.client.API.DeleteProjectToken(ctx, &generated.DeleteProjectTokenRequestOptions{
-		PathParams: &generated.DeleteProjectTokenPath{
-			ProjectID: projectID,
-			TokenID:   tokenID,
-		},
-	})
+	_, err = r.client.API.DeleteProjectToken(ctx, api.DeleteProjectTokenRequest{ProjectID: projectID, TokenID: tokenID})
 	if err != nil && !client.IsNotFound(err) {
 		tfutil.AddAPIError(&resp.Diagnostics, "delete project token failed", err)
 	}
@@ -247,10 +228,10 @@ func (r *ProjectTokenResource) ImportState(ctx context.Context, req resource.Imp
 	)
 }
 
-func projectTokenToModel(t *generated.ProjectToken, m *projectTokenModel) {
+func projectTokenToModel(t *api.ProjectToken, m *projectTokenModel) {
 	m.ID = types.StringValue(strconv.FormatUint(t.ID, 10))
 	m.Token = types.StringValue(t.Token)
 
 	m.Name = types.StringValue(t.Name)
-	m.DSN = types.StringValue(t.Dsn)
+	m.DSN = types.StringValue(t.DSN)
 }

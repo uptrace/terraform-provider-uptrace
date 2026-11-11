@@ -12,10 +12,11 @@ vars:
   VERSION: '{{.VERSION | default "dev"}}'
   OS_ARCH:
     sh: echo "$(go env GOOS)_$(go env GOARCH)"
-  # Every Go file of the module except the generated client. gofmt recurses
-  # into a directory argument, so the list names files.
+  # Every Go file of the module except the generated client, which cmd/apigen
+  # of the app writes. gofmt recurses into a directory argument, so the list
+  # names files.
   GOFMT_FILES:
-    sh: find . -name '*.go' -not -path './generated/*' | sort | tr '\n' ' '
+    sh: find . -name '*.go' -not -path './api/*' | sort | tr '\n' ' '
   # The terraform CLI that docs and testacc download. Without a pin they take the
   # newest release, so a new release could change docs/ or fail a commit that
   # changed nothing. TF_ACC_TERRAFORM_PATH still names a local binary for testacc.
@@ -49,19 +50,6 @@ tasks:
     cmds:
       - go test ./... -v -count=1 -timeout 10m
 
-  sync-spec:
-    desc: 'Vendor openapi/ of the app at a ref, e.g. task terraform:sync-spec REF=origin/prod. Then run generate.'
-    requires:
-      vars: [REF]
-    cmds:
-      - scripts/sync-spec.sh {{.APP_DIR | default ".."}} {{.REF}}
-
-  generate:
-    desc: Generate the API client in generated/ from openapi/openapi.yaml.
-    cmds:
-      - rm -f generated/*.go
-      - go tool oapi-codegen -config oapi-codegen.yaml openapi/openapi.yaml
-
   docs:
     desc: Generate the registry documentation in docs/.
     cmds:
@@ -69,7 +57,7 @@ tasks:
 
   vet:
     cmds:
-      - go vet $(go list ./... | grep -v /generated)
+      - go vet ./...
 
   lint:
     cmds:
@@ -80,7 +68,7 @@ tasks:
       - gofmt -s -w {{.GOFMT_FILES}}
 
   fmt:check:
-    desc: Fail when a Go file outside generated/ is not gofmt-formatted.
+    desc: Fail when a Go file outside api/ is not gofmt-formatted.
     cmds:
       - |
         unformatted=$(gofmt -s -l {{.GOFMT_FILES}})

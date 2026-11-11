@@ -22,8 +22,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
-	"github.com/uptrace/terraform/generated"
 )
 
 var metricAliasRegexp = regexp.MustCompile(`^\$[A-Za-z_][A-Za-z0-9_]*$`)
@@ -143,15 +143,15 @@ func metricsAttribute() schema.ListNestedAttribute {
 	}
 }
 
-func metricsToAPI(ms []metricAliasModel) []generated.MetricAlias {
-	out := make([]generated.MetricAlias, len(ms))
+func metricsToAPI(ms []metricAliasModel) []api.MetricAlias {
+	out := make([]api.MetricAlias, len(ms))
 	for i, m := range ms {
-		out[i] = generated.MetricAlias{Name: m.Name.ValueString(), Alias: m.Alias.ValueString()}
+		out[i] = api.MetricAlias{Name: m.Name.ValueString(), Alias: m.Alias.ValueString()}
 	}
 	return out
 }
 
-func metricsFromAPI(ms []generated.MetricAlias) []metricAliasModel {
+func metricsFromAPI(ms []api.MetricAlias) []metricAliasModel {
 	out := make([]metricAliasModel, len(ms))
 	for i, m := range ms {
 		out[i] = metricAliasModel{Name: types.StringValue(m.Name), Alias: types.StringValue(m.Alias)}
@@ -178,15 +178,15 @@ type metricParamsModel struct {
 // metricParamsJSON is metricParamsModel on the wire. Each kind's params
 // struct embeds it, and encoding/json flattens it into the same object.
 type metricParamsJSON struct {
-	Metrics         []generated.MetricAlias  `json:"metrics"`
-	Query           string                   `json:"query"`
-	Column          *generated.MonitorColumn `json:"column,omitempty"`
-	Resolution      *int64                   `json:"resolution,omitempty"`
-	NumEvalPoints   *int64                   `json:"numEvalPoints,omitempty"`
-	WindowRule      *string                  `json:"windowRule,omitempty"`
-	MinBreachPoints *int64                   `json:"minBreachPoints,omitempty"`
-	AbsentPoints    *string                  `json:"absentPoints,omitempty"`
-	TimeOffset      *int64                   `json:"timeOffset,omitempty"`
+	Metrics         []api.MetricAlias  `json:"metrics"`
+	Query           string             `json:"query"`
+	Column          *api.MonitorColumn `json:"column,omitempty"`
+	Resolution      *int64             `json:"resolution,omitempty"`
+	NumEvalPoints   *int64             `json:"numEvalPoints,omitempty"`
+	WindowRule      *string            `json:"windowRule,omitempty"`
+	MinBreachPoints *int64             `json:"minBreachPoints,omitempty"`
+	AbsentPoints    *string            `json:"absentPoints,omitempty"`
+	TimeOffset      *int64             `json:"timeOffset,omitempty"`
 }
 
 func metricParamsAttributes(extra map[string]schema.Attribute) map[string]schema.Attribute {
@@ -214,11 +214,11 @@ func metricParamsAttributes(extra map[string]schema.Attribute) map[string]schema
 		"resolution":      durationAttribute(true, "Width of one evaluated point."),
 		"num_eval_points": boundedInt("How many recent points each check evaluates.", minNumEvalPoints, maxNumEvalPoints),
 		"window_rule": optionalComputedEnum("How the evaluated points decide a breach.",
-			generated.MetricWindowRuleAtAllTimes, generated.MetricWindowRuleAtLeast,
-			generated.MetricWindowRuleOnAverage, generated.MetricWindowRuleInTotal),
+			api.MetricWindowRuleAtAllTimes, api.MetricWindowRuleAtLeast,
+			api.MetricWindowRuleOnAverage, api.MetricWindowRuleInTotal),
 		"min_breach_points": optionalComputedInt("Breaching points the at_least window rule needs. A count of 1 or more with no window_rule means at_least."),
 		"absent_points": optionalComputedEnum("How a point with no data counts: zero, ignore, or alert (a missing point breaches).",
-			generated.AbsentPointsZero, generated.AbsentPointsIgnore, generated.AbsentPointsAlert),
+			api.AbsentPointsZero, api.AbsentPointsIgnore, api.AbsentPointsAlert),
 		"time_offset": durationAttribute(true, "How far back the evaluated window ends, for data that arrives late."),
 	}
 	for k, v := range extra {
@@ -242,7 +242,7 @@ func (m *metricParamsModel) toAPI(ctx context.Context, diags *diag.Diagnostics) 
 			Unit types.String `tfsdk:"unit"`
 		}
 		diags.Append(m.Column.As(ctx, &col, basetypes.ObjectAsOptions{UnhandledUnknownAsEmpty: true})...)
-		out.Column = &generated.MonitorColumn{Name: col.Name.ValueString(), Unit: col.Unit.ValueString()}
+		out.Column = &api.MonitorColumn{Name: col.Name.ValueString(), Unit: col.Unit.ValueString()}
 	}
 	var err error
 	if out.Resolution, err = durationMillis(m.Resolution); err != nil {
@@ -258,7 +258,7 @@ func (m *metricParamsModel) fromAPI(ctx context.Context, p *metricParamsJSON, pr
 	m.Metrics = metricsFromAPI(p.Metrics)
 	m.Query = stringOrPrior(p.Query, prior.Query)
 
-	col := generated.MonitorColumn{}
+	col := api.MonitorColumn{}
 	if p.Column != nil {
 		col = *p.Column
 	}
@@ -299,7 +299,7 @@ func paramsToObject[M any](ctx context.Context, k *kind, m *M, diags *diag.Diagn
 // sendAs decodes body into the kind's generated request and sends it. The
 // generated request is the spec's key set, so an encoding mistake here fails
 // in the decode instead of reaching the server.
-func sendAs[B any](body []byte, send func(*B) (*generated.MonitorSummaryResponse, error)) (*generated.MonitorSummaryResponse, error) {
+func sendAs[B any](body []byte, send func(*B) (*api.MonitorSummaryResponse, error)) (*api.MonitorSummaryResponse, error) {
 	b := new(B)
 	if err := json.Unmarshal(body, b); err != nil {
 		return nil, err
@@ -318,9 +318,9 @@ type thresholdParamsModel struct {
 
 type thresholdParamsJSON struct {
 	metricParamsJSON
-	MinValue *float64                   `json:"minValue,omitempty"`
-	MaxValue *float64                   `json:"maxValue,omitempty"`
-	Recovery *generated.MonitorRecovery `json:"recovery,omitempty"`
+	MinValue *float64             `json:"minValue,omitempty"`
+	MaxValue *float64             `json:"maxValue,omitempty"`
+	Recovery *api.MonitorRecovery `json:"recovery,omitempty"`
 }
 
 var recoveryAttrTypes = map[string]attr.Type{"min_value": types.Float64Type, "max_value": types.Float64Type}
@@ -344,18 +344,14 @@ var thresholdKind = &kind{
 			},
 		}),
 	},
-	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.ThresholdMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.CreateThresholdMonitor(ctx, &generated.CreateThresholdMonitorRequestOptions{
-				PathParams: &generated.CreateThresholdMonitorPath{ProjectID: projectID}, Body: b,
-			})
+	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.ThresholdMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.CreateThresholdMonitor(ctx, api.CreateThresholdMonitorRequest{ProjectID: projectID}, *b)
 		})
 	},
-	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.ThresholdMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.UpdateThresholdMonitor(ctx, &generated.UpdateThresholdMonitorRequestOptions{
-				PathParams: &generated.UpdateThresholdMonitorPath{ProjectID: projectID, MonitorID: id}, Body: b,
-			})
+	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.ThresholdMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.UpdateThresholdMonitor(ctx, api.UpdateThresholdMonitorRequest{ProjectID: projectID, MonitorID: id}, *b)
 		})
 	},
 }
@@ -375,7 +371,7 @@ func init() {
 				MaxValue types.Float64 `tfsdk:"max_value"`
 			}
 			diags.Append(m.Recovery.As(ctx, &r, basetypes.ObjectAsOptions{})...)
-			out.Recovery = &generated.MonitorRecovery{MinValue: float64Ptr(r.MinValue), MaxValue: float64Ptr(r.MaxValue)}
+			out.Recovery = &api.MonitorRecovery{MinValue: float64Ptr(r.MinValue), MaxValue: float64Ptr(r.MaxValue)}
 		}
 		return out, diags
 	}
@@ -428,18 +424,18 @@ type anomalyParamsJSON struct {
 
 func sensitivityAttribute() schema.StringAttribute {
 	return optionalComputedEnum("How far a value must stray before it counts.",
-		generated.DetectorSensitivityVeryLow, generated.DetectorSensitivityLow, generated.DetectorSensitivityMedium,
-		generated.DetectorSensitivityHigh, generated.DetectorSensitivityVeryHigh)
+		api.DetectorSensitivityVeryLow, api.DetectorSensitivityLow, api.DetectorSensitivityMedium,
+		api.DetectorSensitivityHigh, api.DetectorSensitivityVeryHigh)
 }
 
 func directionAttribute() schema.StringAttribute {
 	return optionalComputedEnum("Which deviations alert.",
-		generated.DirectionFilterAbove, generated.DirectionFilterBelow, generated.DirectionFilterBoth)
+		api.DirectionFilterAbove, api.DirectionFilterBelow, api.DirectionFilterBoth)
 }
 
 func seasonalityAttribute() schema.StringAttribute {
 	return optionalComputedEnum("Whether the model learns daily and weekly cycles.",
-		generated.DetectorSeasonalityAuto, generated.DetectorSeasonalityOff)
+		api.DetectorSeasonalityAuto, api.DetectorSeasonalityOff)
 }
 
 var anomalyKind = &kind{
@@ -449,7 +445,7 @@ var anomalyKind = &kind{
 		Required:    true,
 		Description: "What the monitor queries and how its anomaly detector judges the value.",
 		Attributes: metricParamsAttributes(map[string]schema.Attribute{
-			"preset":      optionalComputedEnum("Detector preset.", generated.AnomalyPresetGeneral),
+			"preset":      optionalComputedEnum("Detector preset.", api.AnomalyPresetGeneral),
 			"sensitivity": sensitivityAttribute(),
 			"direction":   directionAttribute(),
 			"seasonality": seasonalityAttribute(),
@@ -457,18 +453,14 @@ var anomalyKind = &kind{
 			"min_change":  optionalComputedFloat("Smallest absolute change that counts as an anomaly."),
 		}),
 	},
-	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.AnomalyMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.CreateAnomalyMonitor(ctx, &generated.CreateAnomalyMonitorRequestOptions{
-				PathParams: &generated.CreateAnomalyMonitorPath{ProjectID: projectID}, Body: b,
-			})
+	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.AnomalyMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.CreateAnomalyMonitor(ctx, api.CreateAnomalyMonitorRequest{ProjectID: projectID}, *b)
 		})
 	},
-	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.AnomalyMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.UpdateAnomalyMonitor(ctx, &generated.UpdateAnomalyMonitorRequestOptions{
-				PathParams: &generated.UpdateAnomalyMonitorPath{ProjectID: projectID, MonitorID: id}, Body: b,
-			})
+	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.AnomalyMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.UpdateAnomalyMonitor(ctx, api.UpdateAnomalyMonitorRequest{ProjectID: projectID, MonitorID: id}, *b)
 		})
 	},
 }
@@ -541,18 +533,14 @@ var outlierKind = &kind{
 			"keep_firing_for": boundedDuration("How long an alert stays open after the series rejoins its peers.", minOutlierKeepFiring, maxOutlierKeepFiring),
 		}),
 	},
-	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.OutlierMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.CreateOutlierMonitor(ctx, &generated.CreateOutlierMonitorRequestOptions{
-				PathParams: &generated.CreateOutlierMonitorPath{ProjectID: projectID}, Body: b,
-			})
+	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.OutlierMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.CreateOutlierMonitor(ctx, api.CreateOutlierMonitorRequest{ProjectID: projectID}, *b)
 		})
 	},
-	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.OutlierMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.UpdateOutlierMonitor(ctx, &generated.UpdateOutlierMonitorRequestOptions{
-				PathParams: &generated.UpdateOutlierMonitorPath{ProjectID: projectID, MonitorID: id}, Body: b,
-			})
+	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.OutlierMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.UpdateOutlierMonitor(ctx, api.UpdateOutlierMonitorRequest{ProjectID: projectID, MonitorID: id}, *b)
 		})
 	},
 }
@@ -624,18 +612,14 @@ var forecastKind = &kind{
 			"horizon":     boundedDuration("How far ahead the forecast looks.", minForecastHorizon, maxForecastHorizon),
 		}),
 	},
-	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.ForecastMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.CreateForecastMonitor(ctx, &generated.CreateForecastMonitorRequestOptions{
-				PathParams: &generated.CreateForecastMonitorPath{ProjectID: projectID}, Body: b,
-			})
+	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.ForecastMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.CreateForecastMonitor(ctx, api.CreateForecastMonitorRequest{ProjectID: projectID}, *b)
 		})
 	},
-	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.ForecastMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.UpdateForecastMonitor(ctx, &generated.UpdateForecastMonitorRequestOptions{
-				PathParams: &generated.UpdateForecastMonitorPath{ProjectID: projectID, MonitorID: id}, Body: b,
-			})
+	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.ForecastMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.UpdateForecastMonitor(ctx, api.UpdateForecastMonitorRequest{ProjectID: projectID, MonitorID: id}, *b)
 		})
 	},
 }
@@ -682,8 +666,8 @@ type errorParamsModel struct {
 }
 
 type errorParamsJSON struct {
-	Metrics []generated.MetricAlias `json:"metrics"`
-	Query   string                  `json:"query"`
+	Metrics []api.MetricAlias `json:"metrics"`
+	Query   string            `json:"query"`
 }
 
 var errorKind = &kind{
@@ -700,18 +684,14 @@ var errorKind = &kind{
 			},
 		},
 	},
-	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.ErrorMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.CreateErrorMonitor(ctx, &generated.CreateErrorMonitorRequestOptions{
-				PathParams: &generated.CreateErrorMonitorPath{ProjectID: projectID}, Body: b,
-			})
+	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.ErrorMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.CreateErrorMonitor(ctx, api.CreateErrorMonitorRequest{ProjectID: projectID}, *b)
 		})
 	},
-	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.ErrorMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.UpdateErrorMonitor(ctx, &generated.UpdateErrorMonitorRequestOptions{
-				PathParams: &generated.UpdateErrorMonitorPath{ProjectID: projectID, MonitorID: id}, Body: b,
-			})
+	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.ErrorMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.UpdateErrorMonitor(ctx, api.UpdateErrorMonitorRequest{ProjectID: projectID, MonitorID: id}, *b)
 		})
 	},
 }
@@ -784,14 +764,14 @@ type sloRuleJSON struct {
 }
 
 type sloParamsJSON struct {
-	Metrics       []generated.MetricAlias `json:"metrics"`
-	Sli           sloSliJSON              `json:"sli"`
-	Grouping      []string                `json:"grouping,omitempty"`
-	Resolution    int64                   `json:"resolution"`
-	Target        float64                 `json:"target"`
-	WindowKind    *string                 `json:"windowKind,omitempty"`
-	RollingWindow int64                   `json:"rollingWindow"`
-	Rules         []sloRuleJSON           `json:"rules,omitempty"`
+	Metrics       []api.MetricAlias `json:"metrics"`
+	Sli           sloSliJSON        `json:"sli"`
+	Grouping      []string          `json:"grouping,omitempty"`
+	Resolution    int64             `json:"resolution"`
+	Target        float64           `json:"target"`
+	WindowKind    *string           `json:"windowKind,omitempty"`
+	RollingWindow int64             `json:"rollingWindow"`
+	Rules         []sloRuleJSON     `json:"rules,omitempty"`
 }
 
 var sloRuleAttrTypes = map[string]attr.Type{
@@ -826,8 +806,8 @@ var sloKind = &kind{
 			},
 			"target": schema.Float64Attribute{Required: true, Description: "The good share the SLO promises, such as 0.999."},
 			"window_kind": optionalComputedEnum("The budget window.",
-				generated.SloBudgetWindowKindRolling, generated.SloBudgetWindowKindCalendarWeek,
-				generated.SloBudgetWindowKindCalendarMonth, generated.SloBudgetWindowKindCalendarQuarter),
+				api.SLOBudgetWindowKindRolling, api.SLOBudgetWindowKindCalendarWeek,
+				api.SLOBudgetWindowKindCalendarMonth, api.SLOBudgetWindowKindCalendarQuarter),
 			"rolling_window": durationAttribute(true, "Length of a rolling budget window, such as 30d."),
 			"rules": schema.ListNestedAttribute{
 				Optional:      true,
@@ -855,18 +835,14 @@ var sloKind = &kind{
 			},
 		},
 	},
-	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.SloMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.CreateSloMonitor(ctx, &generated.CreateSloMonitorRequestOptions{
-				PathParams: &generated.CreateSloMonitorPath{ProjectID: projectID}, Body: b,
-			})
+	create: func(ctx context.Context, c *client.Client, projectID uint32, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.SLOMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.CreateSLOMonitor(ctx, api.CreateSLOMonitorRequest{ProjectID: projectID}, *b)
 		})
 	},
-	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*generated.MonitorSummaryResponse, error) {
-		return sendAs(body, func(b *generated.SloMonitorRequest) (*generated.MonitorSummaryResponse, error) {
-			return c.API.UpdateSloMonitor(ctx, &generated.UpdateSloMonitorRequestOptions{
-				PathParams: &generated.UpdateSloMonitorPath{ProjectID: projectID, MonitorID: id}, Body: b,
-			})
+	update: func(ctx context.Context, c *client.Client, projectID uint32, id uint64, body []byte) (*api.MonitorSummaryResponse, error) {
+		return sendAs(body, func(b *api.SLOMonitorRequest) (*api.MonitorSummaryResponse, error) {
+			return c.API.UpdateSLOMonitor(ctx, api.UpdateSLOMonitorRequest{ProjectID: projectID, MonitorID: id}, *b)
 		})
 	},
 }

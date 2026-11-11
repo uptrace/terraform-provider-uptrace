@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/uptrace/terraform/generated"
+	"github.com/uptrace/terraform/api"
 )
 
 func projectTokenResourceTestSchema(t *testing.T) resource.SchemaResponse {
@@ -45,12 +45,12 @@ func projectTokenResourceTestPlan(t *testing.T, m projectTokenModel) tfsdk.Plan 
 }
 
 func TestProjectTokenToModel_fullPayload(t *testing.T) {
-	token := &generated.ProjectToken{
+	token := &api.ProjectToken{
 		ID:        42,
 		ProjectID: 7,
 		Name:      "ci-ingest",
 		Token:     "secret123",
-		Dsn:       "http://secret123@localhost:14318/7",
+		DSN:       "http://secret123@localhost:14318/7",
 	}
 	m := projectTokenModel{ProjectID: types.StringValue("7")}
 
@@ -64,7 +64,7 @@ func TestProjectTokenToModel_fullPayload(t *testing.T) {
 }
 
 func TestProjectTokenToModel_doesNotSetProjectID(t *testing.T) {
-	token := &generated.ProjectToken{
+	token := &api.ProjectToken{
 		ID:        42,
 		ProjectID: 7,
 		Token:     "secret123",
@@ -78,12 +78,12 @@ func TestProjectTokenToModel_doesNotSetProjectID(t *testing.T) {
 }
 
 func TestProjectTokenToModel_dsnFollowsAPI(t *testing.T) {
-	token := &generated.ProjectToken{
+	token := &api.ProjectToken{
 		ID:        42,
 		ProjectID: 7,
 		Token:     "secret123",
 		Name:      "test",
-		Dsn:       "https://secret123@uptrace.example.com?grpc=4317",
+		DSN:       "https://secret123@uptrace.example.com?grpc=4317",
 	}
 	var m projectTokenModel
 
