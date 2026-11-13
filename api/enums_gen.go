@@ -314,6 +314,10 @@ const (
 	// The server took too long to answer.
 	ErrorCodeTimeout ErrorCode = "timeout"
 
+	// The server is too busy to take the request now. Send it again after the Retry-After
+	// delay.
+	ErrorCodeUnavailable ErrorCode = "unavailable"
+
 	// The server failed. The detail holds what is safe to show.
 	ErrorCodeInternal ErrorCode = "internal"
 
@@ -647,6 +651,7 @@ func ErrorCodeValues() []ErrorCode {
 		ErrorCodeRateLimited,
 		ErrorCodeRequestTimeout,
 		ErrorCodeTimeout,
+		ErrorCodeUnavailable,
 		ErrorCodeInternal,
 		ErrorCodeNotImplemented,
 		ErrorCodeEOF,
