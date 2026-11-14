@@ -1123,8 +1123,10 @@ func PagerdutySeverityValues() []PagerdutySeverity {
 type PermLevel string
 
 const (
-	// Forbids access to the project outright, overriding any role-based permission. The holder
-	// can neither view nor edit nor interact with it in any way.
+	// Forbids access to the project outright, overriding the permissions of every role but
+	// owner. The holder can neither view nor edit nor interact with it in any way. An
+	// organization owner keeps full access to every project, so this level changes nothing for
+	// one.
 	PermLevelNone PermLevel = "none"
 
 	// Read-only access to the project.
