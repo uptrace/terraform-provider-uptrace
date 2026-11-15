@@ -206,6 +206,37 @@ func (r *monitorResource) Configure(_ context.Context, req resource.ConfigureReq
 func (r *monitorResource) ValidateConfig(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
 	r.validateRepeatInterval(ctx, req, resp)
 	r.validateWindowRule(ctx, req, resp)
+	r.validateAbsentResolveAfter(ctx, req, resp)
+}
+
+// validateAbsentResolveAfter refuses an absent_resolve_after beside an
+// absent_points other than alert. The server reads the expiry only under alert
+// and stores 0s under any other rule (monitorspec normalizeAbsentResolveAfter),
+// so a plan that held it would end the apply inconsistent (DESIGN.md G3). A
+// configuration that omits absent_points keeps the stored rule, which only the
+// plan holds, so planAbsentResolveAfter checks that case.
+func (r *monitorResource) validateAbsentResolveAfter(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
+	if _, ok := r.kind.params.Attributes["absent_resolve_after"]; !ok {
+		return
+	}
+	var params types.Object
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("params"), &params)...)
+	if resp.Diagnostics.HasError() || params.IsNull() || params.IsUnknown() {
+		return
+	}
+	var (
+		rule, expiry = types.StringNull(), types.StringNull()
+		p            = path.Root("params")
+	)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, p.AtName("absent_points"), &rule)...)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, p.AtName("absent_resolve_after"), &expiry)...)
+	if resp.Diagnostics.HasError() || rule.IsNull() || rule.IsUnknown() || expiry.IsNull() {
+		return
+	}
+	if rule.ValueString() != string(api.AbsentPointsAlert) {
+		resp.Diagnostics.AddAttributeError(p.AtName("absent_resolve_after"), "invalid absent_resolve_after",
+			"only absent_points alert reads an absent expiry; the server stores 0s under any other rule")
+	}
 }
 
 // validateWindowRule refuses a window_rule and min_breach_points pair that the
@@ -322,6 +353,7 @@ func (r *monitorResource) ModifyPlan(ctx context.Context, req resource.ModifyPla
 		return
 	}
 	r.planWindowRule(ctx, req, resp)
+	r.planAbsentResolveAfter(ctx, req, resp)
 	if resp.Diagnostics.HasError() || req.State.Raw.IsNull() {
 		return
 	}
@@ -395,6 +427,54 @@ func (r *monitorResource) planWindowRule(ctx context.Context, req resource.Modif
 			types.StringValue(string(api.MetricWindowRuleAtLeast)))...)
 	case !rule.IsNull() && rule.ValueString() != string(api.MetricWindowRuleAtLeast) && count.IsNull():
 		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, p.AtName("min_breach_points"), types.Int64Value(0))...)
+	}
+}
+
+// planAbsentResolveAfter plans the expiry the server will store for a
+// configuration that omits absent_resolve_after, where UseStateForUnknown would
+// plan the one of the state (DESIGN.md G3). Under a planned absent_points other
+// than alert the server stores 0s. Under alert it stores the default for a 0s
+// the state holds from an earlier rule, which the plan leaves unknown.
+//
+// It refuses a stated expiry under a planned absent_points other than alert.
+// Only a configuration that omits absent_points reaches that case, since
+// validateAbsentResolveAfter refuses a stated rule: UseStateForUnknown plans
+// the stored rule there, and the server would store 0s. A new monitor plans an
+// unknown rule, and the server's fallback for it is alert.
+func (r *monitorResource) planAbsentResolveAfter(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	if _, ok := r.kind.params.Attributes["absent_resolve_after"]; !ok {
+		return
+	}
+	var params types.Object
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, path.Root("params"), &params)...)
+	if resp.Diagnostics.HasError() || params.IsNull() || params.IsUnknown() {
+		return
+	}
+	var (
+		stated, rule, planned = types.StringNull(), types.StringNull(), types.StringNull()
+		p                     = path.Root("params")
+	)
+	resp.Diagnostics.Append(req.Config.GetAttribute(ctx, p.AtName("absent_resolve_after"), &stated)...)
+	resp.Diagnostics.Append(resp.Plan.GetAttribute(ctx, p.AtName("absent_points"), &rule)...)
+	resp.Diagnostics.Append(resp.Plan.GetAttribute(ctx, p.AtName("absent_resolve_after"), &planned)...)
+	if resp.Diagnostics.HasError() || rule.IsNull() || rule.IsUnknown() {
+		return
+	}
+	if !stated.IsNull() {
+		if rule.ValueString() != string(api.AbsentPointsAlert) {
+			resp.Diagnostics.AddAttributeError(p.AtName("absent_resolve_after"), "invalid absent_resolve_after",
+				fmt.Sprintf("the configuration omits absent_points, so the monitor keeps its stored rule %q, "+
+					"which reads no absent expiry; the server would store 0s. Set absent_points = %q, "+
+					"or remove absent_resolve_after", rule.ValueString(), api.AbsentPointsAlert))
+		}
+		return
+	}
+	if rule.ValueString() != string(api.AbsentPointsAlert) {
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, p.AtName("absent_resolve_after"), types.StringValue("0s"))...)
+		return
+	}
+	if ms, err := durationMillis(planned); err == nil && ms != nil && *ms == 0 {
+		resp.Diagnostics.Append(resp.Plan.SetAttribute(ctx, p.AtName("absent_resolve_after"), types.StringUnknown())...)
 	}
 }
 

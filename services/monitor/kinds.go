@@ -91,6 +91,8 @@ const (
 	maxOutlierKeepFiring = 2 * time.Hour       // monitorspec.MaxOutlierKeepFiringFor
 	minForecastHorizon   = time.Hour           // monitorspec.MinForecastHorizon
 	maxForecastHorizon   = 14 * 24 * time.Hour // monitorspec.MaxForecastHorizon
+	minAbsentResolve     = time.Hour           // monitorspec.MinAbsentResolveAfter
+	maxAbsentResolve     = 30 * 24 * time.Hour // monitorspec.MaxAbsentResolveAfter
 )
 
 // boundedInt is an optionalComputedInt held to [min, max].
@@ -172,7 +174,10 @@ type metricParamsModel struct {
 	WindowRule      types.String       `tfsdk:"window_rule"`
 	MinBreachPoints types.Int64        `tfsdk:"min_breach_points"`
 	AbsentPoints    types.String       `tfsdk:"absent_points"`
-	TimeOffset      types.String       `tfsdk:"time_offset"`
+	// AbsentResolveAfter is read only under absent_points alert; the server
+	// stores 0s under any other rule.
+	AbsentResolveAfter types.String `tfsdk:"absent_resolve_after"`
+	TimeOffset         types.String `tfsdk:"time_offset"`
 }
 
 // metricParamsJSON is metricParamsModel on the wire. Each kind's params
@@ -186,7 +191,9 @@ type metricParamsJSON struct {
 	WindowRule      *string            `json:"windowRule,omitempty"`
 	MinBreachPoints *int64             `json:"minBreachPoints,omitempty"`
 	AbsentPoints    *string            `json:"absentPoints,omitempty"`
-	TimeOffset      *int64             `json:"timeOffset,omitempty"`
+	// AbsentResolveAfter is in milliseconds.
+	AbsentResolveAfter *int64 `json:"absentResolveAfter,omitempty"`
+	TimeOffset         *int64 `json:"timeOffset,omitempty"`
 }
 
 func metricParamsAttributes(extra map[string]schema.Attribute) map[string]schema.Attribute {
@@ -219,6 +226,9 @@ func metricParamsAttributes(extra map[string]schema.Attribute) map[string]schema
 		"min_breach_points": optionalComputedInt("Breaching points the at_least window rule needs. A count of 1 or more with no window_rule means at_least."),
 		"absent_points": optionalComputedEnum("How a point with no data counts: zero, ignore, or alert (a missing point breaches).",
 			api.AbsentPointsZero, api.AbsentPointsIgnore, api.AbsentPointsAlert),
+		"absent_resolve_after": boundedDuration("How long a series may stay missing under absent_points alert before "+
+			"its alert resolves as series_expired, from 1h to 30d. Omit for the server default of 1d. "+
+			"The server stores 0s under any other absent_points.", minAbsentResolve, maxAbsentResolve),
 		"time_offset": durationAttribute(true, "How far back the evaluated window ends, for data that arrives late."),
 	}
 	for k, v := range extra {
@@ -251,6 +261,9 @@ func (m *metricParamsModel) toAPI(ctx context.Context, diags *diag.Diagnostics) 
 	if out.TimeOffset, err = durationMillis(m.TimeOffset); err != nil {
 		diags.AddError("invalid params.time_offset", err.Error())
 	}
+	if out.AbsentResolveAfter, err = durationMillis(m.AbsentResolveAfter); err != nil {
+		diags.AddError("invalid params.absent_resolve_after", err.Error())
+	}
 	return out
 }
 
@@ -274,6 +287,7 @@ func (m *metricParamsModel) fromAPI(ctx context.Context, p *metricParamsJSON, pr
 	m.WindowRule = types.StringPointerValue(p.WindowRule)
 	m.MinBreachPoints = types.Int64PointerValue(p.MinBreachPoints)
 	m.AbsentPoints = types.StringPointerValue(p.AbsentPoints)
+	m.AbsentResolveAfter = optionalDuration(p.AbsentResolveAfter, prior.AbsentResolveAfter)
 	m.TimeOffset = optionalDuration(p.TimeOffset, prior.TimeOffset)
 }
 

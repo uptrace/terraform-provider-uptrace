@@ -56,7 +56,7 @@ func projectResourceTestPlan(t *testing.T, m projectModel) tfsdk.Plan {
 }
 
 func TestProjectToModel_fullPayload(t *testing.T) {
-	p := &api.Project{
+	p := &api.Project{ProjectWithPerms: api.ProjectWithPerms{ProjectSummary: api.ProjectSummary{
 		ID:                      7,
 		OrgID:                   42,
 		Name:                    "api",
@@ -64,7 +64,7 @@ func TestProjectToModel_fullPayload(t *testing.T) {
 		GroupFuncsByService:     false,
 		SkipMonitorStatusEmails: true,
 		SemconvVersion:          api.SemconvVersionV1330,
-	}
+	}}}
 	var m projectModel
 
 	projectToModel(p, &m)
@@ -85,13 +85,13 @@ func TestProjectToModel_retentionAndTimeRangeNotOverwritten(t *testing.T) {
 		MetricRetention: types.StringValue("720h"),
 		SpanTimeRange:   types.StringValue("24h"),
 	}
-	apiResp := &api.Project{
+	apiResp := &api.Project{ProjectWithPerms: api.ProjectWithPerms{ProjectSummary: api.ProjectSummary{
 		ID:              1,
 		Name:            "api",
 		SpanRetention:   1_209_600_000, // 336h — the CE override
 		MetricRetention: 1_209_600_000,
 		SpanTimeRange:   0,
-	}
+	}}}
 
 	projectToModel(apiResp, &m)
 

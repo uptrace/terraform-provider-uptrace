@@ -83,7 +83,9 @@ resource "uptrace_threshold_monitor" "test" {
     resolution      = "1m"
     num_eval_points = 5
     absent_points   = "alert"
-    min_value       = 1
+    # A host decommissioned for good resolves after 6h rather than reminding.
+    absent_resolve_after = "6h"
+    min_value            = 1
   }
 }
 `
@@ -115,6 +117,7 @@ resource "uptrace_threshold_monitor" "test" {
 				resource.TestCheckResourceAttr(addr, "repeat_interval.interval", "1h"),
 				resource.TestCheckResourceAttr(addr, "params.resolution", "1m"),
 				resource.TestCheckResourceAttr(addr, "params.min_value", "1"),
+				resource.TestCheckResourceAttr(addr, "params.absent_resolve_after", "6h"),
 				resource.TestCheckNoResourceAttr(addr, "params.max_value"),
 			},
 			[]resource.TestCheckFunc{
@@ -122,6 +125,9 @@ resource "uptrace_threshold_monitor" "test" {
 				resource.TestCheckResourceAttr(addr, "channel_ids.#", "0"),
 				resource.TestCheckNoResourceAttr(addr, "description"),
 				resource.TestCheckResourceAttr(addr, "params.absent_points", "zero"),
+				// Only alert reads an absent expiry; the plan states the 0s the
+				// server stores under zero.
+				resource.TestCheckResourceAttr(addr, "params.absent_resolve_after", "0s"),
 				resource.TestCheckResourceAttr(addr, "params.max_value", "10000"),
 				resource.TestCheckResourceAttr(addr, "params.recovery.max_value", "8000"),
 				resource.TestCheckNoResourceAttr(addr, "params.recovery.min_value"),

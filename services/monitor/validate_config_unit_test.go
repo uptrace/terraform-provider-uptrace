@@ -221,3 +221,165 @@ func TestModifyPlan_refusesACountAtThePlannedWidth(t *testing.T) {
 		})
 	}
 }
+
+// The server reads absent_resolve_after only under absent_points alert and
+// stores 0s under any other rule, so a configuration that states one beside
+// another rule would end the apply inconsistent (terraform:G3).
+func TestValidateConfig_refusesAnAbsentExpiryTheServerZeroes(t *testing.T) {
+	ctx := context.Background()
+	r := &monitorResource{kind: kindByName(t, "threshold")}
+	var schemaResp resource.SchemaResponse
+	r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
+	require.False(t, schemaResp.Diagnostics.HasError())
+	paramsType := schemaResp.Schema.Attributes["params"].GetType().TerraformType(ctx)
+	str := func(s string) tftypes.Value { return tftypes.NewValue(tftypes.String, s) }
+
+	for _, tc := range []struct {
+		name    string
+		params  map[string]tftypes.Value
+		refused bool
+	}{
+		{"an expiry under alert", map[string]tftypes.Value{
+			"absent_points": str("alert"), "absent_resolve_after": str("6h")}, false},
+		{"an expiry with the default rule", map[string]tftypes.Value{
+			"absent_resolve_after": str("6h")}, false},
+		{"an expiry under ignore", map[string]tftypes.Value{
+			"absent_points": str("ignore"), "absent_resolve_after": str("6h")}, true},
+		{"no expiry under zero", map[string]tftypes.Value{
+			"absent_points": str("zero")}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			config := tfconfig.ConfigOf(t, schemaResp.Schema, map[string]tftypes.Value{
+				"project_id": str("1"),
+				"name":       str("cpu"),
+				"params":     tfconfig.ObjectOf(t, paramsType, tc.params),
+			})
+			var resp resource.ValidateConfigResponse
+			r.ValidateConfig(ctx, resource.ValidateConfigRequest{Config: config}, &resp)
+			require.Equal(t, tc.refused, resp.Diagnostics.HasError(), "diagnostics: %v", resp.Diagnostics)
+		})
+	}
+}
+
+// UseStateForUnknown plans the absent expiry of the state for a configuration
+// that omits it, and the server stores another one when absent_points changes:
+// 0s under a rule other than alert, and the default under alert for a 0s left by
+// an earlier rule (terraform:G3). The plan states the first and leaves the second
+// unknown.
+func TestModifyPlan_plansTheAbsentExpiryTheServerStores(t *testing.T) {
+	ctx := context.Background()
+	r := &monitorResource{kind: kindByName(t, "threshold")}
+	var schemaResp resource.SchemaResponse
+	r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
+	require.False(t, schemaResp.Diagnostics.HasError())
+	paramsType := schemaResp.Schema.Attributes["params"].GetType().TerraformType(ctx)
+
+	raw := func(t *testing.T, params map[string]tftypes.Value) tftypes.Value {
+		t.Helper()
+		return tfconfig.ConfigOf(t, schemaResp.Schema, map[string]tftypes.Value{
+			"project_id": tftypes.NewValue(tftypes.String, "1"),
+			"name":       tftypes.NewValue(tftypes.String, "cpu"),
+			"params":     tfconfig.ObjectOf(t, paramsType, params),
+		}).Raw
+	}
+	str := func(s string) tftypes.Value { return tftypes.NewValue(tftypes.String, s) }
+
+	for _, tc := range []struct {
+		name    string
+		config  map[string]tftypes.Value
+		planned map[string]tftypes.Value
+		// want is the planned expiry, "" for unknown.
+		want string
+	}{
+		{"a rule other than alert plans 0s",
+			map[string]tftypes.Value{"absent_points": str("ignore")},
+			map[string]tftypes.Value{"absent_points": str("ignore"), "absent_resolve_after": str("1d")},
+			"0s"},
+		{"alert over a 0s state is the server's to decide",
+			map[string]tftypes.Value{"absent_points": str("alert")},
+			map[string]tftypes.Value{"absent_points": str("alert"), "absent_resolve_after": str("0s")},
+			""},
+		{"alert keeps a stored expiry",
+			map[string]tftypes.Value{"absent_points": str("alert")},
+			map[string]tftypes.Value{"absent_points": str("alert"), "absent_resolve_after": str("6h")},
+			"6h"},
+		{"a stated expiry is the plan",
+			map[string]tftypes.Value{"absent_points": str("alert"), "absent_resolve_after": str("2h")},
+			map[string]tftypes.Value{"absent_points": str("alert"), "absent_resolve_after": str("2h")},
+			"2h"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := resource.ModifyPlanRequest{
+				Config: tfsdk.Config{Schema: schemaResp.Schema, Raw: raw(t, tc.config)},
+				Plan:   tfsdk.Plan{Schema: schemaResp.Schema, Raw: raw(t, tc.planned)},
+				State:  tfsdk.State{Schema: schemaResp.Schema, Raw: raw(t, tc.planned)},
+			}
+			resp := resource.ModifyPlanResponse{Plan: req.Plan}
+			r.ModifyPlan(ctx, req, &resp)
+			require.False(t, resp.Diagnostics.HasError(), "diagnostics: %v", resp.Diagnostics)
+
+			var expiry types.String
+			diags := resp.Plan.GetAttribute(ctx, path.Root("params").AtName("absent_resolve_after"), &expiry)
+			require.False(t, diags.HasError(), "diagnostics: %v", diags)
+			if tc.want == "" {
+				require.True(t, expiry.IsUnknown(), "planned %v", expiry)
+				return
+			}
+			require.Equal(t, tc.want, expiry.ValueString())
+		})
+	}
+}
+
+// A configuration that states absent_resolve_after and omits absent_points
+// keeps the stored rule, which UseStateForUnknown plans. The server stores 0s
+// under a stored rule other than alert, so the plan refuses the expiry there
+// (terraform:G3). A new monitor plans an unknown rule, and the server's
+// fallback for an omitted rule is alert.
+func TestModifyPlan_refusesAStatedExpiryUnderAStoredRule(t *testing.T) {
+	ctx := context.Background()
+	r := &monitorResource{kind: kindByName(t, "threshold")}
+	var schemaResp resource.SchemaResponse
+	r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
+	require.False(t, schemaResp.Diagnostics.HasError())
+	paramsType := schemaResp.Schema.Attributes["params"].GetType().TerraformType(ctx)
+
+	raw := func(t *testing.T, params map[string]tftypes.Value) tftypes.Value {
+		t.Helper()
+		return tfconfig.ConfigOf(t, schemaResp.Schema, map[string]tftypes.Value{
+			"project_id": tftypes.NewValue(tftypes.String, "1"),
+			"name":       tftypes.NewValue(tftypes.String, "cpu"),
+			"params":     tfconfig.ObjectOf(t, paramsType, params),
+		}).Raw
+	}
+	str := func(s string) tftypes.Value { return tftypes.NewValue(tftypes.String, s) }
+	config := map[string]tftypes.Value{"absent_resolve_after": str("6h")}
+
+	for _, tc := range []struct {
+		name string
+		rule tftypes.Value // the planned absent_points
+		// stored is the absent_points of the state, "" for a new monitor.
+		stored  string
+		refused bool
+	}{
+		{"a stored ignore", str("ignore"), "ignore", true},
+		{"a stored zero", str("zero"), "zero", true},
+		{"a stored alert", str("alert"), "alert", false},
+		{"a new monitor takes the server's alert", tftypes.NewValue(tftypes.String, tftypes.UnknownValue), "", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			req := resource.ModifyPlanRequest{
+				Config: tfsdk.Config{Schema: schemaResp.Schema, Raw: raw(t, config)},
+				Plan: tfsdk.Plan{Schema: schemaResp.Schema, Raw: raw(t, map[string]tftypes.Value{
+					"absent_points": tc.rule, "absent_resolve_after": str("6h")})},
+				State: tfsdk.State{Schema: schemaResp.Schema, Raw: tftypes.NewValue(schemaResp.Schema.Type().TerraformType(ctx), nil)},
+			}
+			if tc.stored != "" {
+				req.State.Raw = raw(t, map[string]tftypes.Value{
+					"absent_points": str(tc.stored), "absent_resolve_after": str("0s")})
+			}
+			resp := resource.ModifyPlanResponse{Plan: req.Plan}
+			r.ModifyPlan(ctx, req, &resp)
+			require.Equal(t, tc.refused, resp.Diagnostics.HasError(), "diagnostics: %v", resp.Diagnostics)
+		})
+	}
+}

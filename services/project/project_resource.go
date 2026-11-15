@@ -239,19 +239,9 @@ func (r *ProjectResource) Update(ctx context.Context, req resource.UpdateRequest
 		resp.Diagnostics.AddError("invalid project configuration", err.Error())
 		return
 	}
-	body := api.ProjectUpdateRequest{
-		Name:                      fields.Name,
-		GroupByEnv:                fields.GroupByEnv,
-		GroupFuncsByService:       fields.GroupFuncsByService,
-		SkipMonitorStatusEmails:   fields.SkipMonitorStatusEmails,
-		SkipMonitorDisabledEmails: fields.SkipMonitorDisabledEmails,
-		SemconvVersion:            fields.SemconvVersion,
-		SpanRetention:             fields.SpanRetention,
-		LogRetention:              fields.LogRetention,
-		EventRetention:            fields.EventRetention,
-		MetricRetention:           fields.MetricRetention,
-		ProfileRetention:          fields.ProfileRetention,
-	}
+	// The update states every key the create does, and no read check: the
+	// provider has no updatedAt of its own to send.
+	body := api.ProjectUpdateRequest{ProjectCreateRequest: fields}
 	out, err := r.client.API.UpdateProject(ctx, api.UpdateProjectRequest{ProjectID: projectID}, body)
 	if err != nil {
 		tfutil.AddAPIError(&resp.Diagnostics, "update project failed", err)

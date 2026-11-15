@@ -18,7 +18,9 @@ resource "uptrace_threshold_monitor" "example" {
     resolution      = "1m"
     num_eval_points = 5
     absent_points   = "alert"
-    min_value       = 1
+    # A service gone for 6h is taken as retired, and its alert resolves.
+    absent_resolve_after = "6h"
+    min_value            = 1
   }
 }
 

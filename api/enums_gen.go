@@ -1274,6 +1274,33 @@ func SLOSLIMemberTypeValues() []SLOSLIMemberType {
 	}
 }
 
+// Which of the three floors sets an SLO subject's staleness TTL. The TTL is the widest of
+// them, so it moves with whichever wins.
+type SLOStalenessTerm string
+
+const (
+	// Three full partition passes. A large monitor is checked in partitions, and a check sees
+	// a subject once a pass.
+	SLOStalenessTermPartitionPasses SLOStalenessTerm = "partition_passes"
+
+	// Twice the widest window a check reads. A subject is judged over that window, so it may
+	// not go stale inside one.
+	SLOStalenessTermRuleWindow SLOStalenessTerm = "rule_window"
+
+	// One day, the minimum TTL any SLO monitor gets.
+	SLOStalenessTermMinimum SLOStalenessTerm = "minimum"
+)
+
+// SLOStalenessTermValues returns every SLOStalenessTerm the contract states, in the order
+// it states them.
+func SLOStalenessTermValues() []SLOStalenessTerm {
+	return []SLOStalenessTerm{
+		SLOStalenessTermPartitionPasses,
+		SLOStalenessTermRuleWindow,
+		SLOStalenessTermMinimum,
+	}
+}
+
 // How a project samples ingested traces. org_wide follows the organization's own mode,
 // dynamic lets the server pick the fraction from the budget, fixed pins the fraction the
 // project states, and disabled keeps everything.

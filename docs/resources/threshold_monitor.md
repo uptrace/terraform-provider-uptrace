@@ -33,7 +33,9 @@ resource "uptrace_threshold_monitor" "example" {
     resolution      = "1m"
     num_eval_points = 5
     absent_points   = "alert"
-    min_value       = 1
+    # A service gone for 6h is taken as retired, and its alert resolves.
+    absent_resolve_after = "6h"
+    min_value            = 1
   }
 }
 
@@ -84,6 +86,7 @@ Required:
 Optional:
 
 - `absent_points` (String) How a point with no data counts: zero, ignore, or alert (a missing point breaches). Omit for the server default.
+- `absent_resolve_after` (String) How long a series may stay missing under absent_points alert before its alert resolves as series_expired, from 1h to 30d. Omit for the server default of 1d. The server stores 0s under any other absent_points. A duration string: ms, s, m, h, d (day) or w (week).
 - `column` (Attributes) The query result column the monitor evaluates, and its display unit. Omit to evaluate the first column. (see [below for nested schema](#nestedatt--params--column))
 - `max_value` (Number) The monitor fires when the value rises above it.
 - `min_breach_points` (Number) Breaching points the at_least window rule needs. A count of 1 or more with no window_rule means at_least. Omit for the server default.

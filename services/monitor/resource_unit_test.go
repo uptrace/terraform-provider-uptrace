@@ -25,15 +25,15 @@ var serverParams = map[string]string{
 		"query": "sum($g{}) | group by service_name",
 		"column": {"name": "sum($g{})", "unit": ""},
 		"resolution": 60000, "numEvalPoints": 5, "windowRule": "at_all_times",
-		"minBreachPoints": 0, "absentPoints": "alert", "timeOffset": 0,
-		"minValue": 1, "maxValue": null,
+		"minBreachPoints": 0, "absentPoints": "alert", "absentResolveAfter": 86400000,
+		"timeOffset": 0, "minValue": 1, "maxValue": null,
 		"recovery": {"minValue": null, "maxValue": null}
 	}`,
 	"anomaly": `{
 		"metrics": [{"name": "uptrace_tracing_spans", "alias": "$spans"}],
 		"query": "p50($spans{})", "column": {"name": "p50($spans{})", "unit": "milliseconds"},
 		"resolution": 60000, "numEvalPoints": 1, "windowRule": "at_all_times",
-		"minBreachPoints": 0, "absentPoints": "ignore", "timeOffset": 0,
+		"minBreachPoints": 0, "absentPoints": "ignore", "absentResolveAfter": 0, "timeOffset": 0,
 		"preset": "general", "minVolume": 0, "minChange": 0,
 		"sensitivity": "medium", "direction": "both", "seasonality": "auto"
 	}`,
@@ -41,7 +41,7 @@ var serverParams = map[string]string{
 		"metrics": [{"name": "system_cpu_load_average_1m", "alias": "$load"}],
 		"query": "avg($load{}) | group by host_name", "column": {"name": "avg($load{})", "unit": ""},
 		"resolution": 60000, "numEvalPoints": 1, "windowRule": "at_all_times",
-		"minBreachPoints": 0, "absentPoints": "ignore", "timeOffset": 0,
+		"minBreachPoints": 0, "absentPoints": "ignore", "absentResolveAfter": 0, "timeOffset": 0,
 		"minPeers": 3, "minChange": 0, "sensitivity": "medium", "direction": "both",
 		"keepFiringFor": 300000
 	}`,
@@ -49,7 +49,7 @@ var serverParams = map[string]string{
 		"metrics": [{"name": "system_filesystem_usage", "alias": "$fs"}],
 		"query": "sum($fs{state=\"used\"}) / sum($fs{}) as util", "column": {"name": "util", "unit": ""},
 		"resolution": 60000, "numEvalPoints": 1, "windowRule": "at_all_times",
-		"minBreachPoints": 0, "absentPoints": "ignore", "timeOffset": 0,
+		"minBreachPoints": 0, "absentPoints": "ignore", "absentResolveAfter": 0, "timeOffset": 0,
 		"minValue": null, "maxValue": 0.96, "seasonality": "auto", "horizon": 259200000
 	}`,
 	"error": `{
@@ -355,6 +355,7 @@ func TestBoundedKnobs_refuseWhatTheServerRewrites(t *testing.T) {
 	}{
 		{outlierKind, "keep_firing_for", []string{"0s", "9s", "2h1m"}, []string{"10s", "30m", "2h"}},
 		{forecastKind, "horizon", []string{"0s", "59m", "15d"}, []string{"1h", "3d", "14d"}},
+		{thresholdKind, "absent_resolve_after", []string{"0s", "59m", "31d"}, []string{"1h", "1d", "30d"}},
 	} {
 		for _, v := range tc.bad {
 			require.Equal(t, 1, durationErrs(tc.kind, tc.name, v), "%s = %q", tc.name, v)

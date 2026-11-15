@@ -334,6 +334,7 @@ list unset does not manage the links and shows no drift when the other side chan
 | window_rule       | string          | no       | `at_all_times`, `at_least`, `on_average` or `in_total`.           |
 | min_breach_points | number          | no       | Breaching points the `at_least` rule needs.                       |
 | absent_points     | string          | no       | A missing point counts as `zero`, is `ignore`d, or breaches (`alert`). |
+| absent_resolve_after | string       | no       | Under `alert`, how long a series may stay missing before its alert resolves, `1h` to `30d`. Defaults to `1d`. |
 | time_offset       | string          | no       | How far back the evaluated window ends.                           |
 
 Type-specific `params`:

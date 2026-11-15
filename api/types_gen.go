@@ -4,30 +4,7 @@ package api
 
 // Posts to an Alertmanager instance.
 type AlertmanagerChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -60,17 +37,7 @@ type AlertmanagerChannelRequest struct {
 
 // Alertmanager notification channel params.
 type AlertmanagerParams struct {
-	// How a channel authenticates against a URL the user supplies.
-	AuthMethod HTTPAuthMethod `json:"authMethod,omitzero"`
-
-	// Username for basic_auth.
-	Username string `json:"username,omitzero"`
-
-	// Password for basic_auth.
-	Password string `json:"password,omitzero"`
-
-	// Token for bearer auth.
-	Token string `json:"token,omitzero"`
+	HTTPAuth
 
 	// Alertmanager API endpoint URL.
 	URL string `json:"url"`
@@ -79,77 +46,7 @@ type AlertmanagerParams struct {
 // An anomaly monitor as the detail read serves it: the stored row with the worded check
 // diagnosis derived on this read.
 type AnomalyMonitor struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
-
-	// The monitor kind this member is selected by.
-	Type MonitorType `json:"type"`
-
-	// The knobs of the anomaly decision. They tune the model fitted on history, and they say
-	// how far a point must depart from it before the monitor reports it.
-	Params AnomalyMonitorParams `json:"params"`
+	AnomalyMonitorSummary
 
 	// One coded, quantified, worded statement — why an alert fired, why a series could not
 	// be judged, or why a check reached the status it did.
@@ -159,33 +56,8 @@ type AnomalyMonitor struct {
 // The knobs of the anomaly decision. They tune the model fitted on history, and they say
 // how far a point must depart from it before the monitor reports it.
 type AnomalyMonitorParams struct {
-	// The metric expressions the query refers to.
-	Metrics []MetricAlias `json:"metrics"`
-
-	// The MQL expression that produces the monitored value.
-	Query string `json:"query"`
-
-	// The query result column a metric monitor evaluates, and its display unit.
-	Column MonitorColumn `json:"column"`
-
-	// Resolution in milliseconds.
-	Resolution int64 `json:"resolution"`
-
-	// Width of the evaluation window, in points, from 1 to 15.
-	NumEvalPoints int `json:"numEvalPoints"`
-
-	// How the evaluation window collapses to one verdict.
-	WindowRule MetricWindowRule `json:"windowRule"`
-
-	// How many points of the evaluation window must breach under the at_least rule. It is
-	// normalized to 0 under every other rule, and a value at or above numEvalPoints folds the
-	// pair to at_all_times.
-	MinBreachPoints int          `json:"minBreachPoints"`
-	AbsentPoints    AbsentPoints `json:"absentPoints"`
-
-	// Time offset in milliseconds.
-	TimeOffset int64         `json:"timeOffset"`
-	Preset     AnomalyPreset `json:"preset"`
+	BaseMetricParams
+	Preset AnomalyPreset `json:"preset"`
 
 	// Minimum value a point must reach before it can be scored as anomalous, so a quiet series
 	// does not alert on noise.
@@ -202,35 +74,8 @@ type AnomalyMonitorParams struct {
 // out. The knobs of the anomaly decision. They tune the model fitted on history, and they
 // say how far a point must depart from it before the monitor reports it.
 type AnomalyMonitorParamsInput struct {
-	// The metric expressions the query refers to.
-	Metrics []MetricAlias `json:"metrics"`
-
-	// The MQL expression that produces the monitored value.
-	Query string `json:"query"`
-
-	// The query result column a metric monitor evaluates, and its display unit.
-	Column *MonitorColumn `json:"column,omitzero"`
-
-	// Resolution in milliseconds.
-	Resolution int64 `json:"resolution,omitzero"`
-
-	// Width of the evaluation window, in points. Omit it and the server defaults it; a value
-	// outside 1 to 15 is refused.
-	NumEvalPoints int `json:"numEvalPoints,omitzero"`
-
-	// How the evaluation window collapses to one verdict. Omit it and the server reads the
-	// meaning minBreachPoints already carried.
-	WindowRule *MetricWindowRule `json:"windowRule,omitzero"`
-
-	// How many points of the evaluation window must breach under the at_least rule. It is
-	// normalized to 0 under every other rule, and a value at or above numEvalPoints folds the
-	// pair to at_all_times.
-	MinBreachPoints int           `json:"minBreachPoints,omitzero"`
-	AbsentPoints    *AbsentPoints `json:"absentPoints,omitzero"`
-
-	// Time offset in milliseconds.
-	TimeOffset int64          `json:"timeOffset,omitzero"`
-	Preset     *AnomalyPreset `json:"preset,omitzero"`
+	BaseMetricParamsInput
+	Preset *AnomalyPreset `json:"preset,omitzero"`
 
 	// Minimum value a point must reach before it can be scored as anomalous, so a quiet series
 	// does not alert on noise.
@@ -294,70 +139,7 @@ type AnomalyMonitorRequest struct {
 
 // An anomaly monitor as the row stores it: the base plus the kind and its own params.
 type AnomalyMonitorSummary struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
+	BaseMonitor
 
 	// The monitor kind this member is selected by.
 	Type MonitorType `json:"type"`
@@ -395,6 +177,13 @@ type BaseMetricParams struct {
 	MinBreachPoints int          `json:"minBreachPoints"`
 	AbsentPoints    AbsentPoints `json:"absentPoints"`
 
+	// How long a series may stay absent under absentPoints alert before its open alert
+	// resolves as series_expired, in milliseconds, counted only while the monitor is checked,
+	// so a pause does not use it up. A series is never resolved inside the vanish grace
+	// window, so the effective expiry is the larger of the two. It is 0 under every other
+	// absentPoints rule.
+	AbsentResolveAfter int64 `json:"absentResolveAfter"`
+
 	// Time offset in milliseconds.
 	TimeOffset int64 `json:"timeOffset"`
 }
@@ -429,6 +218,12 @@ type BaseMetricParamsInput struct {
 	// pair to at_all_times.
 	MinBreachPoints int           `json:"minBreachPoints,omitzero"`
 	AbsentPoints    *AbsentPoints `json:"absentPoints,omitzero"`
+
+	// How long a series may stay absent under absentPoints alert before its open alert
+	// resolves as series_expired, in milliseconds, counted only while the monitor is checked,
+	// so a pause does not use it up. Omit it or send 0 for the default, 24 hours; the range is
+	// 1 hour to 30 days. It is ignored and stored as 0 under every other absentPoints rule.
+	AbsentResolveAfter int64 `json:"absentResolveAfter,omitzero"`
 
 	// Time offset in milliseconds.
 	TimeOffset int64 `json:"timeOffset,omitzero"`
@@ -690,30 +485,7 @@ type DiagnosticQuantity struct {
 // Email addresses people. Its params name an audience of users and teams, resolved at
 // delivery time.
 type EmailChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -774,77 +546,7 @@ type EmptyResponse = map[string]any
 // An error monitor as the detail read serves it: the stored row with the worded check
 // diagnosis derived on this read.
 type ErrorMonitor struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
-
-	// The monitor kind this member is selected by.
-	Type MonitorType `json:"type"`
-
-	// The params an error monitor reads: the metrics it binds, and the query it evaluates over
-	// them.
-	Params ErrorMonitorParams `json:"params"`
+	ErrorMonitorSummary
 
 	// One coded, quantified, worded statement — why an alert fired, why a series could not
 	// be judged, or why a check reached the status it did.
@@ -901,70 +603,7 @@ type ErrorMonitorRequest struct {
 
 // An error monitor as the row stores it: the base plus the kind and its own params.
 type ErrorMonitorSummary struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
+	BaseMonitor
 
 	// The monitor kind this member is selected by.
 	Type MonitorType `json:"type"`
@@ -997,77 +636,7 @@ type FixedRepeatInterval struct {
 // A forecast monitor as the detail read serves it: the stored row with the worded check
 // diagnosis derived on this read.
 type ForecastMonitor struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
-
-	// The monitor kind this member is selected by.
-	Type MonitorType `json:"type"`
-
-	// The knobs of the forecast decision. They say which bound a projected crossing fires on,
-	// and how far ahead the projection reaches. State a lower bound, an upper bound, or both.
-	Params ForecastMonitorParams `json:"params"`
+	ForecastMonitorSummary
 
 	// One coded, quantified, worded statement — why an alert fired, why a series could not
 	// be judged, or why a check reached the status it did.
@@ -1077,32 +646,7 @@ type ForecastMonitor struct {
 // The knobs of the forecast decision. They say which bound a projected crossing fires on,
 // and how far ahead the projection reaches. State a lower bound, an upper bound, or both.
 type ForecastMonitorParams struct {
-	// The metric expressions the query refers to.
-	Metrics []MetricAlias `json:"metrics"`
-
-	// The MQL expression that produces the monitored value.
-	Query string `json:"query"`
-
-	// The query result column a metric monitor evaluates, and its display unit.
-	Column MonitorColumn `json:"column"`
-
-	// Resolution in milliseconds.
-	Resolution int64 `json:"resolution"`
-
-	// Width of the evaluation window, in points, from 1 to 15.
-	NumEvalPoints int `json:"numEvalPoints"`
-
-	// How the evaluation window collapses to one verdict.
-	WindowRule MetricWindowRule `json:"windowRule"`
-
-	// How many points of the evaluation window must breach under the at_least rule. It is
-	// normalized to 0 under every other rule, and a value at or above numEvalPoints folds the
-	// pair to at_all_times.
-	MinBreachPoints int          `json:"minBreachPoints"`
-	AbsentPoints    AbsentPoints `json:"absentPoints"`
-
-	// Time offset in milliseconds.
-	TimeOffset int64 `json:"timeOffset"`
+	BaseMetricParams
 
 	// Lower bound. The monitor fires when a crossing below it is projected within the horizon.
 	MinValue *float64 `json:"minValue"`
@@ -1121,34 +665,7 @@ type ForecastMonitorParams struct {
 // on, and how far ahead the projection reaches. State a lower bound, an upper bound, or
 // both.
 type ForecastMonitorParamsInput struct {
-	// The metric expressions the query refers to.
-	Metrics []MetricAlias `json:"metrics"`
-
-	// The MQL expression that produces the monitored value.
-	Query string `json:"query"`
-
-	// The query result column a metric monitor evaluates, and its display unit.
-	Column *MonitorColumn `json:"column,omitzero"`
-
-	// Resolution in milliseconds.
-	Resolution int64 `json:"resolution,omitzero"`
-
-	// Width of the evaluation window, in points. Omit it and the server defaults it; a value
-	// outside 1 to 15 is refused.
-	NumEvalPoints int `json:"numEvalPoints,omitzero"`
-
-	// How the evaluation window collapses to one verdict. Omit it and the server reads the
-	// meaning minBreachPoints already carried.
-	WindowRule *MetricWindowRule `json:"windowRule,omitzero"`
-
-	// How many points of the evaluation window must breach under the at_least rule. It is
-	// normalized to 0 under every other rule, and a value at or above numEvalPoints folds the
-	// pair to at_all_times.
-	MinBreachPoints int           `json:"minBreachPoints,omitzero"`
-	AbsentPoints    *AbsentPoints `json:"absentPoints,omitzero"`
-
-	// Time offset in milliseconds.
-	TimeOffset int64 `json:"timeOffset,omitzero"`
+	BaseMetricParamsInput
 
 	// Lower bound. The monitor fires when a crossing below it is projected within the horizon.
 	MinValue *float64 `json:"minValue,omitzero"`
@@ -1215,70 +732,7 @@ type ForecastMonitorRequest struct {
 
 // A forecast monitor as the row stores it: the base plus the kind and its own params.
 type ForecastMonitorSummary struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
+	BaseMonitor
 
 	// The monitor kind this member is selected by.
 	Type MonitorType `json:"type"`
@@ -1290,30 +744,7 @@ type ForecastMonitorSummary struct {
 
 // Delivers to a Google Chat space over an incoming webhook.
 type GoogleChatChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -1367,30 +798,7 @@ type HTTPAuth struct {
 
 // Raises an incident.io alert.
 type IncidentioChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -1466,30 +874,7 @@ type ListTeamUsersResponse struct {
 
 // Delivers to Mattermost over an incoming webhook.
 type MattermostChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -1575,30 +960,7 @@ type NotificationChannelResponse struct {
 
 // Raises an Opsgenie alert.
 type OpsgenieChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -1876,78 +1238,7 @@ type OrglessUserInviteCreateRequest struct {
 // An outlier monitor as the detail read serves it: the stored row with the worded check
 // diagnosis derived on this read.
 type OutlierMonitor struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
-
-	// The monitor kind this member is selected by.
-	Type MonitorType `json:"type"`
-
-	// The knobs of the outlier decision. They say how far a series must depart from its peers,
-	// and how many peers the group needs before the monitor judges it. The query must group
-	// the series.
-	Params OutlierMonitorParams `json:"params"`
+	OutlierMonitorSummary
 
 	// One coded, quantified, worded statement — why an alert fired, why a series could not
 	// be judged, or why a check reached the status it did.
@@ -1958,32 +1249,7 @@ type OutlierMonitor struct {
 // and how many peers the group needs before the monitor judges it. The query must group the
 // series.
 type OutlierMonitorParams struct {
-	// The metric expressions the query refers to.
-	Metrics []MetricAlias `json:"metrics"`
-
-	// The MQL expression that produces the monitored value.
-	Query string `json:"query"`
-
-	// The query result column a metric monitor evaluates, and its display unit.
-	Column MonitorColumn `json:"column"`
-
-	// Resolution in milliseconds.
-	Resolution int64 `json:"resolution"`
-
-	// Width of the evaluation window, in points, from 1 to 15.
-	NumEvalPoints int `json:"numEvalPoints"`
-
-	// How the evaluation window collapses to one verdict.
-	WindowRule MetricWindowRule `json:"windowRule"`
-
-	// How many points of the evaluation window must breach under the at_least rule. It is
-	// normalized to 0 under every other rule, and a value at or above numEvalPoints folds the
-	// pair to at_all_times.
-	MinBreachPoints int          `json:"minBreachPoints"`
-	AbsentPoints    AbsentPoints `json:"absentPoints"`
-
-	// Time offset in milliseconds.
-	TimeOffset int64 `json:"timeOffset"`
+	BaseMetricParams
 
 	// Minimum peer series in a group before the monitor scores a series against them.
 	MinPeers int `json:"minPeers"`
@@ -2003,34 +1269,7 @@ type OutlierMonitorParams struct {
 // peers, and how many peers the group needs before the monitor judges it. The query must
 // group the series.
 type OutlierMonitorParamsInput struct {
-	// The metric expressions the query refers to.
-	Metrics []MetricAlias `json:"metrics"`
-
-	// The MQL expression that produces the monitored value.
-	Query string `json:"query"`
-
-	// The query result column a metric monitor evaluates, and its display unit.
-	Column *MonitorColumn `json:"column,omitzero"`
-
-	// Resolution in milliseconds.
-	Resolution int64 `json:"resolution,omitzero"`
-
-	// Width of the evaluation window, in points. Omit it and the server defaults it; a value
-	// outside 1 to 15 is refused.
-	NumEvalPoints int `json:"numEvalPoints,omitzero"`
-
-	// How the evaluation window collapses to one verdict. Omit it and the server reads the
-	// meaning minBreachPoints already carried.
-	WindowRule *MetricWindowRule `json:"windowRule,omitzero"`
-
-	// How many points of the evaluation window must breach under the at_least rule. It is
-	// normalized to 0 under every other rule, and a value at or above numEvalPoints folds the
-	// pair to at_all_times.
-	MinBreachPoints int           `json:"minBreachPoints,omitzero"`
-	AbsentPoints    *AbsentPoints `json:"absentPoints,omitzero"`
-
-	// Time offset in milliseconds.
-	TimeOffset int64 `json:"timeOffset,omitzero"`
+	BaseMetricParamsInput
 
 	// Minimum peer series in a group before the monitor scores a series against them.
 	MinPeers int `json:"minPeers,omitzero"`
@@ -2091,70 +1330,7 @@ type OutlierMonitorRequest struct {
 
 // An outlier monitor as the row stores it: the base plus the kind and its own params.
 type OutlierMonitorSummary struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
+	BaseMonitor
 
 	// The monitor kind this member is selected by.
 	Type MonitorType `json:"type"`
@@ -2167,30 +1343,7 @@ type OutlierMonitorSummary struct {
 
 // Raises a PagerDuty incident through the Events API.
 type PagerdutyChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -2292,111 +1445,7 @@ type ProblemFieldError struct {
 // policy the project actually gets. This is the single-project read; a listing serves
 // ProjectSummary or ProjectWithPerms.
 type Project struct {
-	ID    uint32 `json:"id"`
-	OrgID uint64 `json:"orgId"`
-
-	// The owning organization's name, joined onto the project. Empty on a response that does
-	// not join it.
-	OrgName string `json:"orgName"`
-	Name    string `json:"name"`
-
-	// URL of the project's identicon, derived from the id. Empty on a response that does not
-	// derive it.
-	Avatar string `json:"avatar"`
-
-	// How a project samples ingested traces. org_wide follows the organization's own mode,
-	// dynamic lets the server pick the fraction from the budget, fixed pins the fraction the
-	// project states, and disabled keeps everything.
-	SamplingMode        SamplingMode `json:"samplingMode"`
-	SamplingFraction    float64      `json:"samplingFraction"`
-	SamplingBudget      float64      `json:"samplingBudget"`
-	Suspended           bool         `json:"suspended"`
-	GroupByEnv          bool         `json:"groupByEnv"`
-	GroupFuncsByService bool         `json:"groupFuncsByService"`
-
-	// When true, a log or exception message that no grouping rule matches is not read for
-	// key=value pairs, so none becomes an attribute or sets the trace id, span id or time. The
-	// captures of a matching rule still apply. False by default.
-	SkipMessageAttrs bool `json:"skipMessageAttrs"`
-
-	// When true, the project sends no email when a user pauses or resumes a monitor. False by
-	// default.
-	SkipMonitorStatusEmails bool `json:"skipMonitorStatusEmails"`
-
-	// When true, the project sends no email when the system disables a monitor. False by
-	// default.
-	SkipMonitorDisabledEmails bool `json:"skipMonitorDisabledEmails"`
-
-	// OpenTelemetry semantic-convention version a project normalizes incoming attributes to.
-	// none applies no normalization.
-	SemconvVersion SemconvVersion `json:"semconvVersion"`
-
-	// The attribute keys that name the replica of an HA Prometheus pair. The ingester removes
-	// them from a datapoint before it identifies the series, so both replicas write one
-	// series, and keeps the samples of one replica.
-	HaReplicaLabels []string `json:"haReplicaLabels"`
-	SpanQuery       string   `json:"spanQuery"`
-	SpanColumns     []string `json:"spanColumns"`
-
-	// Duration in milliseconds (e.g., 86400000 for 24h).
-	SpanTimeRange int64 `json:"spanTimeRange"`
-
-	// The project's own span retention override, in milliseconds. Zero inherits the deployment
-	// default. Read the retention field for what the project actually keeps.
-	SpanRetention int64    `json:"spanRetention"`
-	LogQuery      string   `json:"logQuery"`
-	LogColumns    []string `json:"logColumns"`
-
-	// Duration in milliseconds (e.g., 86400000 for 24h).
-	LogTimeRange int64 `json:"logTimeRange"`
-
-	// The project's own log retention override, in milliseconds. Zero inherits the deployment
-	// default.
-	LogRetention int64    `json:"logRetention"`
-	EventQuery   string   `json:"eventQuery"`
-	EventColumns []string `json:"eventColumns"`
-
-	// Duration in milliseconds (e.g., 86400000 for 24h).
-	EventTimeRange int64 `json:"eventTimeRange"`
-
-	// The project's own event retention override, in milliseconds. Zero inherits the
-	// deployment default.
-	EventRetention int64    `json:"eventRetention"`
-	TraceQuery     string   `json:"traceQuery"`
-	TraceColumns   []string `json:"traceColumns"`
-
-	// Duration in milliseconds (e.g., 86400000 for 24h).
-	TraceTimeRange int64 `json:"traceTimeRange"`
-
-	// The project's own metric retention override, in milliseconds. Zero inherits the
-	// deployment default.
-	MetricRetention int64 `json:"metricRetention"`
-
-	// The project's own profile retention override, in milliseconds. Zero inherits the
-	// deployment default.
-	ProfileRetention int64 `json:"profileRetention"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// The project-scoped grant the requester's access was resolved from — a team's level or
-	// a direct override. Empty when access comes from an org role alone, in which case the
-	// project's own permission fields still hold. The non-empty values are PermLevel.
-	PermLevel         ProjectPermLevel `json:"permLevel"`
-	CanViewOrg        bool             `json:"canViewOrg"`
-	CanCreateProjects bool             `json:"canCreateProjects"`
-	CanEditBilling    bool             `json:"canEditBilling"`
-	CanInviteUsers    bool             `json:"canInviteUsers"`
-	CanAdminOrg       bool             `json:"canAdminOrg"`
-	CanViewProject    bool             `json:"canViewProject"`
-	CanEditProject    bool             `json:"canEditProject"`
-	CanAdminProject   bool             `json:"canAdminProject"`
-	CanOverrideTraces bool             `json:"canOverrideTraces"`
-	CanEditOverviews  bool             `json:"canEditOverviews"`
-	CanEditDashboards bool             `json:"canEditDashboards"`
+	ProjectWithPerms
 
 	// What a project actually keeps per signal, with each unset override resolved to the
 	// deployment default. Describes core/retention.Policy.
@@ -2608,50 +1657,7 @@ type ProjectTokenUpdateRequest struct {
 // The body of the project update: the settings the create writes, and the updatedAt of the
 // read that the update is based on.
 type ProjectUpdateRequest struct {
-	Name                string `json:"name"`
-	GroupByEnv          *bool  `json:"groupByEnv,omitzero"`
-	GroupFuncsByService *bool  `json:"groupFuncsByService,omitzero"`
-
-	// When true, a log or exception message that no grouping rule matches is not read for
-	// key=value pairs, so none becomes an attribute or sets the trace id, span id or time. The
-	// captures of a matching rule still apply. False by default.
-	SkipMessageAttrs *bool `json:"skipMessageAttrs,omitzero"`
-
-	// When true, the project sends no email when a user pauses or resumes a monitor. False by
-	// default.
-	SkipMonitorStatusEmails *bool `json:"skipMonitorStatusEmails,omitzero"`
-
-	// When true, the project sends no email when the system disables a monitor. False by
-	// default.
-	SkipMonitorDisabledEmails *bool `json:"skipMonitorDisabledEmails,omitzero"`
-
-	// OpenTelemetry semantic-convention version a project normalizes incoming attributes to.
-	// none applies no normalization.
-	SemconvVersion *SemconvVersion `json:"semconvVersion,omitzero"`
-
-	// The attribute keys that name the replica of an HA Prometheus pair. An absent or empty
-	// list names none.
-	HaReplicaLabels []string `json:"haReplicaLabels,omitempty"`
-
-	// The project's own span retention override, in milliseconds. Zero inherits the deployment
-	// default.
-	SpanRetention *int64 `json:"spanRetention,omitzero"`
-
-	// The project's own log retention override, in milliseconds. Zero inherits the deployment
-	// default.
-	LogRetention *int64 `json:"logRetention,omitzero"`
-
-	// The project's own event retention override, in milliseconds. Zero inherits the
-	// deployment default.
-	EventRetention *int64 `json:"eventRetention,omitzero"`
-
-	// The project's own metric retention override, in milliseconds. Zero inherits the
-	// deployment default.
-	MetricRetention *int64 `json:"metricRetention,omitzero"`
-
-	// The project's own profile retention override, in milliseconds. Zero inherits the
-	// deployment default.
-	ProfileRetention *int64 `json:"profileRetention,omitzero"`
+	ProjectCreateRequest
 
 	// The updatedAt of the project as the client read it. If the project changed after that
 	// read, the update is refused with 409 and the code record_changed. Absent writes without
@@ -2709,95 +1715,7 @@ type ProjectViewSettingsRequest struct {
 // organization. The retention field is not here: only a single-project read resolves a
 // policy.
 type ProjectWithPerms struct {
-	ID    uint32 `json:"id"`
-	OrgID uint64 `json:"orgId"`
-
-	// The owning organization's name, joined onto the project. Empty on a response that does
-	// not join it.
-	OrgName string `json:"orgName"`
-	Name    string `json:"name"`
-
-	// URL of the project's identicon, derived from the id. Empty on a response that does not
-	// derive it.
-	Avatar string `json:"avatar"`
-
-	// How a project samples ingested traces. org_wide follows the organization's own mode,
-	// dynamic lets the server pick the fraction from the budget, fixed pins the fraction the
-	// project states, and disabled keeps everything.
-	SamplingMode        SamplingMode `json:"samplingMode"`
-	SamplingFraction    float64      `json:"samplingFraction"`
-	SamplingBudget      float64      `json:"samplingBudget"`
-	Suspended           bool         `json:"suspended"`
-	GroupByEnv          bool         `json:"groupByEnv"`
-	GroupFuncsByService bool         `json:"groupFuncsByService"`
-
-	// When true, a log or exception message that no grouping rule matches is not read for
-	// key=value pairs, so none becomes an attribute or sets the trace id, span id or time. The
-	// captures of a matching rule still apply. False by default.
-	SkipMessageAttrs bool `json:"skipMessageAttrs"`
-
-	// When true, the project sends no email when a user pauses or resumes a monitor. False by
-	// default.
-	SkipMonitorStatusEmails bool `json:"skipMonitorStatusEmails"`
-
-	// When true, the project sends no email when the system disables a monitor. False by
-	// default.
-	SkipMonitorDisabledEmails bool `json:"skipMonitorDisabledEmails"`
-
-	// OpenTelemetry semantic-convention version a project normalizes incoming attributes to.
-	// none applies no normalization.
-	SemconvVersion SemconvVersion `json:"semconvVersion"`
-
-	// The attribute keys that name the replica of an HA Prometheus pair. The ingester removes
-	// them from a datapoint before it identifies the series, so both replicas write one
-	// series, and keeps the samples of one replica.
-	HaReplicaLabels []string `json:"haReplicaLabels"`
-	SpanQuery       string   `json:"spanQuery"`
-	SpanColumns     []string `json:"spanColumns"`
-
-	// Duration in milliseconds (e.g., 86400000 for 24h).
-	SpanTimeRange int64 `json:"spanTimeRange"`
-
-	// The project's own span retention override, in milliseconds. Zero inherits the deployment
-	// default. Read the retention field for what the project actually keeps.
-	SpanRetention int64    `json:"spanRetention"`
-	LogQuery      string   `json:"logQuery"`
-	LogColumns    []string `json:"logColumns"`
-
-	// Duration in milliseconds (e.g., 86400000 for 24h).
-	LogTimeRange int64 `json:"logTimeRange"`
-
-	// The project's own log retention override, in milliseconds. Zero inherits the deployment
-	// default.
-	LogRetention int64    `json:"logRetention"`
-	EventQuery   string   `json:"eventQuery"`
-	EventColumns []string `json:"eventColumns"`
-
-	// Duration in milliseconds (e.g., 86400000 for 24h).
-	EventTimeRange int64 `json:"eventTimeRange"`
-
-	// The project's own event retention override, in milliseconds. Zero inherits the
-	// deployment default.
-	EventRetention int64    `json:"eventRetention"`
-	TraceQuery     string   `json:"traceQuery"`
-	TraceColumns   []string `json:"traceColumns"`
-
-	// Duration in milliseconds (e.g., 86400000 for 24h).
-	TraceTimeRange int64 `json:"traceTimeRange"`
-
-	// The project's own metric retention override, in milliseconds. Zero inherits the
-	// deployment default.
-	MetricRetention int64 `json:"metricRetention"`
-
-	// The project's own profile retention override, in milliseconds. Zero inherits the
-	// deployment default.
-	ProfileRetention int64 `json:"profileRetention"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
+	ProjectSummary
 
 	// The project-scoped grant the requester's access was resolved from — a team's level or
 	// a direct override. Empty when access comes from an org role alone, in which case the
@@ -2827,30 +1745,7 @@ type PublicUser struct {
 
 // Delivers a Pushover notification.
 type PushoverChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -3015,77 +1910,7 @@ type SLOEventSLI struct {
 // An SLO monitor as the detail read serves it: the stored row with the worded check
 // diagnosis derived on this read.
 type SLOMonitor struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
-
-	// The monitor kind this member is selected by.
-	Type MonitorType `json:"type"`
-
-	// An SLO's whole configuration. Every subject its grouping discovers is judged by these
-	// same values, so nothing here is per subject.
-	Params SLOMonitorParams `json:"params"`
+	SLOMonitorSummary
 
 	// One coded, quantified, worded statement — why an alert fired, why a series could not
 	// be judged, or why a check reached the status it did.
@@ -3217,70 +2042,7 @@ type SLOMonitorRequest struct {
 
 // An SLO monitor as the row stores it: the base plus the kind and its own params.
 type SLOMonitorSummary struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
+	BaseMonitor
 
 	// The monitor kind this member is selected by.
 	Type MonitorType `json:"type"`
@@ -3288,6 +2050,24 @@ type SLOMonitorSummary struct {
 	// An SLO's whole configuration. Every subject its grouping discovers is judged by these
 	// same values, so nothing here is per subject.
 	Params SLOMonitorParams `json:"params"`
+
+	// The staleness TTL of the stored configuration at the series partitions its checks last
+	// stored. A check that repartitions the monitor can move it. get_slo_preview_staleness
+	// answers it for a draft.
+	Staleness SLOStaleness `json:"staleness"`
+}
+
+// How long a check may go without seeing a subject before the subject reads as stale. Its
+// open alerts then close as stale. It is derived from the resolution, the widest window a
+// check reads and the monitor's series partitions, and no setting states it.
+type SLOStaleness struct {
+	// The staleness TTL in milliseconds: the widest of three full partition passes, twice the
+	// widest window a check reads, and one day.
+	After int64 `json:"after"`
+
+	// Which of the three floors sets an SLO subject's staleness TTL. The TTL is the widest of
+	// them, so it moves with whichever wins.
+	Term SLOStalenessTerm `json:"term"`
 }
 
 // A stored SLO rule that this build cannot read: a kind it does not know, settings that do
@@ -3327,30 +2107,7 @@ type SLOUnreadableSLI struct {
 
 // Opens a ServiceNow incident through the Table API.
 type ServicenowChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -3415,30 +2172,7 @@ type ServicenowParams struct {
 
 // Delivers to Slack, over an incoming webhook or a bot token.
 type SlackChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -3542,30 +2276,7 @@ type TeamUser struct {
 
 // Delivers to Microsoft Teams over an incoming webhook.
 type TeamsChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -3603,30 +2314,7 @@ type TeamsParams struct {
 
 // Delivers to a Telegram chat.
 type TelegramChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -3675,77 +2363,7 @@ type TextRange struct {
 // A threshold monitor as the detail read serves it: the stored row with the worded check
 // diagnosis derived on this read.
 type ThresholdMonitor struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
-
-	// The monitor kind this member is selected by.
-	Type MonitorType `json:"type"`
-
-	// The fixed range a threshold monitor judges the value against. State a lower bound, an
-	// upper bound, or both. The server refuses a request that states neither.
-	Params ThresholdMonitorParams `json:"params"`
+	ThresholdMonitorSummary
 
 	// One coded, quantified, worded statement — why an alert fired, why a series could not
 	// be judged, or why a check reached the status it did.
@@ -3755,32 +2373,7 @@ type ThresholdMonitor struct {
 // The fixed range a threshold monitor judges the value against. State a lower bound, an
 // upper bound, or both. The server refuses a request that states neither.
 type ThresholdMonitorParams struct {
-	// The metric expressions the query refers to.
-	Metrics []MetricAlias `json:"metrics"`
-
-	// The MQL expression that produces the monitored value.
-	Query string `json:"query"`
-
-	// The query result column a metric monitor evaluates, and its display unit.
-	Column MonitorColumn `json:"column"`
-
-	// Resolution in milliseconds.
-	Resolution int64 `json:"resolution"`
-
-	// Width of the evaluation window, in points, from 1 to 15.
-	NumEvalPoints int `json:"numEvalPoints"`
-
-	// How the evaluation window collapses to one verdict.
-	WindowRule MetricWindowRule `json:"windowRule"`
-
-	// How many points of the evaluation window must breach under the at_least rule. It is
-	// normalized to 0 under every other rule, and a value at or above numEvalPoints folds the
-	// pair to at_all_times.
-	MinBreachPoints int          `json:"minBreachPoints"`
-	AbsentPoints    AbsentPoints `json:"absentPoints"`
-
-	// Time offset in milliseconds.
-	TimeOffset int64 `json:"timeOffset"`
+	BaseMetricParams
 
 	// Lower bound. The monitor fires when the value drops below it.
 	MinValue *float64 `json:"minValue"`
@@ -3797,34 +2390,7 @@ type ThresholdMonitorParams struct {
 // out. The fixed range a threshold monitor judges the value against. State a lower bound,
 // an upper bound, or both. The server refuses a request that states neither.
 type ThresholdMonitorParamsInput struct {
-	// The metric expressions the query refers to.
-	Metrics []MetricAlias `json:"metrics"`
-
-	// The MQL expression that produces the monitored value.
-	Query string `json:"query"`
-
-	// The query result column a metric monitor evaluates, and its display unit.
-	Column *MonitorColumn `json:"column,omitzero"`
-
-	// Resolution in milliseconds.
-	Resolution int64 `json:"resolution,omitzero"`
-
-	// Width of the evaluation window, in points. Omit it and the server defaults it; a value
-	// outside 1 to 15 is refused.
-	NumEvalPoints int `json:"numEvalPoints,omitzero"`
-
-	// How the evaluation window collapses to one verdict. Omit it and the server reads the
-	// meaning minBreachPoints already carried.
-	WindowRule *MetricWindowRule `json:"windowRule,omitzero"`
-
-	// How many points of the evaluation window must breach under the at_least rule. It is
-	// normalized to 0 under every other rule, and a value at or above numEvalPoints folds the
-	// pair to at_all_times.
-	MinBreachPoints int           `json:"minBreachPoints,omitzero"`
-	AbsentPoints    *AbsentPoints `json:"absentPoints,omitzero"`
-
-	// Time offset in milliseconds.
-	TimeOffset int64 `json:"timeOffset,omitzero"`
+	BaseMetricParamsInput
 
 	// Lower bound. The monitor fires when the value drops below it.
 	MinValue *float64 `json:"minValue,omitzero"`
@@ -3881,70 +2447,7 @@ type ThresholdMonitorRequest struct {
 
 // A threshold monitor as the row stores it: the base plus the kind and its own params.
 type ThresholdMonitorSummary struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-
-	// Deduplication key set when the monitor is created from a YAML dashboard template. Empty
-	// for monitors created via the UI. When non-empty, (project_id, key) is unique.
-	Key  string `json:"key"`
-	Name string `json:"name"`
-
-	// True when the name contains template placeholders that are expanded at evaluation time.
-	IsNameTemplated bool `json:"isNameTemplated"`
-
-	// The monitor's alert description, as configured. Empty when the monitor has none.
-	Description string `json:"description"`
-
-	// True when the description contains template placeholders that are expanded at evaluation
-	// time. Always false for an SLO, whose description is static.
-	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
-
-	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
-	// no_data found no timeseries at all. warming_up is different: the check returned series
-	// but the detector has too little fitted history to judge them, so the monitor keeps
-	// checking until it can. paused and disabled stop the checks — a person pauses, an error
-	// disables.
-	Status MonitorStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) until which the monitor is paused. Set when status=paused.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Last error message that caused the monitor to be disabled. Set when status=disabled.
-	Error string `json:"error"`
-
-	// Why a monitor's last check reached the status it did: the dominant blocking code and how
-	// many of the check's series it accounts for. The raw form of the monitor's worded
-	// diagnostic.
-	CheckDiagnosis *CheckDiagnosis `json:"checkDiagnosis,omitzero"`
-	ChannelIDs     []uint64        `json:"channelIds"`
-
-	// How often a firing alert repeats its notification. The strategy field says which member
-	// applies, and each member carries the knobs that strategy reads.
-	RepeatInterval RepeatInterval `json:"repeatInterval"`
-
-	// Aggregation that folds an hourly trend to one value. A metric or an SLO monitor that
-	// states none takes last, and an error monitor sum.
-	TrendAggFunc TrendAggFunc `json:"trendAggFunc"`
-
-	// How readily an alert escalates on its hourly trend and how soon it declares recovery. It
-	// changes the alert's lifecycle only. The anomaly and outlier kinds carry their own dial,
-	// DetectorSensitivity, which shares this vocabulary and answers a different question.
-	TrendSensitivity TrendSensitivity `json:"trendSensitivity"`
-
-	// Unix timestamp (milliseconds) ending the most recently processed trend window.
-	TrendUpdatedAt float64 `json:"trendUpdatedAt"`
-
-	// Unix timestamp (milliseconds).
-	CreatedAt float64 `json:"createdAt"`
-
-	// Unix timestamp (milliseconds).
-	UpdatedAt float64 `json:"updatedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor was last evaluated.
-	CheckedAt float64 `json:"checkedAt"`
-
-	// Unix timestamp (milliseconds) when the monitor is scheduled to be evaluated next.
-	NextCheckAt float64 `json:"nextCheckAt"`
+	BaseMonitor
 
 	// The monitor kind this member is selected by.
 	Type MonitorType `json:"type"`
@@ -4003,30 +2506,7 @@ type UserInviteResponse struct {
 
 // Posts the alert to a URL the project owns.
 type WebhookChannel struct {
-	ID        uint64 `json:"id"`
-	ProjectID uint32 `json:"projectId"`
-	Name      string `json:"name"`
-
-	// Delivery status of a notification channel. draft is configured but not yet delivering,
-	// delivering is live, paused is stopped by a person, and disabled is stopped by a delivery
-	// failure the channel records in its error field.
-	Status NotificationChannelStatus `json:"status"`
-
-	// Unix timestamp (milliseconds) a timed pause auto-resumes at. Zero means the channel
-	// stays paused until somebody resumes it.
-	PausedUntil float64 `json:"pausedUntil"`
-
-	// Why the channel was disabled, set alongside status=disabled when delivery fails
-	// irrecoverably. Empty for every other status.
-	Error     string `json:"error"`
-	MatchAll  bool   `json:"matchAll"`
-	Condition string `json:"condition"`
-
-	// Alert priorities this channel delivers. At least one is required.
-	Priorities []AlertPriority `json:"priorities"`
-
-	// The monitors the channel delivers for. Empty when matchAll is true.
-	MonitorIDs []uint64 `json:"monitorIds"`
+	BaseNotificationChannel
 
 	// The transport this member is selected by.
 	Type NotificationChannelType `json:"type"`
@@ -4059,17 +2539,7 @@ type WebhookChannelRequest struct {
 
 // Webhook notification channel params.
 type WebhookParams struct {
-	// How a channel authenticates against a URL the user supplies.
-	AuthMethod HTTPAuthMethod `json:"authMethod,omitzero"`
-
-	// Username for basic_auth.
-	Username string `json:"username,omitzero"`
-
-	// Password for basic_auth.
-	Password string `json:"password,omitzero"`
-
-	// Token for bearer auth.
-	Token string `json:"token,omitzero"`
+	HTTPAuth
 
 	// The endpoint the webhook posts to. A response holds it as it is stored, unless hideUrl
 	// is on.
