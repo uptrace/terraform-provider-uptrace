@@ -521,7 +521,8 @@ const (
 	// An MCP route was reached while MCP is off.
 	ErrorCodeMCPDisabled ErrorCode = "mcp_disabled"
 
-	// The credential is valid but reaches only project data. RFC 6750 section 3.1 names the
+	// The credential is valid but its scope does not cover the request: an OAuth grant reaches
+	// only project data, and changes it only under mcp:write. RFC 6750 section 3.1 names the
 	// same condition the same way, which is what an OAuth client expects.
 	ErrorCodeInsufficientScope ErrorCode = "insufficient_scope"
 
