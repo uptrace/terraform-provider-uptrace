@@ -34,7 +34,7 @@ resource "uptrace_team" "example" {
 
 ### Optional
 
-- `perm_level` (String) Project permission override applied to all team members: none, view, edit, or admin. Omitting this attribute lets the backend default apply (currently view) and the result is reflected in state.
+- `perm_level` (String) Permission level the team grants its members on each of its projects: view, edit, or admin. A team only adds access and never takes away what a member's role grants. Omitting this attribute lets the backend default apply (currently view) and the result is reflected in state.
 
 ### Read-Only
 

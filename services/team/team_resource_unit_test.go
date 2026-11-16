@@ -1,8 +1,13 @@
 package team
 
 import (
+	"context"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	rschema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
 
@@ -56,4 +61,42 @@ func TestTeamToModel_overwritesExisting(t *testing.T) {
 	require.Equal(t, types.StringValue("2"), m.OrgID)
 	require.Equal(t, types.StringValue("new"), m.Name)
 	require.Equal(t, types.StringValue("view"), m.PermLevel)
+}
+
+// validatePermLevel runs the validators of the perm_level schema on value.
+func validatePermLevel(t *testing.T, value string) validator.StringResponse {
+	t.Helper()
+	var schemaResp resource.SchemaResponse
+	(&TeamResource{}).Schema(context.Background(), resource.SchemaRequest{}, &schemaResp)
+	require.False(t, schemaResp.Diagnostics.HasError())
+	attr, ok := schemaResp.Schema.Attributes["perm_level"].(rschema.StringAttribute)
+	require.True(t, ok, "perm_level must be a StringAttribute")
+
+	var resp validator.StringResponse
+	for _, v := range attr.Validators {
+		v.ValidateString(context.Background(), validator.StringRequest{
+			Path:        path.Root("perm_level"),
+			ConfigValue: types.StringValue(value),
+		}, &resp)
+	}
+	return resp
+}
+
+func TestTeamResource_Schema_permLevelNoneNamesTheUpgradePath(t *testing.T) {
+	resp := validatePermLevel(t, "none")
+	require.Equal(t, 1, resp.Diagnostics.ErrorsCount())
+	diag := resp.Diagnostics.Errors()[0]
+	require.Equal(t, `a team no longer holds "none"`, diag.Summary())
+	require.Contains(t, diag.Detail(), "remove the uptrace_team_project resources of this team")
+	require.Contains(t, diag.Detail(), `project_overrides = { <project_id> = "none" } on the uptrace_org_member`)
+}
+
+func TestTeamResource_Schema_permLevelOtherValues(t *testing.T) {
+	resp := validatePermLevel(t, "owner")
+	require.Equal(t, 1, resp.Diagnostics.ErrorsCount(), "an unknown level gets the generic refusal once")
+	require.NotEqual(t, `a team no longer holds "none"`, resp.Diagnostics.Errors()[0].Summary())
+
+	for _, level := range teamPermLevels {
+		require.False(t, validatePermLevel(t, level).Diagnostics.HasError(), level)
+	}
 }

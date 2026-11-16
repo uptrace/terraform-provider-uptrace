@@ -4,7 +4,7 @@ skill: docs-curate
 scope: [terraform/]
 last_goal: "G5 — A pull request that changes terraform/ runs each check of the provider module"
 last_frozen: "F2 — The resource type names, their attribute names and their import ID formats"
-last_record: "D5 — Generate the client with cmd/apigen from the contract of the same commit"
+last_record: "D6 — An attribute added to a resource that operators already hold is authoritative only when set"
 ---
 
 # Terraform provider
@@ -124,6 +124,35 @@ resource that sets a new key states the server version it needs.
 that the client sends with no setting of the operator, or a contract change must merge
 before the provider can follow it.
 
+### D6 — An attribute added to a resource that operators already hold is authoritative only when set
+
+Serves: G3, G4
+Trades: none
+
+**Decision.** `project_overrides` of `uptrace_org_member` is optional, with no default, and
+not computed. Null means the configuration leaves the overrides to the server: the client
+sends no key, and Read does not fill it. A map is the exact set, and `{}` removes each
+override. An import seeds `{}`, so the first Read shows what the server holds.
+`ValidateConfig` refuses at plan time a level that the server refuses. It reads the role
+table that the contract states and `terraform/api` carries (`openapi:D28`), and an
+acceptance test checks it against the server.
+
+**Alternatives.** *An empty default, as `team_ids` has.* A provider upgrade would then plan
+the removal of every override, including the denies that the app's backfill of
+`core:D14` wrote, and an apply that the operator did not read would widen access. *A
+separate resource for each override.* A pending membership has no org user ID to key it
+by, and the role and the override would live in two resources, so a promotion that
+deletes an override shows as drift that the next apply fails on (`core:D15`).
+
+**Consequences.** An operator who wants the overrides managed states them. A configuration
+that omits them after an import plans them away once, and that apply changes nothing on
+the server. The role table comes from the contract of the same commit, so a change of it
+reaches the provider with the next release; `TestAccOrgMember_projectOverrides` fails
+against a server whose contract states another table.
+
+**What would reopen it.** A major version that may change what an existing configuration
+does.
+
 ## A change to the provider gets the review and CI of the app
 
 ### A pull request that changes terraform/ runs each check of the provider module (G5, user)
@@ -175,4 +204,5 @@ read the state; a changed import ID breaks the import commands of operators.
 
 - **D1 — The app CI writes the public repository as a fast-forward snapshot mirror** — reopens when the registry accepts another source, or outside contributions grow.
 - **D5 — Generate the client with cmd/apigen from the contract of the same commit** — reopens when an older server refuses a key that the client sends unasked, or a contract change must merge before the provider follows it.
+- **D6 — An attribute added to a resource that operators already hold is authoritative only when set** — reopens when a major version may change what an existing configuration does.
 - **D3 — The provider is a separate Go module that does not import the app** — reopens when the app module can be imported, or the registry builds from a monorepo path.

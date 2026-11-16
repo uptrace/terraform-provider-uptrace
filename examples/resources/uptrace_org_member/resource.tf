@@ -15,3 +15,21 @@ resource "uptrace_org_member" "alice" {
   role     = "admin"
   team_ids = [uptrace_team.platform.id]
 }
+
+resource "uptrace_project" "billing" {
+  org_id = uptrace_org.main.id
+  name   = "Billing"
+}
+
+# Gives bob@example.com view on every project but billing, which the override
+# at none keeps them out of. Overrides set outside Terraform stay as they are
+# when project_overrides is omitted.
+resource "uptrace_org_member" "bob" {
+  org_id = uptrace_org.main.id
+  email  = "bob@example.com"
+  role   = "viewer"
+
+  project_overrides = {
+    (uptrace_project.billing.id) = "none"
+  }
+}

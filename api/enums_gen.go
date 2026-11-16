@@ -829,6 +829,24 @@ func MetricWindowRuleValues() []MetricWindowRule {
 	}
 }
 
+// MetricWindowRuleReduces answers the value of the table reduces that the OpenAPI schema
+// MetricWindowRule states for v, and false for a member the table omits. Whether the rule
+// collapses the window's values to one number, their mean or their sum, instead of counting
+// the points that breach.
+func MetricWindowRuleReduces(v MetricWindowRule) (bool, bool) {
+	switch v {
+	case MetricWindowRuleAtAllTimes:
+		return false, true
+	case MetricWindowRuleAtLeast:
+		return false, true
+	case MetricWindowRuleOnAverage:
+		return true, true
+	case MetricWindowRuleInTotal:
+		return true, true
+	}
+	return false, false
+}
+
 // Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
 // no_data found no timeseries at all. warming_up is different: the check returned series
 // but the detector has too little fitted history to judge them, so the monitor keeps
@@ -1126,7 +1144,8 @@ const (
 	// Forbids access to the project outright, overriding the permissions of every role but
 	// owner. The holder can neither view nor edit nor interact with it in any way. An
 	// organization owner keeps full access to every project, so this level changes nothing for
-	// one.
+	// one. Only a project override of one membership holds it; a team cannot, because a team
+	// only adds access.
 	PermLevelNone PermLevel = "none"
 
 	// Read-only access to the project.
@@ -1147,6 +1166,24 @@ func PermLevelValues() []PermLevel {
 		PermLevelEdit,
 		PermLevelAdmin,
 	}
+}
+
+// PermLevelRank answers the value of the table rank that the OpenAPI schema PermLevel
+// states for v, and false for a member the table omits. The order of the levels: a level of
+// a higher rank grants more on the project. An override is valid under a role at none, or
+// at a rank at or above the rank of the level the role grants on every project.
+func PermLevelRank(v PermLevel) (int, bool) {
+	switch v {
+	case PermLevelNone:
+		return 0, true
+	case PermLevelView:
+		return 1, true
+	case PermLevelEdit:
+		return 2, true
+	case PermLevelAdmin:
+		return 3, true
+	}
+	return 0, false
 }
 
 // The project-scoped grant the requester's access was resolved from — a team's level or a
@@ -1565,14 +1602,14 @@ const (
 	UserRoleMember UserRole = "member"
 
 	// Viewing every project in the organization. A viewer cannot create a project. A team or a
-	// direct project assignment can grant more access to one project.
+	// project override can grant more access to one project.
 	UserRoleViewer UserRole = "viewer"
 
 	// Viewing the organization, and managing its billing settings.
 	UserRoleBillingManager UserRole = "billing_manager"
 
 	// Nothing organization-wide. A collaborator reaches a project only through team membership
-	// or a direct project assignment. The UI calls it Outside Collaborator.
+	// or a project override. The UI calls it Outside Collaborator.
 	UserRoleCollaborator UserRole = "collaborator"
 )
 
@@ -1586,4 +1623,27 @@ func UserRoleValues() []UserRole {
 		UserRoleBillingManager,
 		UserRoleCollaborator,
 	}
+}
+
+// UserRolePermLevel answers the value of the table permLevel that the OpenAPI schema
+// UserRole states for v, and false for a member the table omits. The project perm level the
+// role grants on every project of the organization. None here grants no project, and teams
+// and project overrides still add to it; a project override at none strips its project
+// instead. An override can raise this level on one project and never lowers it.
+func UserRolePermLevel(v UserRole) (PermLevel, bool) {
+	switch v {
+	case UserRoleOwner:
+		return PermLevelAdmin, true
+	case UserRoleAdmin:
+		return PermLevelAdmin, true
+	case UserRoleMember:
+		return PermLevelNone, true
+	case UserRoleViewer:
+		return PermLevelView, true
+	case UserRoleBillingManager:
+		return PermLevelNone, true
+	case UserRoleCollaborator:
+		return PermLevelNone, true
+	}
+	return "", false
 }

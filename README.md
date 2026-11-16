@@ -130,6 +130,7 @@ Requires an app version that serves `/internal/v1/orgs/{org_id}/members/by-email
 | email       | string      | yes      | Lowercase, trimmed. Forces replacement on change.                            |
 | role        | string      | yes      | One of `owner`, `admin`, `member`, `viewer`, `billing_manager`, `collaborator`. Updatable. |
 | team_ids    | set(string) | no       | The exact set of teams of the person. Empty when omitted. Updatable.         |
+| project_overrides | map(string) | no | Project ID to `none`, `view`, `edit` or `admin`. When set, the exact overrides; omitted, left as they are. Updatable. |
 | status      | string      | computed | `pending` or `active`.                                                       |
 | org_user_id | string      | computed | OrgUser ID of an active membership; null while pending.                      |
 | id          | string      | computed | `<org_id>:<email>`.                                                          |
@@ -137,6 +138,42 @@ Requires an app version that serves `/internal/v1/orgs/{org_id}/members/by-email
 `team_ids` is authoritative: do not also manage the same person with `uptrace_team_user`.
 Destroy removes the member, or cancels the invitation. When the invitation expires or is
 canceled, the next plan creates it again.
+
+`project_overrides` sets the person's level on single projects, in place of the level the
+role grants on every project. `none` keeps the person out of a project, and it is the only
+way to do so: a team only adds access. A higher level raises the person on the project. A
+level below the role's is refused: an `owner` or an `admin` takes only `admin` or `none`.
+The plan refuses it when the project IDs are known. When a key is the ID of a project that
+the same apply creates, as in the example below, the apply refuses it. While the membership
+is pending, the invitation holds the overrides, and the person gets them on acceptance.
+
+- **Omitted**, the provider neither sends nor reads the overrides, so the ones set in the UI,
+  through the API or by the app upgrade that turned a team at `none` into denies stay as
+  they are.
+- **Set**, the map is the exact set: `{}` removes every override, and an override set
+  outside Terraform shows as drift.
+- **After an import**, the state holds the overrides on the server. A configuration that
+  omits the attribute then plans to stop managing them; that apply leaves the server as it is.
+- **A promotion in the UI** deletes the overrides below the new role. Terraform plans both
+  the role and the overrides back, and one apply restores both.
+
+`project_overrides` requires an app version that serves `projectOverrides` on
+`/internal/v1/orgs/{org_id}/members/by-email`.
+
+**Example -- keep a member out of one project:**
+
+```hcl
+resource "uptrace_org_member" "bob" {
+  org_id = uptrace_org.main.id
+  email  = "bob@example.com"
+  role   = "viewer"
+
+  project_overrides = {
+    (uptrace_project.billing.id) = "none"
+    (uptrace_project.web.id)     = "edit"
+  }
+}
+```
 
 Import: `terraform import uptrace_org_member.x <org_id>:<email>`
 
@@ -206,10 +243,22 @@ Manages a team within an organization. Teams are a **Premium** feature.
 |------------|--------|----------|----------------------------------------------------------------|
 | org_id     | string | yes      | Organization ID. Forces replacement on change.                 |
 | name       | string | yes      | Team name (1-255 characters). Updatable.                       |
-| perm_level | string | no       | One of `none`, `view`, `edit`, `admin`. Server fills the default when omitted. |
+| perm_level | string | no       | One of `view`, `edit`, `admin`. A team only adds access. Server fills the default when omitted. |
 | id         | string | computed |                                                                |
 
 Import: `terraform import uptrace_team.x <org_id>:<team_id>`
+
+**Upgrading from a team at `none`.** A team no longer holds `none`, and the provider refuses
+`perm_level = "none"`. The app upgrade raised each team at `none` to `view`, unlinked its
+projects, and moved its denies onto its members: each viewer and admin it kept out holds an
+override at `none` on the project. To keep the denies in the configuration:
+
+1. Set `perm_level` to `view`, or remove it.
+2. Remove the `uptrace_team_project` resources of the team. Otherwise the next apply links the
+   projects again, and the team gives `view` on the projects it denied to each of its members
+   who holds no override there.
+3. Set `project_overrides = { <project_id> = "none" }` on the `uptrace_org_member` of each
+   person the team kept out.
 
 ### uptrace_team_project
 

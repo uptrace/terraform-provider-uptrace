@@ -1,12 +1,14 @@
 package org
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"slices"
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -26,9 +28,10 @@ import (
 )
 
 var (
-	_ resource.Resource                = &OrgMemberResource{}
-	_ resource.ResourceWithConfigure   = &OrgMemberResource{}
-	_ resource.ResourceWithImportState = &OrgMemberResource{}
+	_ resource.Resource                   = &OrgMemberResource{}
+	_ resource.ResourceWithConfigure      = &OrgMemberResource{}
+	_ resource.ResourceWithImportState    = &OrgMemberResource{}
+	_ resource.ResourceWithValidateConfig = &OrgMemberResource{}
 )
 
 // userRoleValidator accepts the organization roles. uptrace_org_member and
@@ -52,13 +55,19 @@ type OrgMemberResource struct {
 }
 
 type orgMemberModel struct {
-	ID        types.String `tfsdk:"id"`
-	OrgID     types.String `tfsdk:"org_id"`
-	Email     types.String `tfsdk:"email"`
-	Role      types.String `tfsdk:"role"`
-	TeamIDs   types.Set    `tfsdk:"team_ids"`
-	Status    types.String `tfsdk:"status"`
-	OrgUserID types.String `tfsdk:"org_user_id"`
+	ID      types.String `tfsdk:"id"`
+	OrgID   types.String `tfsdk:"org_id"`
+	Email   types.String `tfsdk:"email"`
+	Role    types.String `tfsdk:"role"`
+	TeamIDs types.Set    `tfsdk:"team_ids"`
+	// ProjectOverrides is null while the configuration leaves the overrides
+	// to the server, and the exact set otherwise. It upholds terraform:D6: a
+	// null map sends no key (projectOverridesFromMap) and Read leaves it null
+	// (applyOrgMember), so adding the attribute changes no existing
+	// configuration.
+	ProjectOverrides types.Map    `tfsdk:"project_overrides"`
+	Status           types.String `tfsdk:"status"`
+	OrgUserID        types.String `tfsdk:"org_user_id"`
 }
 
 // NewOrgMemberResource is the constructor the org service registers.
@@ -77,6 +86,8 @@ func (r *OrgMemberResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 			"it is then `active`. An existing and a missing account get the same invitation. " +
 			"A change of the role or the teams of a pending membership sends no new email. " +
 			"`team_ids` is the exact set of teams of the person: do not also manage the same person with `uptrace_team_user`. " +
+			"`project_overrides`, when set, is the exact set of the person's project overrides; " +
+			"a pending membership holds them until the invitation is accepted. " +
 			"Destroying the resource removes the member, or cancels the invitation. " +
 			"Requires an app version that serves `/internal/v1/orgs/{org_id}/members/by-email`.",
 		Attributes: map[string]schema.Attribute{
@@ -118,6 +129,19 @@ func (r *OrgMemberResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Description: "The exact set of team IDs of the person in the organization. " +
 					"Omitted or empty, the person is in no team. While the membership is pending, the teams the person joins on acceptance.",
 			},
+			"project_overrides": schema.MapAttribute{
+				ElementType: types.StringType,
+				Optional:    true,
+				Description: "The exact project overrides of the person, keyed by project ID: `none` keeps the person out of the project, " +
+					"and `view`, `edit` or `admin` raises the level the role grants on it. " +
+					"A level below the one the role grants on every project is refused: an `owner` or an `admin` takes only `admin` or `none`. " +
+					"An empty map removes every override. Omitted, the overrides on the server are left as they are and not read. " +
+					"While the membership is pending, the overrides the person gets on acceptance. " +
+					"Requires an app version that serves `projectOverrides` on `/internal/v1/orgs/{org_id}/members/by-email`.",
+				Validators: []validator.Map{
+					mapvalidator.ValueStringsAre(permLevelValidator),
+				},
+			},
 			"status": schema.StringAttribute{
 				Computed:    true,
 				Description: "`pending` while the invitation waits, `active` after the person accepts it.",
@@ -127,6 +151,48 @@ func (r *OrgMemberResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 				Description: "The org user ID of an active membership. Null while the membership is pending.",
 			},
 		},
+	}
+}
+
+// ValidateConfig refuses at plan time a project override that the server
+// refuses at apply: a project ID that is not a uint32, and a level below the
+// one the role grants on every project, other than none. It also refuses a
+// project ID with a leading zero, which the state writes back without it
+// (DESIGN.md G3). It judges only known values, so a role or a map that another
+// resource computes is left to the server.
+func (r *OrgMemberResource) ValidateConfig(
+	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
+) {
+	var config orgMemberModel
+	resp.Diagnostics.Append(req.Config.Get(ctx, &config)...)
+	if resp.Diagnostics.HasError() || config.ProjectOverrides.IsNull() || config.ProjectOverrides.IsUnknown() {
+		return
+	}
+
+	for key, value := range config.ProjectOverrides.Elements() {
+		at := path.Root("project_overrides").AtMapKey(key)
+		projectID, err := strconv.ParseUint(key, 10, 32)
+		if err != nil {
+			resp.Diagnostics.AddAttributeError(at, "invalid project ID",
+				fmt.Sprintf("a key of project_overrides is a project ID, got %q", key))
+			continue
+		}
+		// The state writes the key in decimal with no leading zero, so any
+		// other spelling would differ from the plan after the apply.
+		if canonical := strconv.FormatUint(projectID, 10); canonical != key {
+			resp.Diagnostics.AddAttributeError(at, "invalid project ID",
+				fmt.Sprintf("write project ID %s as %q, with no leading zero, got %q", canonical, canonical, key))
+			continue
+		}
+		level, ok := value.(types.String)
+		if !ok || level.IsNull() || level.IsUnknown() || config.Role.IsNull() || config.Role.IsUnknown() {
+			continue
+		}
+		role, override := api.UserRole(config.Role.ValueString()), api.PermLevel(level.ValueString())
+		if !isValidOverride(role, override) {
+			resp.Diagnostics.AddAttributeError(at, "project override below the role",
+				overrideRefusal(role, override))
+		}
 	}
 }
 
@@ -228,9 +294,16 @@ func (r *OrgMemberResource) ImportState(ctx context.Context, req resource.Import
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("org_id"), orgID)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("email"), email)...)
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
+	// An empty map, not null, so the Read that follows fills the overrides the
+	// server holds. A configuration that omits them plans them away once, and
+	// that apply leaves the server as it is (D6).
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_overrides"),
+		types.MapValueMust(types.StringType, map[string]attr.Value{}))...)
 }
 
-// set sends the plan's role and teams, and writes the answer back to plan.
+// set sends the plan's role, teams and project overrides, and writes the answer
+// back to plan. A null project_overrides sends no key, so the server keeps the
+// overrides it holds.
 func (r *OrgMemberResource) set(ctx context.Context, plan *orgMemberModel, failed string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -251,10 +324,17 @@ func (r *OrgMemberResource) set(ctx context.Context, plan *orgMemberModel, faile
 		"role":   plan.Role.ValueString(),
 	})
 
+	overrides, d := projectOverridesFromMap(plan.ProjectOverrides)
+	diags.Append(d...)
+	if diags.HasError() {
+		return diags
+	}
+
 	out, err := r.client.API.SetOrgMember(ctx, api.SetOrgMemberRequest{OrgID: orgID}, api.OrgMemberSetRequest{
-		Email:   plan.Email.ValueString(),
-		Role:    api.UserRole(plan.Role.ValueString()),
-		TeamIDs: teamIDs,
+		Email:            plan.Email.ValueString(),
+		Role:             api.UserRole(plan.Role.ValueString()),
+		TeamIDs:          teamIDs,
+		ProjectOverrides: overrides,
 	})
 	if err != nil {
 		tfutil.AddAPIError(&diags, failed, err)
@@ -265,7 +345,8 @@ func (r *OrgMemberResource) set(ctx context.Context, plan *orgMemberModel, faile
 	return diags
 }
 
-// applyOrgMember writes what the server stores into m.
+// applyOrgMember writes what the server stores into m. It leaves a null
+// project_overrides null: the configuration does not manage them (D6).
 func applyOrgMember(m *orgMemberModel, member *api.OrgMember) diag.Diagnostics {
 	m.ID = types.StringValue(m.OrgID.ValueString() + ":" + member.Email)
 	m.Email = types.StringValue(member.Email)
@@ -278,5 +359,93 @@ func applyOrgMember(m *orgMemberModel, member *api.OrgMember) diag.Diagnostics {
 
 	set, diags := tfutil.SetFromUint64s(member.TeamIDs)
 	m.TeamIDs = set
+
+	if !m.ProjectOverrides.IsNull() {
+		levels := make(map[string]attr.Value, len(member.ProjectOverrides))
+		for _, override := range member.ProjectOverrides {
+			levels[strconv.FormatUint(uint64(override.ProjectID), 10)] = types.StringValue(string(override.PermLevel))
+		}
+		overrides, d := types.MapValue(types.StringType, levels)
+		diags.Append(d...)
+		m.ProjectOverrides = overrides
+	}
 	return diags
+}
+
+// projectOverridesFromMap reads project_overrides into the request's list,
+// sorted by project ID. A null map is nil, which the client leaves out of the
+// body.
+func projectOverridesFromMap(m types.Map) (*[]api.OrgMemberProjectOverride, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	if m.IsNull() || m.IsUnknown() {
+		return nil, diags
+	}
+	out := make([]api.OrgMemberProjectOverride, 0, len(m.Elements()))
+	for key, value := range m.Elements() {
+		projectID, err := strconv.ParseUint(key, 10, 32)
+		if err != nil {
+			diags.AddAttributeError(path.Root("project_overrides").AtMapKey(key), "invalid project ID", err.Error())
+			continue
+		}
+		level, ok := value.(types.String)
+		if !ok {
+			diags.AddAttributeError(path.Root("project_overrides").AtMapKey(key), "invalid level",
+				fmt.Sprintf("want a string, got %T", value))
+			continue
+		}
+		out = append(out, api.OrgMemberProjectOverride{
+			ProjectID: uint32(projectID),
+			PermLevel: api.PermLevel(level.ValueString()),
+		})
+	}
+	slices.SortFunc(out, func(a, b api.OrgMemberProjectOverride) int {
+		return cmp.Compare(a.ProjectID, b.ProjectID)
+	})
+	return &out, diags
+}
+
+// permLevelValidator accepts the project override levels.
+var permLevelValidator = stringvalidator.OneOf(
+	string(api.PermLevelNone),
+	string(api.PermLevelView),
+	string(api.PermLevelEdit),
+	string(api.PermLevelAdmin),
+)
+
+// overrideRefusal says why the server refuses an override at level under
+// role: the server's reason (app core/tenancy checkOverrideLevel) without the
+// project, which the attribute path names.
+// testAccCheckOverrideLevelsMatchServer compares the two.
+func overrideRefusal(role api.UserRole, level api.PermLevel) string {
+	roleLevel := rolePermLevel(role)
+	return fmt.Sprintf("must be %s or none, because the %s role grants %s on every project (got %s)",
+		roleLevel, role, roleLevel, level)
+}
+
+// rolePermLevel is the level role grants on every project: the permLevel
+// table of the contract's UserRole, which task generate:api writes into
+// terraform/api as it writes it into the app (app openapi/DESIGN.md D28). A
+// role the table omits grants none. TestAccOrgMember_projectOverrides checks
+// the contract this provider was built from against the server it talks to.
+func rolePermLevel(role api.UserRole) api.PermLevel {
+	if level, ok := api.UserRolePermLevel(role); ok {
+		return level
+	}
+	return api.PermLevelNone
+}
+
+// isValidOverride reports whether the server takes an override at level under
+// role: none, or a level at or above the role's (app core/DESIGN.md D7).
+func isValidOverride(role api.UserRole, level api.PermLevel) bool {
+	return level == api.PermLevelNone || permRank(level) >= permRank(rolePermLevel(role))
+}
+
+// permRank is the rank of level in the contract's PermLevel table, which
+// task generate:api writes into terraform/api. An unknown level ranks below
+// none, so the level validator, not this check, reports it.
+func permRank(level api.PermLevel) int {
+	if rank, ok := api.PermLevelRank(level); ok {
+		return rank
+	}
+	return -1
 }

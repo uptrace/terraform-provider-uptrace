@@ -24,7 +24,48 @@ var (
 	_ resource.ResourceWithImportState = &TeamResource{}
 )
 
-var teamPermLevels = []string{"none", "view", "edit", "admin"}
+// A team only adds project access, so it cannot hold none: the API refuses it.
+var teamPermLevels = []string{"view", "edit", "admin"}
+
+// teamPermLevelValidator accepts teamPermLevels. It refuses none with the
+// steps that keep a configuration's denies. An app upgrade raised each team at
+// none to view, unlinked its projects and moved its denies onto its members.
+// Then the generic refusal leads an operator to set view, and the next apply
+// links the projects again. The team then gives view on the projects it
+// denied.
+type teamPermLevelValidator struct{}
+
+var teamPermLevelOneOf = stringvalidator.OneOf(teamPermLevels...)
+
+func (teamPermLevelValidator) Description(ctx context.Context) string {
+	return teamPermLevelOneOf.Description(ctx)
+}
+
+func (teamPermLevelValidator) MarkdownDescription(ctx context.Context) string {
+	return teamPermLevelOneOf.MarkdownDescription(ctx)
+}
+
+func (teamPermLevelValidator) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	if req.ConfigValue.ValueString() != "none" {
+		teamPermLevelOneOf.ValidateString(ctx, req, resp)
+		return
+	}
+	resp.Diagnostics.AddAttributeError(
+		req.Path,
+		`a team no longer holds "none"`,
+		`A team only adds project access, so perm_level takes "view", "edit" or "admin". `+
+			`The app upgrade raised each team at "none" to "view", unlinked its projects `+
+			`and moved its denies onto its members as project overrides at "none". `+
+			`To keep the denies: set perm_level to "view" or remove it, `+
+			`remove the uptrace_team_project resources of this team, and set `+
+			`project_overrides = { <project_id> = "none" } on the uptrace_org_member `+
+			`of each person the team kept out. Linking the projects again gives the `+
+			`team's members view on them.`,
+	)
+}
 
 type TeamResource struct {
 	client *client.Client
@@ -73,9 +114,9 @@ func (r *TeamResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 			"perm_level": schema.StringAttribute{
 				Optional:    true,
 				Computed:    true,
-				Description: "Project permission override applied to all team members: none, view, edit, or admin. Omitting this attribute lets the backend default apply (currently view) and the result is reflected in state.",
+				Description: "Permission level the team grants its members on each of its projects: view, edit, or admin. A team only adds access and never takes away what a member's role grants. Omitting this attribute lets the backend default apply (currently view) and the result is reflected in state.",
 				Validators: []validator.String{
-					stringvalidator.OneOf(teamPermLevels...),
+					teamPermLevelValidator{},
 				},
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),

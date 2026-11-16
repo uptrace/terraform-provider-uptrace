@@ -1099,8 +1099,22 @@ type OrgMember struct {
 	// teams the person joins on acceptance.
 	TeamIDs []uint64 `json:"teamIds"`
 
+	// The project overrides of the membership, in ascending order of project ID. While the
+	// membership is pending, the overrides the person gets on acceptance.
+	ProjectOverrides []OrgMemberProjectOverride `json:"projectOverrides"`
+
 	// The membership's org user ID. Null while the membership is pending.
 	OrgUserID *uint64 `json:"orgUserId"`
+}
+
+// The permission level of a membership on one project, in place of the level the role
+// grants. A level above the role's raises the member on the project, and none strips the
+// project.
+type OrgMemberProjectOverride struct {
+	ProjectID uint32 `json:"projectId"`
+
+	// Project-level permission override (empty when unset).
+	PermLevel PermLevel `json:"permLevel"`
 }
 
 // Wraps one membership set by email under `member`.
@@ -1122,6 +1136,13 @@ type OrgMemberSetRequest struct {
 	// The exact set of teams of the membership. Each team must belong to the organization. An
 	// empty list removes the person from each team.
 	TeamIDs []uint64 `json:"teamIds"`
+
+	// The exact set of project overrides of the membership, one per project. Each project must
+	// belong to the organization. A level below the one the role grants on every project is
+	// refused, other than none. An empty list removes each override; an absent or null list
+	// keeps the overrides as they are. While the membership is pending, the invitation holds
+	// the overrides and the person gets them on acceptance.
+	ProjectOverrides *[]OrgMemberProjectOverride `json:"projectOverrides,omitzero"`
 }
 
 // The organization an operation on one organization answers with.
@@ -1207,6 +1228,10 @@ type OrgUserProfileResponse struct {
 
 	// Teams the user belongs to in this organization.
 	Teams []Team `json:"teams"`
+
+	// The project overrides of the membership on the projects listed, in ascending order of
+	// project ID. A listed project without one takes its level from the role and the teams.
+	ProjectOverrides []OrgMemberProjectOverride `json:"projectOverrides"`
 }
 
 // Wraps one org user under `orgUser`. Returned when one is created or updated.
