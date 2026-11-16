@@ -1113,7 +1113,7 @@ type OrgMember struct {
 type OrgMemberProjectOverride struct {
 	ProjectID uint32 `json:"projectId"`
 
-	// Project-level permission override (empty when unset).
+	// A permission level on one project, which a team or a project override grants.
 	PermLevel PermLevel `json:"permLevel"`
 }
 
@@ -1742,9 +1742,10 @@ type ProjectViewSettingsRequest struct {
 type ProjectWithPerms struct {
 	ProjectSummary
 
-	// The project-scoped grant the requester's access was resolved from — a team's level or
-	// a direct override. Empty when access comes from an org role alone, in which case the
-	// project's own permission fields still hold. The non-empty values are PermLevel.
+	// The project-scoped level the access was resolved from — a direct override, or else the
+	// highest level of the teams. When neither applies, a member's profile (get_org_user)
+	// states the level the role grants on every project, and the other reads leave it empty;
+	// the project's own permission fields still hold. The non-empty values are PermLevel.
 	PermLevel         ProjectPermLevel `json:"permLevel"`
 	CanViewOrg        bool             `json:"canViewOrg"`
 	CanCreateProjects bool             `json:"canCreateProjects"`
@@ -2248,7 +2249,7 @@ type Team struct {
 	OrgID uint64 `json:"orgId"`
 	Name  string `json:"name"`
 
-	// Project-level permission override (empty when unset).
+	// A permission level on one project, which a team or a project override grants.
 	PermLevel PermLevel `json:"permLevel"`
 
 	// Unix timestamp (milliseconds).
@@ -2266,7 +2267,7 @@ type TeamCreateRequest struct {
 	// Team name. It is trimmed, and a name that is empty after trimming is refused.
 	Name string `json:"name"`
 
-	// Project-level permission override (empty when unset).
+	// A permission level on one project, which a team or a project override grants.
 	PermLevel *PermLevel `json:"permLevel,omitzero"`
 }
 
@@ -2281,7 +2282,7 @@ type TeamResponse struct {
 type TeamUpdateRequest struct {
 	Name *string `json:"name,omitzero"`
 
-	// Project-level permission override (empty when unset).
+	// A permission level on one project, which a team or a project override grants.
 	PermLevel *PermLevel `json:"permLevel,omitzero"`
 }
 

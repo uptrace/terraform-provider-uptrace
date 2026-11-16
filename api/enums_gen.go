@@ -1138,7 +1138,7 @@ func PagerdutySeverityValues() []PagerdutySeverity {
 	}
 }
 
-// Project-level permission override (empty when unset).
+// A permission level on one project, which a team or a project override grants.
 type PermLevel string
 
 const (
@@ -1152,7 +1152,7 @@ const (
 	// Read-only access to the project.
 	PermLevelView PermLevel = "view"
 
-	// View access, plus the right to change the project's content and overviews.
+	// View access, plus the right to change the project's content, dashboards and overviews.
 	PermLevelEdit PermLevel = "edit"
 
 	// Full control of the project - viewing, editing and administration.
@@ -1187,9 +1187,10 @@ func PermLevelRank(v PermLevel) (int, bool) {
 	return 0, false
 }
 
-// The project-scoped grant the requester's access was resolved from — a team's level or a
-// direct override. Empty when access comes from an org role alone, in which case the
-// project's own permission fields still hold. The non-empty values are PermLevel.
+// The project-scoped level the access was resolved from — a direct override, or else the
+// highest level of the teams. When neither applies, a member's profile (get_org_user)
+// states the level the role grants on every project, and the other reads leave it empty;
+// the project's own permission fields still hold. The non-empty values are PermLevel.
 type ProjectPermLevel string
 
 const (
@@ -1596,7 +1597,8 @@ const (
 	// Every permission, across the organization and all of its projects.
 	UserRoleOwner UserRole = "owner"
 
-	// Full project management - viewing, editing and administration.
+	// Full project management - viewing, editing and administration - and the right to create
+	// a project.
 	UserRoleAdmin UserRole = "admin"
 
 	// Basic organization viewing, and the right to create a project.
@@ -1606,7 +1608,8 @@ const (
 	// project override can grant more access to one project.
 	UserRoleViewer UserRole = "viewer"
 
-	// Viewing the organization, and managing its billing settings.
+	// Viewing the organization, managing its billing settings, and the right to create a
+	// project.
 	UserRoleBillingManager UserRole = "billing_manager"
 
 	// Nothing organization-wide. A collaborator reaches a project only through team membership
