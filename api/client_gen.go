@@ -26,9 +26,9 @@ func NewClient(baseURL string, opts ...Option) (*Client, error) {
 
 // AddTeamProject calls POST /internal/v1/orgs/{org_id}/teams/{team_id}/projects/{project_id}.
 //
-// Grant a team access to a project. Idempotent (no-op if already added). Requires org admin
-// plus `CanInviteUsers` on the project. It takes no request body; the team's own permission
-// level is what the members receive.
+// Grant a team access to a project. Idempotent (no-op if already added). Requires org
+// admin. It takes no request body; the team's own permission level is what the members
+// receive.
 func (c *Client) AddTeamProject(ctx context.Context, req AddTeamProjectRequest) (*AddTeamProjectResponse, error) {
 	return do[AddTeamProjectResponse](ctx, c.rt, call{
 		Method: http.MethodPost,
@@ -506,8 +506,7 @@ func (c *Client) RemoveOrgUser(ctx context.Context, req RemoveOrgUserRequest) (*
 
 // RemoveTeamProject calls DELETE /internal/v1/orgs/{org_id}/teams/{team_id}/projects/{project_id}.
 //
-// Revoke a team's access to a project. Requires org admin plus `CanInviteUsers` on the
-// project.
+// Revoke a team's access to a project. Requires org admin.
 func (c *Client) RemoveTeamProject(ctx context.Context, req RemoveTeamProjectRequest) (*RemoveTeamProjectResponse, error) {
 	return do[RemoveTeamProjectResponse](ctx, c.rt, call{
 		Method: http.MethodDelete,

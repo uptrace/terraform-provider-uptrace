@@ -1071,9 +1071,6 @@ type Org struct {
 	// Whether the requester may manage billing settings and payment methods.
 	CanEditBilling bool `json:"canEditBilling"`
 
-	// Whether the requester may invite users to the org.
-	CanInviteUsers bool `json:"canInviteUsers"`
-
 	// Whether the requester has full administrative control over the org.
 	CanAdminOrg bool `json:"canAdminOrg"`
 }
@@ -1751,7 +1748,6 @@ type ProjectWithPerms struct {
 	CanViewOrg        bool             `json:"canViewOrg"`
 	CanCreateProjects bool             `json:"canCreateProjects"`
 	CanEditBilling    bool             `json:"canEditBilling"`
-	CanInviteUsers    bool             `json:"canInviteUsers"`
 	CanAdminOrg       bool             `json:"canAdminOrg"`
 	CanViewProject    bool             `json:"canViewProject"`
 	CanEditProject    bool             `json:"canEditProject"`
