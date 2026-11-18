@@ -451,7 +451,8 @@ type Diagnostic struct {
 
 	// What a blocked statement means for the series it is about: warming means more data cures
 	// the cause and the check is still waiting, not_firing means a real verdict that waiting
-	// will not change. Set only on the blocked kind.
+	// will not change, and held means the check judged nothing on a cause only an edit cures,
+	// so the status and alerts stay as they were. Set only on the blocked kind.
 	Disposition DiagnosticDisposition `json:"disposition,omitzero"`
 	Label       string                `json:"label"`
 

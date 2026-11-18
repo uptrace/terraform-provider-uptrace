@@ -171,7 +171,8 @@ func DetectorSensitivityValues() []DetectorSensitivity {
 
 // What a blocked statement means for the series it is about: warming means more data cures
 // the cause and the check is still waiting, not_firing means a real verdict that waiting
-// will not change. Set only on the blocked kind.
+// will not change, and held means the check judged nothing on a cause only an edit cures,
+// so the status and alerts stay as they were. Set only on the blocked kind.
 type DiagnosticDisposition string
 
 const (
@@ -180,6 +181,10 @@ const (
 
 	// A real verdict. Waiting will not help, and the series is evaluated as not firing.
 	DiagnosticDispositionNotFiring DiagnosticDisposition = "not_firing"
+
+	// The check stopped on a cause only an edit cures. The status and alerts stay as they
+	// were.
+	DiagnosticDispositionHeld DiagnosticDisposition = "held"
 )
 
 // DiagnosticDispositionValues returns every DiagnosticDisposition the contract states, in
@@ -188,6 +193,7 @@ func DiagnosticDispositionValues() []DiagnosticDisposition {
 	return []DiagnosticDisposition{
 		DiagnosticDispositionWarming,
 		DiagnosticDispositionNotFiring,
+		DiagnosticDispositionHeld,
 	}
 }
 
