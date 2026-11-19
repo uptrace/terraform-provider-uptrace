@@ -1753,8 +1753,6 @@ type ProjectWithPerms struct {
 	CanEditProject    bool             `json:"canEditProject"`
 	CanAdminProject   bool             `json:"canAdminProject"`
 	CanOverrideTraces bool             `json:"canOverrideTraces"`
-	CanEditOverviews  bool             `json:"canEditOverviews"`
-	CanEditDashboards bool             `json:"canEditDashboards"`
 }
 
 // Safe user summary for UI display.
