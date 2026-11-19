@@ -433,7 +433,11 @@ const (
 	// The old password of a password change does not match.
 	ErrorCodeIncorrectPassword ErrorCode = "incorrect_password"
 
-	// The API token is past its expiry date. The user creates a new token to replace it.
+	// The API token no longer works. It is past its expiry date, or an SSO session minted it
+	// and its provider no longer vouches for it: the provider is disabled or deleted, or its
+	// organization requires SSO and the token is older than the organization allows. The user
+	// makes a new token to replace it, and for a token from an SSO session first signs in
+	// through the SSO provider again.
 	ErrorCodeCredentialExpired ErrorCode = "credential_expired"
 
 	// An admin of the organization blocked the API token there. The token still works in the
@@ -532,8 +536,10 @@ const (
 	// same condition the same way, which is what an OAuth client expects.
 	ErrorCodeInsufficientScope ErrorCode = "insufficient_scope"
 
-	// The action needs a login with the account's own credentials. A session that an SSO
-	// provider issued reaches only its provider's org, so it cannot do the action.
+	// The action needs a login with the account's own credentials, a password or a GitHub or
+	// Google login: a change of the email, the password or the second factor, or a new org. A
+	// session that an SSO provider issued, and a token or grant it made, reach only the
+	// provider's org, so they cannot do the action.
 	ErrorCodeOwnLoginRequired ErrorCode = "own_login_required"
 
 	// The consent request does not decode: it was tampered with, it expired, or the
