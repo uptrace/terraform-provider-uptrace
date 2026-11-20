@@ -61,7 +61,7 @@ type orgMemberModel struct {
 	Role    types.String `tfsdk:"role"`
 	TeamIDs types.Set    `tfsdk:"team_ids"`
 	// ProjectOverrides is null while the configuration leaves the overrides
-	// to the server, and the exact set otherwise. It upholds terraform:D6: a
+	// to the server, and the exact set otherwise. It implements ADR-0466: a
 	// null map sends no key (projectOverridesFromMap) and Read leaves it null
 	// (applyOrgMember), so adding the attribute changes no existing
 	// configuration.
@@ -158,7 +158,7 @@ func (r *OrgMemberResource) Schema(_ context.Context, _ resource.SchemaRequest, 
 // refuses at apply: a project ID that is not a uint32, and a level below the
 // one the role grants on every project, other than none. It also refuses a
 // project ID with a leading zero, which the state writes back without it
-// (DESIGN.md G3). It judges only known values, so a role or a map that another
+// (terraform:QS-1). It judges only known values, so a role or a map that another
 // resource computes is left to the server.
 func (r *OrgMemberResource) ValidateConfig(
 	ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse,
@@ -296,7 +296,7 @@ func (r *OrgMemberResource) ImportState(ctx context.Context, req resource.Import
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), req.ID)...)
 	// An empty map, not null, so the Read that follows fills the overrides the
 	// server holds. A configuration that omits them plans them away once, and
-	// that apply leaves the server as it is (D6).
+	// that apply leaves the server as it is (ADR-0466).
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("project_overrides"),
 		types.MapValueMust(types.StringType, map[string]attr.Value{}))...)
 }
@@ -346,7 +346,7 @@ func (r *OrgMemberResource) set(ctx context.Context, plan *orgMemberModel, faile
 }
 
 // applyOrgMember writes what the server stores into m. It leaves a null
-// project_overrides null: the configuration does not manage them (D6).
+// project_overrides null: the configuration does not manage them (ADR-0466).
 func applyOrgMember(m *orgMemberModel, member *api.OrgMember) diag.Diagnostics {
 	m.ID = types.StringValue(m.OrgID.ValueString() + ":" + member.Email)
 	m.Email = types.StringValue(member.Email)

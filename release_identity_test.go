@@ -14,8 +14,8 @@ const (
 	expectedReleaseProject  = "terraform-provider-uptrace"
 )
 
-// TestReleaseIdentityMatchesRegistryProviderName pins terraform:G1.
-// It holds terraform:F1: the registry address and the release artifact names.
+// TestReleaseIdentityMatchesRegistryProviderName pins terraform:R1.
+// It holds terraform:TC-1: the registry address and the release artifact names.
 func TestReleaseIdentityMatchesRegistryProviderName(t *testing.T) {
 	t.Helper()
 

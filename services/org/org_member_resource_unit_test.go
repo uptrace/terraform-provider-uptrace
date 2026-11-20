@@ -85,7 +85,7 @@ func TestOrgMemberResource_ImportState(t *testing.T) {
 		require.Equal(t, tc.email, email)
 		require.Equal(t, tc.id, id)
 
-		// The import reads the overrides the server holds (DESIGN.md D6).
+		// The import reads the overrides the server holds (ADR-0466).
 		var overrides types.Map
 		require.False(t, resp.State.GetAttribute(context.Background(), path.Root("project_overrides"), &overrides).HasError())
 		require.False(t, overrides.IsNull(), "an import manages the overrides")
@@ -103,7 +103,7 @@ func TestOrgMemberResource_Schema_projectOverridesAreOptional(t *testing.T) {
 	require.True(t, ok)
 	require.True(t, overrides.Optional)
 	// Neither computed nor defaulted: an omitted map stays null, and the
-	// server keeps the overrides it holds (DESIGN.md D6).
+	// server keeps the overrides it holds (ADR-0466).
 	require.False(t, overrides.Computed)
 }
 

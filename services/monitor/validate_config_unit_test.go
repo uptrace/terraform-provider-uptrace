@@ -17,7 +17,7 @@ import (
 // The server folds a window rule pair on save: an at_least count at or above
 // num_eval_points becomes at_all_times with no count, and a count under any
 // other rule is zeroed. A plan that holds such a pair would end the apply
-// inconsistent (terraform:G3), so the configuration refuses it. The server
+// inconsistent (terraform:QS-1), so the configuration refuses it. The server
 // reads a count without a rule as at_least, so that pair follows the at_least
 // cases. A configuration that omits num_eval_points has no width to compare
 // here: the plan holds it (TestModifyPlan_refusesACountAtThePlannedWidth).
@@ -78,7 +78,7 @@ func TestValidateConfig_refusesAWindowRulePairTheServerFolds(t *testing.T) {
 // The server reads a positive count without a rule as at_least. The plan
 // modifier of window_rule keeps the rule of the state for a configuration
 // that leaves it out, and a rule that does not count would make the server
-// zero the count (terraform:G3). So the plan states at_least for that pair.
+// zero the count (terraform:QS-1). So the plan states at_least for that pair.
 // It states a count of 0 for a rule that does not count and has no count.
 func TestModifyPlan_plansAtLeastForACountWithoutARule(t *testing.T) {
 	ctx := context.Background()
@@ -157,7 +157,7 @@ func TestModifyPlan_plansAtLeastForACountWithoutARule(t *testing.T) {
 
 // A configuration that omits num_eval_points plans the stored width, or the
 // server default for a new monitor. An at_least count at or above that width
-// would fold to at_all_times on save (terraform:G3), so the plan refuses it,
+// would fold to at_all_times on save (terraform:QS-1), so the plan refuses it,
 // and a count under a stored width wider than the default stays.
 func TestModifyPlan_refusesACountAtThePlannedWidth(t *testing.T) {
 	ctx := context.Background()
@@ -224,7 +224,7 @@ func TestModifyPlan_refusesACountAtThePlannedWidth(t *testing.T) {
 
 // The server reads absent_resolve_after only under absent_points alert and
 // stores 0s under any other rule, so a configuration that states one beside
-// another rule would end the apply inconsistent (terraform:G3).
+// another rule would end the apply inconsistent (terraform:QS-1).
 func TestValidateConfig_refusesAnAbsentExpiryTheServerZeroes(t *testing.T) {
 	ctx := context.Background()
 	r := &monitorResource{kind: kindByName(t, "threshold")}
@@ -264,7 +264,7 @@ func TestValidateConfig_refusesAnAbsentExpiryTheServerZeroes(t *testing.T) {
 // UseStateForUnknown plans the absent expiry of the state for a configuration
 // that omits it, and the server stores another one when absent_points changes:
 // 0s under a rule other than alert, and the default under alert for a 0s left by
-// an earlier rule (terraform:G3). The plan states the first and leaves the second
+// an earlier rule (terraform:QS-1). The plan states the first and leaves the second
 // unknown.
 func TestModifyPlan_plansTheAbsentExpiryTheServerStores(t *testing.T) {
 	ctx := context.Background()
@@ -333,7 +333,7 @@ func TestModifyPlan_plansTheAbsentExpiryTheServerStores(t *testing.T) {
 // A configuration that states absent_resolve_after and omits absent_points
 // keeps the stored rule, which UseStateForUnknown plans. The server stores 0s
 // under a stored rule other than alert, so the plan refuses the expiry there
-// (terraform:G3). A new monitor plans an unknown rule, and the server's
+// (terraform:QS-1). A new monitor plans an unknown rule, and the server's
 // fallback for an omitted rule is alert.
 func TestModifyPlan_refusesAStatedExpiryUnderAStoredRule(t *testing.T) {
 	ctx := context.Background()

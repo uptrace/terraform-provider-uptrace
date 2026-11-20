@@ -141,7 +141,7 @@ resource "uptrace_threshold_monitor" "test" {
 // A count without a window rule means at_least, as the server reads it. The
 // last step sets the count again over a stored at_all_times rule: the plan
 // must state at_least there, or the server zeroes the count and the apply ends
-// inconsistent (terraform:G3).
+// inconsistent (terraform:QS-1).
 func TestAccThresholdMonitor_countWithoutARule(t *testing.T) {
 	const addr = "uptrace_threshold_monitor.test"
 	base := testAccProjectConfig("acc-count-rule-org", "acc-count-rule-project")
@@ -188,7 +188,7 @@ resource "uptrace_threshold_monitor" "test" {
 // A configuration that omits num_eval_points keeps the stored width, so a
 // count is checked against that width, not against the default. Over a stored
 // width of 3, a count of 3 is every point: the server would fold it to
-// at_all_times, so the plan refuses it (terraform:G3). Over a stored width of
+// at_all_times, so the plan refuses it (terraform:QS-1). Over a stored width of
 // 10, a count of 6 is under the width, and the server stores it.
 func TestAccThresholdMonitor_countOverAStoredWidth(t *testing.T) {
 	const addr = "uptrace_threshold_monitor.test"

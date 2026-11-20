@@ -103,7 +103,7 @@ func TestAccOrgMember_basic(t *testing.T) {
 				ImportStateVerify: true,
 				// An import reads the overrides the server holds, and this
 				// configuration leaves them unmanaged, so its state holds none
-				// (DESIGN.md D6).
+				// (ADR-0466).
 				ImportStateVerifyIgnore: []string{"project_overrides"},
 				ImportStateIdFunc: func(s *terraform.State) (string, error) {
 					rs, ok := s.RootModule().Resources["uptrace_org_member.test"]

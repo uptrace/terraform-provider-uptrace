@@ -323,7 +323,7 @@ func basetypesObjectAsOptions() basetypes.ObjectAsOptions { return basetypes.Obj
 // TestBoundedKnobs_refuseWhatTheServerRewrites holds each knob whose zero the
 // server rewrites to a default to the server's bounds: a generated config that
 // carries such a zero fails the plan, not the apply.
-// It pins terraform:G3.
+// It pins terraform:QS-1.
 func TestBoundedKnobs_refuseWhatTheServerRewrites(t *testing.T) {
 	ctx := context.Background()
 	durationErrs := func(k *kind, name, value string) int {

@@ -33,7 +33,7 @@ func New(version string) func() tfprovider.Provider {
 
 // Metadata names the provider. Each resource type name is this name, an
 // underscore and the resource's own name.
-// It holds terraform:F2: the resource type names, their attributes and their
+// It holds terraform:TC-2: the resource type names, their attributes and their
 // import IDs are the ones the configurations and the state of operators hold.
 func (p *UptraceProvider) Metadata(_ context.Context, _ tfprovider.MetadataRequest, resp *tfprovider.MetadataResponse) {
 	resp.TypeName = "uptrace"

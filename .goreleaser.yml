@@ -1,7 +1,7 @@
 # Visit https://goreleaser.com for documentation on how to customize this
 # behavior.
 #
-# Holds terraform:F1: the archive, checksum, signature and manifest names that
+# Holds terraform:TC-1: the archive, checksum, signature and manifest names that
 # the Terraform Registry reads.
 version: 2
 project_name: terraform-provider-uptrace

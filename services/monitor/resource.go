@@ -212,7 +212,7 @@ func (r *monitorResource) ValidateConfig(ctx context.Context, req resource.Valid
 // validateAbsentResolveAfter refuses an absent_resolve_after beside an
 // absent_points other than alert. The server reads the expiry only under alert
 // and stores 0s under any other rule (monitorspec normalizeAbsentResolveAfter),
-// so a plan that held it would end the apply inconsistent (DESIGN.md G3). A
+// so a plan that held it would end the apply inconsistent (terraform:QS-1). A
 // configuration that omits absent_points keeps the stored rule, which only the
 // plan holds, so planAbsentResolveAfter checks that case.
 func (r *monitorResource) validateAbsentResolveAfter(ctx context.Context, req resource.ValidateConfigRequest, resp *resource.ValidateConfigResponse) {
@@ -243,7 +243,7 @@ func (r *monitorResource) validateAbsentResolveAfter(ctx context.Context, req re
 // server folds on save (monitorspec normalizeWindowRule): an at_least count at
 // or above num_eval_points becomes at_all_times with no count, and a count
 // under any other rule is zeroed. A plan that held such a pair would end the
-// apply inconsistent (DESIGN.md G3). An at_least rule without a count is
+// apply inconsistent (terraform:QS-1). An at_least rule without a count is
 // refused too, as the server refuses it. It compares the count with the width
 // only when the configuration sets num_eval_points; planWindowRule compares it
 // with the planned width otherwise.
@@ -376,7 +376,7 @@ func (r *monitorResource) ModifyPlan(ctx context.Context, req resource.ModifyPla
 // positive min_breach_points and no window_rule, which is how the server reads
 // that pair (monitorspec RuleForBreachPoints). Without it, UseStateForUnknown
 // plans the rule of the state. When that rule is not at_least, the server
-// zeroes the count, and the apply ends inconsistent (DESIGN.md G3).
+// zeroes the count, and the apply ends inconsistent (terraform:QS-1).
 //
 // The other way round, it plans min_breach_points = 0 for a configuration that
 // sets a rule other than at_least and no count: the server stores 0 under such
@@ -432,7 +432,7 @@ func (r *monitorResource) planWindowRule(ctx context.Context, req resource.Modif
 
 // planAbsentResolveAfter plans the expiry the server will store for a
 // configuration that omits absent_resolve_after, where UseStateForUnknown would
-// plan the one of the state (DESIGN.md G3). Under a planned absent_points other
+// plan the one of the state (terraform:QS-1). Under a planned absent_points other
 // than alert the server stores 0s. Under alert it stores the default for a 0s
 // the state holds from an earlier rule, which the plan leaves unknown.
 //
@@ -779,7 +779,7 @@ func (r *monitorResource) apply(ctx context.Context, monitor any, m *monitorMode
 // good_query and total_query. The server rewrites a saved query to its
 // canonical MQL text, so the configured spelling is kept in state while the
 // server still returns the text it returned at the last write; the
-// provider parses no MQL (DESIGN.md D3), so it compares the texts.
+// provider parses no MQL (ADR-0464), so it compares the texts.
 type queryCanon map[string]string
 
 // queryCanonKey is the private state key that holds a queryCanon.
