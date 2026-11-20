@@ -467,8 +467,8 @@ const (
 	// is not complete. An administrator of the organization checks the provider.
 	ErrorCodeSSOProviderUnavailable ErrorCode = "sso_provider_unavailable"
 
-	// A support engineer cannot log in as this account: it has a second factor enrolled, and
-	// the support session cannot answer its challenge.
+	// A site admin cannot impersonate this account: it has a second factor enrolled, and the
+	// impersonation session cannot answer its challenge.
 	ErrorCodeImpersonationRefused ErrorCode = "impersonation_refused"
 
 	// No notification with that ID belongs to this user.

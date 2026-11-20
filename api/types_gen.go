@@ -1077,7 +1077,8 @@ type Org struct {
 
 // The body that creates an organization.
 type OrgCreateRequest struct {
-	// Organization name. It is trimmed, and a name that is empty after trimming is refused.
+	// Organization name, at most 500 characters. It is trimmed, and a name that is empty after
+	// trimming is refused.
 	Name string `json:"name"`
 }
 
@@ -1159,7 +1160,8 @@ type OrgUpdateBudgetRequest struct {
 
 // The body that updates an organization's settings.
 type OrgUpdateRequest struct {
-	// Organization name. It is trimmed, and a name that is empty after trimming is refused.
+	// Organization name, at most 500 characters. It is trimmed, and a name that is empty after
+	// trimming is refused.
 	Name string `json:"name"`
 
 	// Whether the org requires a second factor of every member. Absent keeps the current
