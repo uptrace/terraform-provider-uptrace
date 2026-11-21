@@ -424,7 +424,7 @@ func overrideRefusal(role api.UserRole, level api.PermLevel) string {
 
 // rolePermLevel is the level role grants on every project: the permLevel
 // table of the contract's UserRole, which task generate:api writes into
-// terraform/api as it writes it into the app (app openapi/DESIGN.md D28). A
+// terraform/api as it writes it into the app (ADR-0525). A
 // role the table omits grants none. TestAccOrgMember_projectOverrides checks
 // the contract this provider was built from against the server it talks to.
 func rolePermLevel(role api.UserRole) api.PermLevel {
