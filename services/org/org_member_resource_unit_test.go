@@ -141,7 +141,7 @@ func validateOrgMember(t *testing.T, role string, overrides map[string]string) r
 
 // TestOrgMemberResource_ValidateConfig pins the plan-time refusal of an
 // override that the server refuses: a level below the one the role grants on
-// every project, other than none (app core/DESIGN.md D7), a key that is not
+// every project, other than none (ADR-0989), a key that is not
 // a project ID, and a project ID with a leading zero, which the state would
 // write back without it.
 func TestOrgMemberResource_ValidateConfig(t *testing.T) {

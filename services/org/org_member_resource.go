@@ -435,7 +435,7 @@ func rolePermLevel(role api.UserRole) api.PermLevel {
 }
 
 // isValidOverride reports whether the server takes an override at level under
-// role: none, or a level at or above the role's (app core/DESIGN.md D7).
+// role: none, or a level at or above the role's (ADR-0989).
 func isValidOverride(role api.UserRole, level api.PermLevel) bool {
 	return level == api.PermLevelNone || permRank(level) >= permRank(rolePermLevel(role))
 }
