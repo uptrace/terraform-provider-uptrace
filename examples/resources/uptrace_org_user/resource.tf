@@ -1,24 +1,13 @@
-resource "uptrace_org" "main" {
-  name = "Main"
-}
-
-resource "uptrace_user" "alice" {
-  email = "alice@example.com"
+# uptrace_org_user cannot create a membership: use uptrace_org_member, which
+# invites a person by email. It still manages a membership that is already in
+# the state, or one imported by <org_id>:<org_user_id>.
+import {
+  to = uptrace_org_user.alice
+  id = "123:456"
 }
 
 resource "uptrace_org_user" "alice" {
-  org_id  = uptrace_org.main.id
-  user_id = uptrace_user.alice.id
+  org_id  = "123"
+  user_id = "789"
   role    = "admin"
-}
-
-resource "uptrace_team" "platform" {
-  org_id = uptrace_org.main.id
-  name   = "Platform"
-}
-
-resource "uptrace_team_user" "alice_platform" {
-  org_id      = uptrace_org.main.id
-  team_id     = uptrace_team.platform.id
-  org_user_id = uptrace_org_user.alice.id
 }

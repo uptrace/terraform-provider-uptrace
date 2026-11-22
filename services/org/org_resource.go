@@ -60,6 +60,7 @@ func (r *OrgResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *
 				Description: "Organization name.",
 				Validators: []validator.String{
 					stringvalidator.UTF8LengthBetween(1, 255),
+					tfutil.TrimmedNameValidator{},
 				},
 			},
 			"budget": schema.Float64Attribute{

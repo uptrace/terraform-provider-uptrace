@@ -3,39 +3,28 @@
 page_title: "uptrace_org_user Resource - uptrace"
 subcategory: ""
 description: |-
-  Adds an existing user to an organization with a role. Idempotent — creating twice updates the role server-side. Pair with uptrace_user to manage the underlying user. Deprecated: use uptrace_org_member, which takes the email address instead of a user ID.
+  Manages an existing organization membership by its org user ID: reads it, changes its role, and removes it. It cannot create a membership: the server no longer attaches a user to an organization by user ID, so a new instance fails at plan time. Import a membership with <org_id>:<org_user_id>. Deprecated: use uptrace_org_member, which takes the email address and invites a person who is not a member, and the uptrace_org_member data source to read the org_user_id of a member.
 ---
 
 # uptrace_org_user (Resource)
 
-Adds an existing user to an organization with a role. Idempotent — creating twice updates the role server-side. Pair with `uptrace_user` to manage the underlying user. Deprecated: use `uptrace_org_member`, which takes the email address instead of a user ID.
+Manages an existing organization membership by its org user ID: reads it, changes its role, and removes it. It cannot create a membership: the server no longer attaches a user to an organization by user ID, so a new instance fails at plan time. Import a membership with `<org_id>:<org_user_id>`. Deprecated: use `uptrace_org_member`, which takes the email address and invites a person who is not a member, and the `uptrace_org_member` data source to read the `org_user_id` of a member.
 
 ## Example Usage
 
 ```terraform
-resource "uptrace_org" "main" {
-  name = "Main"
-}
-
-resource "uptrace_user" "alice" {
-  email = "alice@example.com"
+# uptrace_org_user cannot create a membership: use uptrace_org_member, which
+# invites a person by email. It still manages a membership that is already in
+# the state, or one imported by <org_id>:<org_user_id>.
+import {
+  to = uptrace_org_user.alice
+  id = "123:456"
 }
 
 resource "uptrace_org_user" "alice" {
-  org_id  = uptrace_org.main.id
-  user_id = uptrace_user.alice.id
+  org_id  = "123"
+  user_id = "789"
   role    = "admin"
-}
-
-resource "uptrace_team" "platform" {
-  org_id = uptrace_org.main.id
-  name   = "Platform"
-}
-
-resource "uptrace_team_user" "alice_platform" {
-  org_id      = uptrace_org.main.id
-  team_id     = uptrace_team.platform.id
-  org_user_id = uptrace_org_user.alice.id
 }
 ```
 

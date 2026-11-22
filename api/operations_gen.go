@@ -86,18 +86,6 @@ type CreateOrgBody = OrgCreateRequest
 // CreateOrgResponse is what CreateOrg answers with.
 type CreateOrgResponse = OrgResponse
 
-// CreateOrgUserBody is the body CreateOrgUser takes.
-type CreateOrgUserBody = OrgUserCreateRequest
-
-// CreateOrgUserRequest holds the parameters CreateOrgUser takes.
-type CreateOrgUserRequest struct {
-	// Organization ID.
-	OrgID uint64 `path:"org_id"`
-}
-
-// CreateOrgUserResponse is what CreateOrgUser answers with.
-type CreateOrgUserResponse = OrgUserResponse
-
 // CreateOrglessInviteBody is the body CreateOrglessInvite takes.
 type CreateOrglessInviteBody = OrglessUserInviteCreateRequest
 

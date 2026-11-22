@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
+	"github.com/uptrace/terraform/api"
 	"github.com/uptrace/terraform/client"
 	"github.com/uptrace/terraform/provider"
 )
@@ -71,4 +73,39 @@ func TestAccClient(t *testing.T) *client.Client {
 		t.Fatalf("creating API client: %v", err)
 	}
 	return c
+}
+
+// AccountEmail returns the email of the account that UPTRACE_TOKEN belongs
+// to. That account owns each organization an acceptance test creates, so a
+// test reads its membership by this address (the uptrace_org_member data
+// source) where it needs an org_user_id that no resource of the test creates.
+//
+// A test builds its configuration before resource.Test runs, so this skips the
+// test where resource.Test would, and runs PreCheck itself.
+func AccountEmail(t *testing.T) string {
+	t.Helper()
+	return accountUser(t).Email
+}
+
+// AccountUserID returns the user ID of the account that UPTRACE_TOKEN belongs
+// to, as AccountEmail returns its email.
+func AccountUserID(t *testing.T) uint64 {
+	t.Helper()
+	return accountUser(t).ID
+}
+
+func accountUser(t *testing.T) api.User {
+	t.Helper()
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
+	}
+	PreCheck(t)
+	out, err := TestAccClient(t).API.GetCurrentUser(context.Background())
+	if err != nil {
+		t.Fatalf("reading the account of UPTRACE_TOKEN: %v", err)
+	}
+	if out.Guest || out.User.Email == "" {
+		t.Fatal("UPTRACE_TOKEN does not belong to an account with an email address")
+	}
+	return out.User
 }

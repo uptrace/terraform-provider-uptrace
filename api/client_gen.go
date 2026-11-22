@@ -123,28 +123,6 @@ func (c *Client) CreateOrg(ctx context.Context, body CreateOrgBody) (*CreateOrgR
 	})
 }
 
-// CreateOrgUser calls POST /internal/v1/orgs/{org_id}/users.
-//
-// Create an OrgUser membership for an existing User. Idempotent: if the user is already a
-// member, the membership is kept with its stored role, and the supplied role is not
-// applied; use the role update to change a role. Used by automation that holds a userId
-// directly. Requires org admin. Accepts users with email_confirmed=false (e.g. invited but
-// not yet accepted). Call set_org_member (PUT /internal/v1/orgs/{org_id}/members/by-email)
-// instead. It takes the email and invites a person who is not a member. This operation is
-// removed after one app minor release.
-//
-// Deprecated: the contract marks this operation deprecated.
-func (c *Client) CreateOrgUser(ctx context.Context, req CreateOrgUserRequest, body CreateOrgUserBody) (*CreateOrgUserResponse, error) {
-	return do[CreateOrgUserResponse](ctx, c.rt, call{
-		Method:      http.MethodPost,
-		Path:        "/internal/v1/orgs/{org_id}/users",
-		Params:      req,
-		Body:        body,
-		ContentType: "application/json",
-		Accept:      "application/json",
-	})
-}
-
 // CreateOrglessInvite calls POST /internal/v1/invites.
 //
 // Top-level invite endpoint used by Terraform to pre-create a User row without attaching
@@ -153,11 +131,11 @@ func (c *Client) CreateOrgUser(ctx context.Context, req CreateOrgUserRequest, bo
 // confirmed User, the response includes a compact invite summary with status `accepted`; no
 // invite row is inserted. Otherwise the endpoint ensures a User row exists with
 // `email_confirmed=false`, persists or reuses a sent invite row, and sends an account
-// invitation email when a new or reactivated invite is created. Caller can then attach org
-// membership separately via POST /orgs/{org_id}/users. Call set_org_member (PUT
-// /internal/v1/orgs/{org_id}/members/by-email) instead. It takes the email, answers the
-// same for every address that is not a member, and invites the person. This operation is
-// removed after one app minor release.
+// invitation email when a new or reactivated invite is created. The operation that attached
+// a membership by user id is removed, so this one no longer leads to a membership. Call
+// set_org_member (PUT /internal/v1/orgs/{org_id}/members/by-email) instead. It takes the
+// email, answers the same for every address that is not a member, and invites the person.
+// This operation is removed after one app minor release.
 //
 // Deprecated: the contract marks this operation deprecated.
 func (c *Client) CreateOrglessInvite(ctx context.Context, body CreateOrglessInviteBody) (*CreateOrglessInviteResponse, error) {
@@ -327,6 +305,22 @@ func (c *Client) DeleteTeam(ctx context.Context, req DeleteTeamRequest) (*Delete
 		Method: http.MethodDelete,
 		Path:   "/internal/v1/orgs/{org_id}/teams/{team_id}",
 		Params: req,
+		Accept: "application/json",
+	})
+}
+
+// GetCurrentUser calls GET /internal/v1/users/current.
+//
+// Retrieve the currently authenticated user and their accessible projects. A request that
+// carries no credential gets a guest user with an empty project list instead of a 401
+// error. A credential that is sent and refused, such as an expired or revoked token, an
+// ended SSO session or a session older than the last password change, gets its 401. A
+// credential that still owes its second factor, or an OAuth grant, which reaches project
+// routes alone, is refused.
+func (c *Client) GetCurrentUser(ctx context.Context) (*GetCurrentUserResponse, error) {
+	return do[GetCurrentUserResponse](ctx, c.rt, call{
+		Method: http.MethodGet,
+		Path:   "/internal/v1/users/current",
 		Accept: "application/json",
 	})
 }

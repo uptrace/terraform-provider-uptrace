@@ -22,20 +22,18 @@ resource "uptrace_team" "example" {
   name   = "platform"
 }
 
-resource "uptrace_user" "example" {
-  email = "alice@example.com"
-}
-
-resource "uptrace_org_user" "example" {
-  org_id  = uptrace_org.example.id
-  user_id = uptrace_user.example.id
-  role    = "admin"
+# The org_user_id of a member. A member that this configuration invites with
+# uptrace_org_member has one once the invitation is accepted:
+# uptrace_org_member.<name>.org_user_id.
+data "uptrace_org_member" "alice" {
+  org_id = uptrace_org.example.id
+  email  = "alice@example.com"
 }
 
 resource "uptrace_team_user" "example" {
   org_id      = uptrace_org.example.id
   team_id     = uptrace_team.example.id
-  org_user_id = uptrace_org_user.example.id
+  org_user_id = data.uptrace_org_member.alice.org_user_id
 }
 ```
 

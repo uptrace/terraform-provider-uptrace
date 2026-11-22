@@ -109,6 +109,7 @@ func (r *TeamResource) Schema(_ context.Context, _ resource.SchemaRequest, resp 
 				Description: "Team name.",
 				Validators: []validator.String{
 					stringvalidator.UTF8LengthBetween(1, 255),
+					tfutil.TrimmedNameValidator{},
 				},
 			},
 			"perm_level": schema.StringAttribute{

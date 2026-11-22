@@ -743,6 +743,58 @@ type ForecastMonitorSummary struct {
 	Params ForecastMonitorParams `json:"params"`
 }
 
+// GetCurrentUserResponse is what GetCurrentUser answers with.
+type GetCurrentUserResponse struct {
+	// A registered user account.
+	User User `json:"user"`
+
+	// The caller has no account of its own: the request carried no credential, or the caller
+	// is the shared playground guest. A form that names its sender, such as feedback, asks a
+	// guest how to reply.
+	Guest bool `json:"guest"`
+
+	// The session came from a single sign-on provider. Such a session cannot change the email,
+	// the password or the second factor, and cannot make an org. A token it makes, and an
+	// OAuth grant it approves, are bound to its provider; a read with such a token answers
+	// true too. A guest gets false.
+	SSOSession bool `json:"ssoSession"`
+
+	// The list leaves out at least one project the caller could view, because its organization
+	// requires two-factor authentication and the credential lacks a second factor: the caller
+	// has not enrolled, or a login without a second factor issued the token or the grant. A
+	// guest gets false.
+	HasMFARefusedProjects bool `json:"hasMfaRefusedProjects"`
+
+	// The list leaves out at least one project the caller could view, because its organization
+	// requires single sign-on and the credential did not come from its provider. An
+	// organization that also refuses the caller under its two-factor policy counts in
+	// hasMfaRefusedProjects and not here. A guest gets false.
+	HasSSORefusedProjects bool `json:"hasSsoRefusedProjects"`
+
+	// The strictest token lifetime cap, in days, among the organizations that a personal API
+	// token of the caller reaches. A new token that lives longer is refused in that
+	// organization. Zero means that no organization caps the lifetime. An SSO session gets the
+	// cap of its provider's organization, the one organization its token reaches. A guest gets
+	// zero.
+	TokenLifetimeCapDays int32 `json:"tokenLifetimeCapDays"`
+
+	// The organization of the single sign-on provider that the request's session came from: an
+	// SSO session, or a token or OAuth grant that such a session made. It is the one
+	// organization the request reaches.
+	SSOSessionOrg *SSOSessionOrg `json:"ssoSessionOrg"`
+
+	// The organizations that the account's own login reaches only through an enabled single
+	// sign-on provider, one each, so the app can offer their single sign-on. Empty for an SSO
+	// session, for a guest, and while the license leaves single sign-on out, since then no
+	// provider signs anyone in.
+	SSOOnlyOrgs []SSOOnlyOrg `json:"ssoOnlyOrgs"`
+
+	// The projects the caller reaches, each with their own permissions over it. It leaves out
+	// a project whose organization requires two-factor authentication when the caller has not
+	// enrolled. No retention policy is resolved.
+	Projects []ProjectWithPerms `json:"projects"`
+}
+
 // Delivers to a Google Chat space over an incoming webhook.
 type GoogleChatChannel struct {
 	BaseNotificationChannel
@@ -1204,16 +1256,6 @@ type OrgUser struct {
 	UpdatedAt float64 `json:"updatedAt"`
 }
 
-// Body for POST /orgs/{org_id}/users. Creates an OrgUser membership for an existing User by
-// ID. Idempotent: re-posting the same userId keeps the stored role.
-type OrgUserCreateRequest struct {
-	// ID of an existing User to attach to the org.
-	UserID uint64 `json:"userId"`
-
-	// A user's role within an organization.
-	Role UserRole `json:"role"`
-}
-
 // One org user in full — the identity, the membership row, and the projects reached.
 type OrgUserProfileResponse struct {
 	// A registered user account.
@@ -1232,12 +1274,6 @@ type OrgUserProfileResponse struct {
 	// The project overrides of the membership on the projects listed, in ascending order of
 	// project ID. A listed project without one takes its level from the role and the teams.
 	ProjectOverrides []OrgMemberProjectOverride `json:"projectOverrides"`
-}
-
-// Wraps one org user under `orgUser`. Returned when one is created or updated.
-type OrgUserResponse struct {
-	// An organization membership row. Links a user to an organization with a role.
-	OrgUser OrgUser `json:"orgUser"`
 }
 
 // Response wrapping a single OrgUser under the `user` key.
@@ -2126,6 +2162,41 @@ type SLOUnreadableSLI struct {
 
 	// Why this build cannot read the stored SLI.
 	Error string `json:"error"`
+}
+
+// An organization that the account joined only through an enabled single sign-on provider.
+// The provider grants the membership to its sessions alone, so the account's own password,
+// GitHub or Google login reaches none of the organization until an administrator invites
+// it.
+type SSOOnlyOrg struct {
+	// The organization.
+	OrgID uint64 `json:"orgId"`
+
+	// The name of the organization.
+	OrgName string `json:"orgName"`
+}
+
+// The organization of the single sign-on provider that the request's session came from: an
+// SSO session, or a token or OAuth grant that such a session made. It is the one
+// organization the request reaches.
+type SSOSessionOrg struct {
+	// The organization of the provider.
+	OrgID uint64 `json:"orgId"`
+
+	// The name of the organization.
+	OrgName string `json:"orgName"`
+
+	// The account also holds a membership of its own in the organization, so its own password,
+	// GitHub or Google login reaches the organization too. Without one, the own login shows
+	// none of the organization until an administrator invites it.
+	OwnLoginMember bool `json:"ownLoginMember"`
+
+	// When the single sign-on session ends, in epoch milliseconds: its sign-in plus the single
+	// sign-on session length of the organization, while the organization requires single
+	// sign-on. A token the session creates, and an OAuth grant it approves, stop working then
+	// too, and a read with such a token answers the end of the session that created it. Zero
+	// when the organization does not require single sign-on.
+	EndsAt float64 `json:"endsAt"`
 }
 
 // Opens a ServiceNow incident through the Table API.

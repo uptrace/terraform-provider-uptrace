@@ -1,108 +1,111 @@
 package org_test
 
 import (
-	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
-	"github.com/uptrace/terraform/api"
-	"github.com/uptrace/terraform/client"
 	"github.com/uptrace/terraform/testutil"
 )
 
-func testAccOrgUserConfig(orgName, email, role string) string {
-	return fmt.Sprintf(`
+// testAccOrgUserConfig holds an org, the membership of its owner (the
+// provider's own account) read by email, and, when withOrgUser is set, an
+// uptrace_org_user of that membership.
+func testAccOrgUserConfig(orgName, ownerEmail string, ownerUserID uint64, withOrgUser bool) string {
+	config := fmt.Sprintf(`
 resource "uptrace_org" "test" {
   name = %q
 }
 
-resource "uptrace_user" "test" {
-  email = %q
+data "uptrace_org_member" "owner" {
+  org_id = uptrace_org.test.id
+  email  = %q
 }
-
+`, orgName, ownerEmail)
+	if withOrgUser {
+		config += fmt.Sprintf(`
 resource "uptrace_org_user" "test" {
   org_id  = uptrace_org.test.id
-  user_id = uptrace_user.test.id
-  role    = %q
+  user_id = %q
+  role    = "owner"
 }
-`, orgName, email, role)
-}
-
-func testAccCheckOrgUserDestroy(t *testing.T) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		c := testutil.TestAccClient(t)
-		for _, rs := range s.RootModule().Resources {
-			if rs.Type != "uptrace_org_user" {
-				continue
-			}
-			orgID, err := strconv.ParseUint(rs.Primary.Attributes["org_id"], 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid org_id: %w", err)
-			}
-			orgUserID, err := strconv.ParseUint(rs.Primary.Attributes["id"], 10, 64)
-			if err != nil {
-				return fmt.Errorf("invalid id: %w", err)
-			}
-			_, err = c.API.GetOrgUser(context.Background(), api.GetOrgUserRequest{OrgID: orgID, OrgUserID: orgUserID})
-			if err == nil {
-				return fmt.Errorf("org_user %d still exists in org %d after destroy", orgUserID, orgID)
-			}
-			if !client.IsNotFound(err) {
-				return fmt.Errorf("get org_user after destroy: %w", err)
-			}
-		}
-		return nil
+`, strconv.FormatUint(ownerUserID, 10))
 	}
+	return config
 }
 
-func TestAccOrgUser_basic(t *testing.T) {
-	email := testutil.AcceptanceTestUserEmail("acc-org-user")
+// TestAccOrgUser_createRefused pins that a new uptrace_org_user fails at plan
+// time: the server no longer attaches a user to an org by user ID.
+func TestAccOrgUser_createRefused(t *testing.T) {
+	email, userID := testutil.AccountEmail(t), testutil.AccountUserID(t)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.PreCheck(t) },
 		ProtoV6ProviderFactories: testutil.ProtoV6ProviderFactories,
-		CheckDestroy:             testAccCheckOrgUserDestroy(t),
+		CheckDestroy:             testAccCheckOrgDestroy(t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccOrgUserConfig("acc-ou-org", email, "member"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttrSet("uptrace_org_user.test", "id"),
-					resource.TestCheckResourceAttr("uptrace_org_user.test", "role", "member"),
-				),
-			},
-			{
-				Config: testAccOrgUserConfig("acc-ou-org", email, "admin"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("uptrace_org_user.test", "role", "admin"),
-				),
-			},
-			{
-				Config:   testAccOrgUserConfig("acc-ou-org", email, "admin"),
-				PlanOnly: true,
-			},
-			{
-				ResourceName:      "uptrace_org_user.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateIdFunc: importOrgUserIDFunc("uptrace_org_user.test"),
+				Config:      testAccOrgUserConfig("acc-ou-refused-org", email, userID, true),
+				ExpectError: regexp.MustCompile(`can no longer create a membership`),
 			},
 		},
 	})
 }
 
-func importOrgUserIDFunc(resourceAddr string) resource.ImportStateIdFunc {
-	return func(s *terraform.State) (string, error) {
-		rs, ok := s.RootModule().Resources[resourceAddr]
-		if !ok {
-			return "", fmt.Errorf("resource %s not found", resourceAddr)
-		}
-		return fmt.Sprintf("%s:%s",
-			rs.Primary.Attributes["org_id"],
-			rs.Primary.Attributes["id"],
-		), nil
+// TestAccOrgUser_import pins the path an existing membership keeps: an import
+// by <org_id>:<org_user_id> reads it. The test imports the owner's membership
+// and does not persist it, so the destroy at the end removes the org and never
+// the owner's last membership.
+func TestAccOrgUser_import(t *testing.T) {
+	email, userID := testutil.AccountEmail(t), testutil.AccountUserID(t)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.PreCheck(t) },
+		ProtoV6ProviderFactories: testutil.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckOrgDestroy(t),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccOrgUserConfig("acc-ou-import-org", email, userID, false),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrSet("data.uptrace_org_member.owner", "org_user_id"),
+				),
+			},
+			{
+				Config:            testAccOrgUserConfig("acc-ou-import-org", email, userID, true),
+				ResourceName:      "uptrace_org_user.test",
+				ImportState:       true,
+				ImportStateIdFunc: importOwnerOrgUserIDFunc,
+				ImportStateCheck: func(states []*terraform.InstanceState) error {
+					if len(states) != 1 {
+						return fmt.Errorf("imported %d instances, want 1", len(states))
+					}
+					got := states[0].Attributes
+					if want := strconv.FormatUint(userID, 10); got["user_id"] != want {
+						return fmt.Errorf("user_id = %q, want %q", got["user_id"], want)
+					}
+					if got["role"] != "owner" {
+						return fmt.Errorf("role = %q, want owner", got["role"])
+					}
+					return nil
+				},
+			},
+		},
+	})
+}
+
+// importOwnerOrgUserIDFunc builds "<org_id>:<org_user_id>" from the owner's
+// membership that the data source read.
+func importOwnerOrgUserIDFunc(s *terraform.State) (string, error) {
+	rs, ok := s.RootModule().Resources["data.uptrace_org_member.owner"]
+	if !ok {
+		return "", fmt.Errorf("data.uptrace_org_member.owner not found")
 	}
+	return fmt.Sprintf("%s:%s",
+		rs.Primary.Attributes["org_id"],
+		rs.Primary.Attributes["org_user_id"],
+	), nil
 }

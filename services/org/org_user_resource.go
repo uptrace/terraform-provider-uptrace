@@ -4,7 +4,6 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -22,9 +21,13 @@ var (
 	_ resource.Resource                = &OrgUserResource{}
 	_ resource.ResourceWithConfigure   = &OrgUserResource{}
 	_ resource.ResourceWithImportState = &OrgUserResource{}
+	_ resource.ResourceWithModifyPlan  = &OrgUserResource{}
 )
 
-// OrgUserResource manages an organization membership row (`OrgUser`).
+// OrgUserResource manages an organization membership row (`OrgUser`) that
+// already exists: it reads it, changes its role, and removes it. It creates
+// none (orgUserCreateRemoved). It stays for the memberships already in a
+// state, and the next major version of the provider removes it.
 type OrgUserResource struct {
 	client *client.Client
 }
@@ -37,8 +40,9 @@ type orgUserModel struct {
 }
 
 // orgUserDeprecation names the replacement of uptrace_org_user. The app
-// deprecated the route it calls, and removes it after one app minor release.
-const orgUserDeprecation = "uptrace_org_user is deprecated and will be removed in the next major version of the provider. " +
+// removed the route that created a membership by user ID.
+const orgUserDeprecation = "uptrace_org_user is deprecated, cannot create a membership, " +
+	"and will be removed in the next major version of the provider. " +
 	"Use uptrace_org_member, which takes the email address and invites a person who is not a member. " +
 	"Move an existing membership with: terraform import uptrace_org_member.<name> <org_id>:<email>, " +
 	"then remove uptrace_org_user from the state with terraform state rm."
@@ -53,8 +57,11 @@ func (r *OrgUserResource) Metadata(_ context.Context, req resource.MetadataReque
 
 func (r *OrgUserResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Adds an existing user to an organization with a role. Idempotent — creating twice updates the role server-side. Pair with `uptrace_user` to manage the underlying user. " +
-			"Deprecated: use `uptrace_org_member`, which takes the email address instead of a user ID.",
+		Description: "Manages an existing organization membership by its org user ID: reads it, changes its role, and removes it. " +
+			"It cannot create a membership: the server no longer attaches a user to an organization by user ID, " +
+			"so a new instance fails at plan time. Import a membership with `<org_id>:<org_user_id>`. " +
+			"Deprecated: use `uptrace_org_member`, which takes the email address and invites a person who is not a member, " +
+			"and the `uptrace_org_member` data source to read the `org_user_id` of a member.",
 		DeprecationMessage: orgUserDeprecation,
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -91,38 +98,55 @@ func (r *OrgUserResource) Configure(_ context.Context, req resource.ConfigureReq
 	r.client = tfutil.FromProviderData[client.Client](req.ProviderData, &resp.Diagnostics)
 }
 
-func (r *OrgUserResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var plan orgUserModel
+// orgUserCreateRemoved is what a create answers. The app removed the operation
+// that attached an account to an org by its user id: an administrator could
+// attach any account of the deployment without its consent. A membership now
+// begins with an invitation, which uptrace_org_member sends.
+const orgUserCreateRemoved = "The server no longer attaches a user to an organization by user ID, " +
+	"so uptrace_org_user cannot create a membership. " +
+	"Use uptrace_org_member, which takes the email address and invites a person who is not a member. " +
+	"A membership that this resource already manages can still be read, changed and removed."
+
+// orgUserCreateRefused is the summary of the diagnostic that ModifyPlan and
+// Create add.
+const orgUserCreateRefused = "uptrace_org_user can no longer create a membership"
+
+// ModifyPlan refuses at plan time every plan that needs a create: a new
+// instance (no prior state) and a replacement, which a change of org_id or
+// user_id asks for (RequiresReplace). A replacement would first remove the
+// membership and then fail to create its successor, so it must fail before the
+// apply removes anything. A value not known until the apply counts as a
+// change, as it does for RequiresReplace. An update of the role and a destroy
+// (a null plan) pass.
+func (r *OrgUserResource) ModifyPlan(
+	ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse,
+) {
+	if req.Plan.Raw.IsNull() {
+		return
+	}
+	if req.State.Raw.IsNull() {
+		resp.Diagnostics.AddError(orgUserCreateRefused, orgUserCreateRemoved)
+		return
+	}
+
+	var plan, state orgUserModel
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &plan)...)
+	resp.Diagnostics.Append(req.State.Get(ctx, &state)...)
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	orgID, userID, diags := parseOrgUserCreateIDs(plan)
-	resp.Diagnostics.Append(diags...)
-	if resp.Diagnostics.HasError() {
-		return
+	if !plan.OrgID.Equal(state.OrgID) || !plan.UserID.Equal(state.UserID) {
+		resp.Diagnostics.AddError(orgUserCreateRefused,
+			"Changing org_id or user_id replaces the membership, and a replacement creates one. "+
+				orgUserCreateRemoved)
 	}
+}
 
-	tflog.Info(ctx, "creating org_user", map[string]any{
-		"org_id":  plan.OrgID.ValueString(),
-		"user_id": plan.UserID.ValueString(),
-		"role":    plan.Role.ValueString(),
-	})
-
-	//nolint:staticcheck // SA1019: the resource is deprecated with the operation; uptrace_org_member replaces both, and the next major provider version removes them.
-	out, err := r.client.API.CreateOrgUser(ctx, api.CreateOrgUserRequest{OrgID: orgID}, api.OrgUserCreateRequest{
-		UserID: userID,
-		Role:   api.UserRole(plan.Role.ValueString()),
-	})
-	if err != nil {
-		tfutil.AddAPIError(&resp.Diagnostics, "create org_user failed", err)
-		return
-	}
-
-	plan.ID = types.StringValue(strconv.FormatUint(out.OrgUser.ID, 10))
-	plan.Role = types.StringValue(string(out.OrgUser.Role))
-	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
+// Create refuses, as ModifyPlan does at plan time: the server operation is
+// removed (orgUserCreateRemoved). Read, Update and Delete keep working for a
+// membership already in the state.
+func (r *OrgUserResource) Create(_ context.Context, _ resource.CreateRequest, resp *resource.CreateResponse) {
+	resp.Diagnostics.AddError(orgUserCreateRefused, orgUserCreateRemoved)
 }
 
 func (r *OrgUserResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
@@ -227,19 +251,4 @@ func (r *OrgUserResource) ImportState(ctx context.Context, req resource.ImportSt
 		tfutil.ImportField{Name: "org_id", Parse: tfutil.ParseUint64},
 		tfutil.ImportField{Name: "id", Parse: tfutil.ParseUint64},
 	)
-}
-
-func parseOrgUserCreateIDs(m orgUserModel) (orgID uint64, userID uint64, diags diag.Diagnostics) {
-	var err error
-	orgID, err = strconv.ParseUint(m.OrgID.ValueString(), 10, 64)
-	if err != nil {
-		diags.AddError("invalid org_id", err.Error())
-		return
-	}
-	userID, err = strconv.ParseUint(m.UserID.ValueString(), 10, 64)
-	if err != nil {
-		diags.AddError("invalid user_id", err.Error())
-		return
-	}
-	return
 }

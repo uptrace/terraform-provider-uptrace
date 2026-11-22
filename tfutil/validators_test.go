@@ -44,3 +44,28 @@ func TestLowercaseEmailValidator_skipsNullUnknown(t *testing.T) {
 	}, &resp)
 	require.False(t, resp.Diagnostics.HasError())
 }
+
+func TestTrimmedNameValidator(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		value   types.String
+		refused bool
+	}{
+		{"a trimmed name", types.StringValue("Production"), false},
+		{"inner spaces", types.StringValue("Production EU"), false},
+		{"a leading space", types.StringValue(" Production"), true},
+		{"a trailing space", types.StringValue("Production "), true},
+		{"a trailing newline", types.StringValue("Production\n"), true},
+		{"null", types.StringNull(), false},
+		{"unknown", types.StringUnknown(), false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var resp validator.StringResponse
+			TrimmedNameValidator{}.ValidateString(context.Background(), validator.StringRequest{
+				Path:        path.Root("name"),
+				ConfigValue: tc.value,
+			}, &resp)
+			require.Equal(t, tc.refused, resp.Diagnostics.HasError())
+		})
+	}
+}

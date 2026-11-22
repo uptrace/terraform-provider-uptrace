@@ -500,9 +500,6 @@ const (
 	// The invitation is already accepted, so it cannot be sent again.
 	ErrorCodeInviteAlreadyAccepted ErrorCode = "invite_already_accepted"
 
-	// The invitation has expired, so it cannot be sent again.
-	ErrorCodeInviteExpired ErrorCode = "invite_expired"
-
 	// The inviter has sent as many invitations within the invite window as it may. A canceled
 	// invitation counts until it ages out; only an accepted one does not.
 	ErrorCodeInviteLimitReached ErrorCode = "invite_limit_reached"
@@ -512,9 +509,6 @@ const (
 
 	// The user of the invitation no longer exists.
 	ErrorCodeInviteUserMissing ErrorCode = "invite_user_missing"
-
-	// The membership names no user.
-	ErrorCodeUserIDRequired ErrorCode = "user_id_required"
 
 	// The organization holds as many service accounts as this deployment allows.
 	ErrorCodeServiceAccountLimitReached ErrorCode = "service_account_limit_reached"
@@ -716,11 +710,9 @@ func ErrorCodeValues() []ErrorCode {
 		ErrorCodeInviteNotFound,
 		ErrorCodeRoleInvalid,
 		ErrorCodeInviteAlreadyAccepted,
-		ErrorCodeInviteExpired,
 		ErrorCodeInviteLimitReached,
 		ErrorCodeInviteStatusUnsupported,
 		ErrorCodeInviteUserMissing,
-		ErrorCodeUserIDRequired,
 		ErrorCodeServiceAccountLimitReached,
 		ErrorCodeTokenLimitReached,
 		ErrorCodeIssueTrackerUnavailable,

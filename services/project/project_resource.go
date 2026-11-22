@@ -117,6 +117,7 @@ func (r *ProjectResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Description: "Project name.",
 				Validators: []validator.String{
 					stringvalidator.UTF8LengthBetween(1, 255),
+					tfutil.TrimmedNameValidator{},
 				},
 			},
 			"group_by_env":                 optionalComputedBool("Group spans by deployment environment."),

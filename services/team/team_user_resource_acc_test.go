@@ -15,9 +15,11 @@ import (
 )
 
 // testAccTeamUserConfig mirrors examples/resources/uptrace_team_user/resource.tf:
-// org → team → user → org_user → team_user, all created inline so the test
-// covers the full chain without relying on a pre-existing OrgUser ID.
-func testAccTeamUserConfig(orgName, teamName, email string) string {
+// org → team, and the org_user_id of the org's owner, the provider's own
+// account, read with the uptrace_org_member data source. A membership of
+// another person begins with an invitation that the person must accept, so the
+// owner is the one member a test can put in a team.
+func testAccTeamUserConfig(orgName, teamName, ownerEmail string) string {
 	return fmt.Sprintf(`
 resource "uptrace_org" "test" {
   name = %q
@@ -28,22 +30,17 @@ resource "uptrace_team" "test" {
   name   = %q
 }
 
-resource "uptrace_user" "test" {
-  email = %q
-}
-
-resource "uptrace_org_user" "test" {
-  org_id  = uptrace_org.test.id
-  user_id = uptrace_user.test.id
-  role    = "admin"
+data "uptrace_org_member" "owner" {
+  org_id = uptrace_org.test.id
+  email  = %q
 }
 
 resource "uptrace_team_user" "test" {
   org_id      = uptrace_org.test.id
   team_id     = uptrace_team.test.id
-  org_user_id = uptrace_org_user.test.id
+  org_user_id = data.uptrace_org_member.owner.org_user_id
 }
-`, orgName, teamName, email)
+`, orgName, teamName, ownerEmail)
 }
 
 func testAccCheckTeamUserDestroy(t *testing.T) resource.TestCheckFunc {
@@ -84,7 +81,7 @@ func testAccCheckTeamUserDestroy(t *testing.T) resource.TestCheckFunc {
 }
 
 func TestAccTeamUser_basic(t *testing.T) {
-	email := testutil.AcceptanceTestUserEmail("acc-team-user")
+	email := testutil.AccountEmail(t)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testutil.PreCheck(t) },
@@ -116,7 +113,7 @@ func TestAccTeamUser_basic(t *testing.T) {
 }
 
 func TestAccTeamUser_disappearsOutOfBand(t *testing.T) {
-	email := testutil.AcceptanceTestUserEmail("acc-team-user-gone")
+	email := testutil.AccountEmail(t)
 
 	config := testAccTeamUserConfig("acc-tu-gone-org", "acc-tu-gone-team", email)
 	var orgIDAttr, teamIDAttr, orgUserIDAttr string

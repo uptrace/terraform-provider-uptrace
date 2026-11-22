@@ -188,6 +188,24 @@ resource "uptrace_org_member" "alice" {
 }
 ```
 
+### data.uptrace_org_member
+
+Reads one person's membership of an organization by the email address, without managing it.
+Use it for the `org_user_id` of a member that the configuration does not manage, such as the
+provider's own account, which owns each organization it creates. The read fails when the
+address has no membership and no live invitation, and for a membership that an SSO provider
+is bound to, which is not read by email. Requires org admin.
+
+| Field       | Type        | Required | Description                                                  |
+|-------------|-------------|----------|--------------------------------------------------------------|
+| org_id      | string      | yes      | Organization ID.                                             |
+| email       | string      | yes      | Lowercase, trimmed.                                          |
+| role        | string      | computed | The organization role.                                       |
+| team_ids    | set(string) | computed | The teams of the person.                                     |
+| status      | string      | computed | `pending` or `active`.                                       |
+| org_user_id | string      | computed | OrgUser ID of an active membership; null while pending.      |
+| id          | string      | computed | `<org_id>:<email>`.                                          |
+
 ### uptrace_user
 
 **Deprecated:** use `uptrace_org_member`. This resource is removed in the next major version.
@@ -209,31 +227,19 @@ To move a membership, import it with `terraform import uptrace_org_member.x <org
 then run `terraform state rm` on the `uptrace_org_user` before you remove it from the
 configuration: a destroy of `uptrace_org_user` removes the member.
 
-Adds a user to an organization with a role. Pair with `uptrace_user` to manage the full
-invite-to-membership lifecycle.
+Manages an existing organization membership by its OrgUser ID: reads it, changes its role, and
+removes it. It cannot create one: the server no longer attaches a user to an organization by
+user ID, so a plan that adds an instance, or replaces one after a change of `org_id` or
+`user_id`, fails. A membership already in the state, or an imported one, keeps working.
 
 | Field   | Type   | Required | Description                                                                    |
 |---------|--------|----------|--------------------------------------------------------------------------------|
-| org_id  | string | yes      | Organization ID. Forces replacement on change.                                 |
-| user_id | string | yes      | User ID (from `uptrace_user`). Forces replacement on change.                   |
+| org_id  | string | yes      | Organization ID. A change fails the plan.                                      |
+| user_id | string | yes      | User ID of the member. A change fails the plan.                                |
 | role    | string | yes      | One of `owner`, `admin`, `member`, `viewer`, `billing_manager`, `collaborator`. Updatable. |
 | id      | string | computed | OrgUser ID. Pass to `uptrace_team_user.org_user_id`.                           |
 
 Import: `terraform import uptrace_org_user.x <org_id>:<org_user_id>`
-
-**Example -- invite a user and grant org membership:**
-
-```hcl
-resource "uptrace_user" "alice" {
-  email = "alice@example.com"
-}
-
-resource "uptrace_org_user" "alice" {
-  org_id  = uptrace_org.main.id
-  user_id = uptrace_user.alice.id
-  role    = "admin"
-}
-```
 
 ### uptrace_team
 
@@ -282,10 +288,25 @@ that `uptrace_org_member` manages: its `team_ids` is the exact set of that perso
 |-------------|--------|----------|-------------------------------------------------|
 | org_id      | string | yes      | Organization ID.                                |
 | team_id     | string | yes      | Team ID.                                        |
-| org_user_id | string | yes      | OrgUser ID (from `uptrace_org_user.id`).        |
+| org_user_id | string | yes      | OrgUser ID (from `data.uptrace_org_member`).    |
 | id          | string | computed | Equals `org_user_id`.                           |
 
 Import: `terraform import uptrace_team_user.x <org_id>:<team_id>:<org_user_id>`
+
+**Example -- put the owner of an organization in a team:**
+
+```hcl
+data "uptrace_org_member" "owner" {
+  org_id = uptrace_org.main.id
+  email  = "owner@example.com"
+}
+
+resource "uptrace_team_user" "owner_platform" {
+  org_id      = uptrace_org.main.id
+  team_id     = uptrace_team.platform.id
+  org_user_id = data.uptrace_org_member.owner.org_user_id
+}
+```
 
 ### Notification channels
 
