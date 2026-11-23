@@ -228,7 +228,8 @@ func metricParamsAttributes(extra map[string]schema.Attribute) map[string]schema
 			api.AbsentPointsZero, api.AbsentPointsIgnore, api.AbsentPointsAlert),
 		"absent_resolve_after": boundedDuration("How long a series may stay missing under absent_points alert before "+
 			"its alert resolves as series_expired, from 1h to 30d. Omit for the server default of 1d. "+
-			"The server stores 0s under any other absent_points.", minAbsentResolve, maxAbsentResolve),
+			"The server stores 0s under any other absent_points. Requires an app version v2.2.0 or later: "+
+			"an older server refuses the key.", minAbsentResolve, maxAbsentResolve),
 		"time_offset": durationAttribute(true, "How far back the evaluated window ends, for data that arrives late."),
 	}
 	for k, v := range extra {
@@ -263,6 +264,13 @@ func (m *metricParamsModel) toAPI(ctx context.Context, diags *diag.Diagnostics) 
 	}
 	if out.AbsentResolveAfter, err = durationMillis(m.AbsentResolveAfter); err != nil {
 		diags.AddError("invalid params.absent_resolve_after", err.Error())
+	}
+	// Under another rule the plan holds 0s, which the server stores anyway. The
+	// key stays out of the request, because a server older than it refuses a
+	// request that names it (terraform:QS-2).
+	if !m.AbsentPoints.IsNull() && !m.AbsentPoints.IsUnknown() &&
+		m.AbsentPoints.ValueString() != string(api.AbsentPointsAlert) {
+		out.AbsentResolveAfter = nil
 	}
 	return out
 }

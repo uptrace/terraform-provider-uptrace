@@ -86,7 +86,7 @@ Required:
 Optional:
 
 - `absent_points` (String) How a point with no data counts: zero, ignore, or alert (a missing point breaches). Omit for the server default.
-- `absent_resolve_after` (String) How long a series may stay missing under absent_points alert before its alert resolves as series_expired, from 1h to 30d. Omit for the server default of 1d. The server stores 0s under any other absent_points. A duration string: ms, s, m, h, d (day) or w (week).
+- `absent_resolve_after` (String) How long a series may stay missing under absent_points alert before its alert resolves as series_expired, from 1h to 30d. Omit for the server default of 1d. The server stores 0s under any other absent_points. Requires an app version v2.2.0 or later: an older server refuses the key. A duration string: ms, s, m, h, d (day) or w (week).
 - `column` (Attributes) The query result column the monitor evaluates, and its display unit. Omit to evaluate the first column. (see [below for nested schema](#nestedatt--params--column))
 - `max_value` (Number) The monitor fires when the value rises above it.
 - `min_breach_points` (Number) Breaching points the at_least window rule needs. A count of 1 or more with no window_rule means at_least. Omit for the server default.
