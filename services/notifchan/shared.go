@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -65,6 +66,8 @@ func sharedAttributes() map[string]schema.Attribute {
 			ElementType: types.StringType,
 			Description: "Alert priorities to match. Valid values: info, low, medium, high.",
 			Validators: []validator.List{
+				// OneOf skips a null element, which would be sent as "".
+				listvalidator.NoNullValues(),
 				listvalidator.ValueStringsAre(stringvalidator.OneOf(channelPriorities...)),
 			},
 		},
@@ -72,6 +75,8 @@ func sharedAttributes() map[string]schema.Attribute {
 			Optional:    true,
 			ElementType: types.StringType,
 			Description: "Monitor IDs to match when match_all is false. Omit to leave the links alone, as when monitors name the channel in their channel_ids; set [] to detach every monitor.",
+			// A null element would reach buildSharedRequest as "", which does not parse.
+			Validators: []validator.Set{setvalidator.NoNullValues()},
 		},
 	}
 }

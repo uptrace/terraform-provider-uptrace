@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/stretchr/testify/require"
 
@@ -309,4 +312,53 @@ func TestChannelDelete_rejectsProjectIDOutsideUint32(t *testing.T) {
 
 	require.True(t, diags.HasError())
 	require.Contains(t, diags.Errors()[0].Summary(), "invalid project_id")
+}
+
+// --- sharedAttributes ---
+
+// A collection built from an optional input can hold a null element, as in
+// monitor_ids = [var.monitor] with var.monitor unset. buildSharedRequest would
+// send it as "" (a priority the server refuses, a monitor ID that does not
+// parse), so the plan has to refuse it; an unknown element still passes, since
+// it is only known at apply. Every channel kind takes these attributes from
+// sharedAttributes.
+func TestSharedAttributes_refuseANullElement(t *testing.T) {
+	ctx := context.Background()
+	attrs := sharedAttributes()
+
+	validate := func(name string, elem attr.Value) diag.Diagnostics {
+		var diags diag.Diagnostics
+		switch a := attrs[name].(type) {
+		case schema.ListAttribute:
+			req := validator.ListRequest{
+				Path:        path.Root(name),
+				ConfigValue: types.ListValueMust(types.StringType, []attr.Value{elem}),
+			}
+			for _, v := range a.ListValidators() {
+				resp := &validator.ListResponse{}
+				v.ValidateList(ctx, req, resp)
+				diags.Append(resp.Diagnostics...)
+			}
+		case schema.SetAttribute:
+			req := validator.SetRequest{
+				Path:        path.Root(name),
+				ConfigValue: types.SetValueMust(types.StringType, []attr.Value{elem}),
+			}
+			for _, v := range a.SetValidators() {
+				resp := &validator.SetResponse{}
+				v.ValidateSet(ctx, req, resp)
+				diags.Append(resp.Diagnostics...)
+			}
+		default:
+			t.Fatalf("%s is a %T", name, a)
+		}
+		return diags
+	}
+
+	for _, name := range []string{"priorities", "monitor_ids"} {
+		t.Run(name, func(t *testing.T) {
+			require.True(t, validate(name, types.StringNull()).HasError(), "a null element must not reach the apply")
+			require.False(t, validate(name, types.StringUnknown()).HasError(), "an unknown element is settled at apply")
+		})
+	}
 }

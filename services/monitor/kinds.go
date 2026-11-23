@@ -821,6 +821,8 @@ var sloKind = &kind{
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: "Expressions that split the SLO into one per group, such as service_name.",
+				// toAPI cannot convert a null element into the params body.
+				Validators: []validator.List{listvalidator.NoNullValues()},
 			},
 			"resolution": schema.StringAttribute{
 				Required: true, Description: "Width of one evaluated point, such as 1m.",
@@ -836,6 +838,8 @@ var sloKind = &kind{
 				Computed:      true,
 				Description:   "Alert rules. Omit for none.",
 				PlanModifiers: []planmodifier.List{listplanmodifier.UseStateForUnknown()},
+				// toAPI cannot convert a null rule into the params body.
+				Validators: []validator.List{listvalidator.NoNullValues()},
 				NestedObject: schema.NestedAttributeObject{
 					Attributes: map[string]schema.Attribute{
 						"name": schema.StringAttribute{Required: true, Description: "Rule name."},

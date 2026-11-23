@@ -240,6 +240,48 @@ func TestThresholdParams_recoverySendsBothKeys(t *testing.T) {
 		"the server refuses a recovery that omits either bound")
 }
 
+// A list Terraform builds from an optional input can hold a null element, as in
+// grouping = ["service_name", var.extra] with var.extra unset. The params
+// encoding cannot convert one, so the plan has to refuse it; an unknown element
+// still passes, since it is only known at apply.
+func TestSLOParams_refuseANullElement(t *testing.T) {
+	ctx := context.Background()
+	params := kindByName(t, "slo").params
+	rule := types.ObjectType{AttrTypes: sloRuleAttrTypes}
+
+	for _, tt := range []struct {
+		name     string
+		elemType attr.Type
+		null     attr.Value
+		unknown  attr.Value
+	}{
+		{"grouping", types.StringType, types.StringNull(), types.StringUnknown()},
+		{"rules", rule, types.ObjectNull(sloRuleAttrTypes), types.ObjectUnknown(sloRuleAttrTypes)},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			attribute, ok := params.Attributes[tt.name].(interface {
+				ListValidators() []validator.List
+			})
+			require.True(t, ok)
+
+			validate := func(elem attr.Value) diag.Diagnostics {
+				req := validator.ListRequest{
+					Path:        path.Root("params").AtName(tt.name),
+					ConfigValue: types.ListValueMust(tt.elemType, []attr.Value{elem}),
+				}
+				resp := &validator.ListResponse{}
+				for _, v := range attribute.ListValidators() {
+					v.ValidateList(ctx, req, resp)
+				}
+				return resp.Diagnostics
+			}
+
+			require.True(t, validate(tt.null).HasError(), "a null element must not reach the apply")
+			require.False(t, validate(tt.unknown).HasError(), "an unknown element is settled at apply")
+		})
+	}
+}
+
 func TestSLOParams_rulesRoundTrip(t *testing.T) {
 	k := kindByName(t, "slo")
 	params, diags := k.toAPI(context.Background(), paramsFromServer(t, k))
