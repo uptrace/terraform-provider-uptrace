@@ -579,6 +579,10 @@ const (
 	// The project keeps as many traces as it may.
 	ErrorCodeTraceLimitExceeded ErrorCode = "trace_limit_exceeded"
 
+	// The search for the trace ran out of time before it read all the stored data. The trace
+	// was not in what it read. A retry reads further.
+	ErrorCodeTraceSearchIncomplete ErrorCode = "trace_search_incomplete"
+
 	// The SNS envelope, or the message in it, is not valid JSON.
 	ErrorCodeInvalidSNSJSON ErrorCode = "invalid_sns_json"
 
@@ -734,6 +738,7 @@ func ErrorCodeValues() []ErrorCode {
 		ErrorCodeInvalidSymbolTable,
 		ErrorCodeSymbolTableLimitExceeded,
 		ErrorCodeTraceLimitExceeded,
+		ErrorCodeTraceSearchIncomplete,
 		ErrorCodeInvalidSNSJSON,
 		ErrorCodeInvalidSNSSignature,
 		ErrorCodeInvalidSNSSubscribeURL,
