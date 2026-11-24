@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
+	"unicode"
 
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -60,6 +63,7 @@ type monitorModel struct {
 	ProjectID        types.String `tfsdk:"project_id"`
 	Name             types.String `tfsdk:"name"`
 	Description      types.String `tfsdk:"description"`
+	Tags             types.Set    `tfsdk:"tags"`
 	ChannelIDs       types.Set    `tfsdk:"channel_ids"`
 	TrendAggFunc     types.String `tfsdk:"trend_agg_func"`
 	TrendSensitivity types.String `tfsdk:"trend_sensitivity"`
@@ -89,6 +93,7 @@ type repeatIntervalJSON struct {
 type monitorRequest struct {
 	Name             string              `json:"name"`
 	Description      *string             `json:"description,omitempty"`
+	Tags             *[]string           `json:"tags,omitzero"`
 	ChannelIDs       *[]uint64           `json:"channelIds,omitzero"`
 	RepeatInterval   *repeatIntervalJSON `json:"repeatInterval,omitempty"`
 	TrendAggFunc     *string             `json:"trendAggFunc,omitempty"`
@@ -103,6 +108,7 @@ type monitorResponse struct {
 	Type             string             `json:"type"`
 	Name             string             `json:"name"`
 	Description      string             `json:"description"`
+	Tags             []string           `json:"tags"`
 	Status           string             `json:"status"`
 	ChannelIDs       []uint64           `json:"channelIds"`
 	RepeatInterval   repeatIntervalJSON `json:"repeatInterval"`
@@ -161,10 +167,27 @@ func (r *monitorResource) Schema(_ context.Context, _ resource.SchemaRequest, re
 				Optional:    true,
 				Description: "Alert description sent with each notification. It may hold template variables.",
 			},
+			"tags": schema.SetAttribute{
+				Optional:    true,
+				ElementType: types.StringType,
+				Description: "Tags the monitor is filed under, such as payments or team:backend. The monitor list filters by them, and a notification channel condition can test them (monitorTags). Omitted, the tags on the server are left as they are and not read; removing the attribute after it was set removes every tag, and so does tags = []. Requires an app version that serves `tags` on the monitor routes.",
+				Validators: []validator.Set{
+					setvalidator.SizeAtMost(maxTags),
+					// The string validators below skip a null element, and requestBody
+					// cannot encode one.
+					setvalidator.NoNullValues(),
+					setvalidator.ValueStringsAre(
+						stringvalidator.UTF8LengthBetween(1, maxTagChars),
+						tagValidator{},
+					),
+				},
+			},
 			"channel_ids": schema.SetAttribute{
 				Optional:    true,
 				ElementType: types.StringType,
 				Description: "Notification channel IDs, such as uptrace_telegram_channel.id. Omit to leave the links alone, as when channels name the monitor in their monitor_ids; set [] to detach every channel.",
+				// requestBody cannot encode a null element.
+				Validators: []validator.Set{setvalidator.NoNullValues()},
 			},
 			"trend_agg_func": optionalComputedEnum(
 				"How a series' points combine into the trend an alert shows.", api.TrendAggFuncSum,
@@ -488,7 +511,7 @@ func (r *monitorResource) Create(ctx context.Context, req resource.CreateRequest
 	if !ok {
 		return
 	}
-	body, diags := r.requestBody(ctx, &plan)
+	body, diags := r.requestBody(ctx, &plan, types.SetNull(types.StringType))
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -571,7 +594,14 @@ func (r *monitorResource) Update(ctx context.Context, req resource.UpdateRequest
 	if !ok {
 		return
 	}
-	body, diags := r.requestBody(ctx, &plan)
+	// The tags the state holds tell an attribute removed from the config, which
+	// clears them, from one never set, which leaves them alone (see requestBody).
+	var priorTags types.Set
+	resp.Diagnostics.Append(req.State.GetAttribute(ctx, path.Root("tags"), &priorTags)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	body, diags := r.requestBody(ctx, &plan, priorTags)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -617,7 +647,8 @@ func (r *monitorResource) Delete(ctx context.Context, req resource.DeleteRequest
 }
 
 // ImportState accepts "<project_id>:<monitor_id>". It sets channel_ids to an
-// empty set, so the first read fills in the links the monitor has.
+// empty set, so the first read fills in the links the monitor has. tags stay
+// null, unmanaged until the config sets them.
 func (r *monitorResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	tfutil.ImportStateCompoundID(ctx, req, resp,
 		tfutil.ImportField{Name: "project_id", Parse: tfutil.ParseUint32},
@@ -626,8 +657,53 @@ func (r *monitorResource) ImportState(ctx context.Context, req resource.ImportSt
 	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("channel_ids"), types.SetValueMust(types.StringType, nil))...)
 }
 
+// maxTags and maxTagChars are the server's bounds on a monitor's tags, named as
+// the contract names them (BaseMonitorRequest's x-constants). maxTagChars counts
+// characters, as monitormodel.NormalizeTags does, not bytes.
+const (
+	maxTags     = 20
+	maxTagChars = 100
+)
+
+// tagValidator refuses a tag the server would store in another form or refuse,
+// by monitormodel.NormalizeTags' own rule: outer whitespace, which the server
+// trims as strings.TrimSpace does (Unicode spaces included), and a control
+// character. Planned as written, such a tag would leave the state unlike the
+// plan after the apply, or fail it.
+type tagValidator struct{}
+
+func (tagValidator) Description(context.Context) string {
+	return "must not start or end with whitespace, nor hold a control character"
+}
+
+func (v tagValidator) MarkdownDescription(ctx context.Context) string { return v.Description(ctx) }
+
+func (tagValidator) ValidateString(_ context.Context, req validator.StringRequest, resp *validator.StringResponse) {
+	if req.ConfigValue.IsNull() || req.ConfigValue.IsUnknown() {
+		return
+	}
+	tag := req.ConfigValue.ValueString()
+	if strings.TrimSpace(tag) != tag {
+		resp.Diagnostics.AddAttributeError(req.Path, "invalid tag",
+			fmt.Sprintf("%q starts or ends with whitespace: the server trims a tag, and the plan would not match", tag))
+		return
+	}
+	if strings.ContainsFunc(tag, unicode.IsControl) {
+		resp.Diagnostics.AddAttributeError(req.Path, "invalid tag",
+			fmt.Sprintf("%q holds a control character, which the server refuses in a tag", tag))
+	}
+}
+
+// nonNilStrings keeps an empty set apart from a null one.
+func nonNilStrings(v []string) []string {
+	if v == nil {
+		return []string{}
+	}
+	return v
+}
+
 // requestBody encodes the plan as the JSON body of the type's routes.
-func (r *monitorResource) requestBody(ctx context.Context, m *monitorModel) ([]byte, diag.Diagnostics) {
+func (r *monitorResource) requestBody(ctx context.Context, m *monitorModel, priorTags types.Set) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	// Send the description even when unset: removing it from the config must
@@ -638,6 +714,20 @@ func (r *monitorResource) requestBody(ctx context.Context, m *monitorModel) ([]b
 		Description:      &description,
 		TrendAggFunc:     stringPtr(m.TrendAggFunc),
 		TrendSensitivity: stringPtr(m.TrendSensitivity),
+	}
+
+	// Send the tags only once the config manages them. A config that never set
+	// them omits the key, which keeps the stored tags and is a body an app
+	// without tags accepts. A set attribute replaces them, [] included, and one
+	// removed from the config (set in priorTags, the state) sends [] to clear
+	// what it managed.
+	switch {
+	case !m.Tags.IsNull() && !m.Tags.IsUnknown():
+		tags := []string{}
+		diags.Append(m.Tags.ElementsAs(ctx, &tags, false)...)
+		body.Tags = &tags
+	case !priorTags.IsNull() && !priorTags.IsUnknown():
+		body.Tags = &[]string{}
 	}
 
 	// A monitor and a channel share their links, and either side may declare
@@ -732,6 +822,13 @@ func (r *monitorResource) apply(ctx context.Context, monitor any, m *monitorMode
 	m.Name = types.StringValue(mon.Name)
 	if mon.Description != "" || !m.Description.IsNull() {
 		m.Description = types.StringValue(mon.Description)
+	}
+	// Unset tags are not managed (see requestBody), so they stay null whatever
+	// the monitor carries.
+	if !m.Tags.IsNull() {
+		v, d := types.SetValueFrom(ctx, types.StringType, nonNilStrings(mon.Tags))
+		diags.Append(d...)
+		m.Tags = v
 	}
 	m.Status = types.StringValue(mon.Status)
 	m.TrendAggFunc = types.StringValue(mon.TrendAggFunc)

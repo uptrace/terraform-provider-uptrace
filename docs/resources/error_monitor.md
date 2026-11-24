@@ -39,6 +39,7 @@ resource "uptrace_error_monitor" "example" {
 - `channel_ids` (Set of String) Notification channel IDs, such as uptrace_telegram_channel.id. Omit to leave the links alone, as when channels name the monitor in their monitor_ids; set [] to detach every channel.
 - `description` (String) Alert description sent with each notification. It may hold template variables.
 - `repeat_interval` (Attributes) How often a firing alert notifies again. Omit for the server's default strategy. (see [below for nested schema](#nestedatt--repeat_interval))
+- `tags` (Set of String) Tags the monitor is filed under, such as payments or team:backend. The monitor list filters by them, and a notification channel condition can test them (monitorTags). Omitted, the tags on the server are left as they are and not read; removing the attribute after it was set removes every tag, and so does tags = []. Requires an app version that serves `tags` on the monitor routes.
 - `trend_agg_func` (String) How a series' points combine into the trend an alert shows. Omit for the server default.
 - `trend_sensitivity` (String) How much a value must move before the alert trend reports it. Omit for the server default.
 

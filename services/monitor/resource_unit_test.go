@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -163,6 +165,7 @@ func testModel(t *testing.T, k *kind, params types.Object) *monitorModel {
 		ProjectID:        types.StringValue("21"),
 		Name:             types.StringValue("Dev: " + k.name),
 		Description:      types.StringNull(),
+		Tags:             types.SetNull(types.StringType),
 		ChannelIDs:       types.SetNull(types.StringType),
 		TrendAggFunc:     types.StringNull(),
 		TrendSensitivity: types.StringNull(),
@@ -180,7 +183,7 @@ func TestRequestBody_survivesGeneratedRequest(t *testing.T) {
 	for _, k := range kinds {
 		t.Run(k.name, func(t *testing.T) {
 			r := &monitorResource{kind: k}
-			body, diags := r.requestBody(context.Background(), testModel(t, k, paramsFromServer(t, k)))
+			body, diags := r.requestBody(context.Background(), testModel(t, k, paramsFromServer(t, k)), types.SetNull(types.StringType))
 			require.False(t, diags.HasError(), "requestBody: %v", diags)
 
 			var sent map[string]any
@@ -199,12 +202,154 @@ func TestRequestBody_emptyChannelIDsDetach(t *testing.T) {
 	m := testModel(t, k, paramsFromServer(t, k))
 	m.ChannelIDs = types.SetValueMust(types.StringType, nil)
 
-	body, diags := (&monitorResource{kind: k}).requestBody(context.Background(), m)
+	body, diags := (&monitorResource{kind: k}).requestBody(context.Background(), m, types.SetNull(types.StringType))
 	require.False(t, diags.HasError())
 	var sent map[string]any
 	require.NoError(t, json.Unmarshal(body, &sent))
 	require.Equal(t, []any{}, sent["channelIds"], "channel_ids = [] must send [] so the server detaches every channel")
 	require.Equal(t, []any{}, generatedRoundTrip(t, k.name, body)["channelIds"])
+}
+
+// TestRequestBody_tags pins when the body carries tags. A config that never set
+// them omits the key, so the stored tags stay and an app without tags accepts the
+// body. A set attribute sends its values, and one removed from the config sends []
+// to clear what it managed.
+func TestRequestBody_tags(t *testing.T) {
+	k := kindByName(t, "threshold")
+	unset := types.SetNull(types.StringType)
+	backend := types.SetValueMust(types.StringType, []attr.Value{types.StringValue("team:backend")})
+	for _, tt := range []struct {
+		name   string
+		tags   types.Set
+		prior  types.Set
+		want   []any
+		absent bool
+	}{
+		{name: "never set omits the key", tags: unset, prior: unset, absent: true},
+		{name: "set sends its values", tags: backend, prior: unset, want: []any{"team:backend"}},
+		{name: "kept sends its values", tags: backend, prior: backend, want: []any{"team:backend"}},
+		{name: "removed sends []", tags: unset, prior: backend, want: []any{}},
+		{name: "set to [] sends []", tags: types.SetValueMust(types.StringType, nil), prior: backend, want: []any{}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			m := testModel(t, k, paramsFromServer(t, k))
+			m.Tags = tt.tags
+
+			body, diags := (&monitorResource{kind: k}).requestBody(context.Background(), m, tt.prior)
+			require.False(t, diags.HasError())
+			var sent map[string]any
+			require.NoError(t, json.Unmarshal(body, &sent))
+			if tt.absent {
+				require.NotContains(t, sent, "tags")
+				require.NotContains(t, generatedRoundTrip(t, k.name, body), "tags")
+				return
+			}
+			require.Equal(t, tt.want, sent["tags"])
+			require.Equal(t, tt.want, generatedRoundTrip(t, k.name, body)["tags"])
+		})
+	}
+}
+
+// TestTagValidator pins that the plan refuses a tag the server would store in
+// another form or refuse: one with outer whitespace, which the server trims with
+// Unicode's notion of a space, and one holding a control character. Accepted,
+// the first left the state unlike the plan after the apply.
+func TestTagValidator(t *testing.T) {
+	for _, tt := range []struct {
+		tag string
+		ok  bool
+	}{
+		{"team:backend", true},
+		{"two words", true},
+		{"ünïcode", true},
+		{" payments", false},
+		{"payments\t", false},
+		{"\u00a0payments", false},
+		{"payments\u2003", false},
+		{"pay\x00ments", false},
+		{"a\nb", false},
+	} {
+		t.Run(fmt.Sprintf("%q", tt.tag), func(t *testing.T) {
+			resp := &validator.StringResponse{}
+			tagValidator{}.ValidateString(context.Background(), validator.StringRequest{
+				Path:        path.Root("tags"),
+				ConfigValue: types.StringValue(tt.tag),
+			}, resp)
+			require.Equal(t, !tt.ok, resp.Diagnostics.HasError(), "%v", resp.Diagnostics)
+		})
+	}
+}
+
+// The server bounds a tag by its characters, not its bytes
+// (monitormodel.NormalizeTags), so the tags attribute must take 100 two-byte
+// characters and refuse 101, as it does for ASCII.
+func TestTagsAttribute_boundsCharactersNotBytes(t *testing.T) {
+	ctx := context.Background()
+	r := &monitorResource{kind: kindByName(t, "threshold")}
+	var schemaResp resource.SchemaResponse
+	r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
+	require.False(t, schemaResp.Diagnostics.HasError())
+	tags, ok := schemaResp.Schema.Attributes["tags"].(schema.SetAttribute)
+	require.True(t, ok)
+
+	for _, tt := range []struct {
+		name string
+		tag  string
+		ok   bool
+	}{
+		{"100 ASCII characters", strings.Repeat("a", 100), true},
+		{"101 ASCII characters", strings.Repeat("a", 101), false},
+		{"100 two-byte characters", strings.Repeat("é", 100), true},
+		{"101 two-byte characters", strings.Repeat("é", 101), false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			req := validator.SetRequest{
+				Path:        path.Root("tags"),
+				ConfigValue: types.SetValueMust(types.StringType, []attr.Value{types.StringValue(tt.tag)}),
+			}
+			resp := &validator.SetResponse{}
+			for _, v := range tags.SetValidators() {
+				v.ValidateSet(ctx, req, resp)
+			}
+			require.Equal(t, !tt.ok, resp.Diagnostics.HasError(), "%v", resp.Diagnostics)
+		})
+	}
+}
+
+// A set Terraform builds from an optional input can hold a null element, as in
+// tags = ["payments", var.team] with var.team unset. requestBody cannot encode
+// one, so the plan has to refuse it; an unknown element still passes, since it
+// is only known at apply.
+func TestSetAttributes_refuseANullElement(t *testing.T) {
+	ctx := context.Background()
+	r := &monitorResource{kind: kindByName(t, "threshold")}
+	var schemaResp resource.SchemaResponse
+	r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
+	require.False(t, schemaResp.Diagnostics.HasError())
+
+	for _, name := range []string{"tags", "channel_ids"} {
+		attribute, ok := schemaResp.Schema.Attributes[name].(schema.SetAttribute)
+		require.True(t, ok, name)
+
+		validate := func(elems ...attr.Value) diag.Diagnostics {
+			req := validator.SetRequest{
+				Path:        path.Root(name),
+				ConfigValue: types.SetValueMust(types.StringType, elems),
+			}
+			resp := &validator.SetResponse{}
+			for _, v := range attribute.SetValidators() {
+				v.ValidateSet(ctx, req, resp)
+			}
+			return resp.Diagnostics
+		}
+
+		t.Run(name, func(t *testing.T) {
+			require.True(t, validate(types.StringValue("payments"), types.StringNull()).HasError(),
+				"a null element must not reach the apply")
+			require.False(t, validate(types.StringValue("payments"), types.StringUnknown()).HasError(),
+				"an unknown element is settled at apply")
+		})
+	}
 }
 
 func TestThresholdParams_recoveryAndNullBounds(t *testing.T) {
@@ -323,6 +468,7 @@ func TestApply_keepsConfiguredSpellings(t *testing.T) {
 	require.Equal(t, "7", m.ID.ValueString())
 	require.True(t, m.ChannelIDs.IsNull(), "no channel and none configured stays null")
 	require.True(t, m.Description.IsNull())
+	require.True(t, m.Tags.IsNull(), "no tag and none configured stays null")
 
 	var got thresholdParamsModel
 	require.False(t, m.Params.As(ctx, &got, basetypesObjectAsOptions()).HasError())
@@ -334,6 +480,39 @@ func TestApply_keepsConfiguredSpellings(t *testing.T) {
 	var ri repeatIntervalModel
 	require.False(t, m.RepeatInterval.As(ctx, &ri, basetypesObjectAsOptions()).HasError())
 	require.Equal(t, "1h", ri.Interval.ValueString())
+}
+
+// TestApply_tags pins that only managed tags are read back. A config that never set
+// tags leaves them to whoever edits the monitor elsewhere, so the tags the server
+// holds stay out of the state: read in, they would show as drift that the next
+// apply clears. A set attribute reads the server's tags, so an edit made elsewhere
+// shows in the plan.
+func TestApply_tags(t *testing.T) {
+	k := kindByName(t, "threshold")
+	r := &monitorResource{kind: k}
+	ctx := context.Background()
+	server := map[string]any{
+		"id": 7, "type": "threshold", "name": "Dev: threshold", "description": "",
+		"tags": []any{"team:ui"}, "status": "active", "channelIds": []any{},
+		"trendAggFunc": "sum", "trendSensitivity": "medium",
+		"repeatInterval": map[string]any{"strategy": "fixed", "interval": 3_600_000},
+		"params":         json.RawMessage(serverParams["threshold"]),
+	}
+
+	t.Run("unmanaged stays null", func(t *testing.T) {
+		m := testModel(t, k, paramsFromServer(t, k))
+		_, diags := r.apply(ctx, server, m, nil)
+		require.False(t, diags.HasError(), "apply: %v", diags)
+		require.True(t, m.Tags.IsNull())
+	})
+
+	t.Run("managed reads the server's tags", func(t *testing.T) {
+		m := testModel(t, k, paramsFromServer(t, k))
+		m.Tags = types.SetValueMust(types.StringType, []attr.Value{types.StringValue("team:backend")})
+		_, diags := r.apply(ctx, server, m, nil)
+		require.False(t, diags.HasError(), "apply: %v", diags)
+		require.Equal(t, types.SetValueMust(types.StringType, []attr.Value{types.StringValue("team:ui")}), m.Tags)
+	})
 }
 
 func TestApply_rejectsAnotherType(t *testing.T) {

@@ -109,9 +109,16 @@ type AnomalyMonitorRequest struct {
 	// error monitors it accepts the same template placeholders the name does and is rendered
 	// against the series that fired; SLO descriptions are static text. Omit it or send an
 	// empty string for none. At most 4000 characters after outer whitespace is trimmed.
-	Description           *string  `json:"description,omitzero"`
-	NotifyEveryoneByEmail *bool    `json:"notifyEveryoneByEmail,omitzero"`
-	TeamIDs               []uint64 `json:"teamIds,omitempty"`
+	Description *string `json:"description,omitzero"`
+
+	// The words the monitor is filed under, such as payments or team:backend. A tag is a free
+	// string: key:value is a convention, not parsed. The server trims each tag and drops empty
+	// ones and repeats, keeping the order given. At most 20 tags, each at most 100 characters.
+	// On an update, omit it to keep the stored tags, and send an empty list to remove them
+	// all.
+	Tags                  *[]string `json:"tags,omitzero"`
+	NotifyEveryoneByEmail *bool     `json:"notifyEveryoneByEmail,omitzero"`
+	TeamIDs               []uint64  `json:"teamIds,omitempty"`
 
 	// The notification channels the monitor names. On an update the three states differ: omit
 	// it to keep the stored links, send a list to replace them, and send an empty list to
@@ -250,6 +257,10 @@ type BaseMonitor struct {
 	// time. Always false for an SLO, whose description is static.
 	IsDescriptionTemplated bool `json:"isDescriptionTemplated"`
 
+	// The words the monitor is filed under, in the order the user gave. Empty when the monitor
+	// has none.
+	Tags []string `json:"tags"`
+
 	// Monitor lifecycle status. active is checking and quiet, firing has an open alert, and
 	// no_data found no timeseries at all. warming_up is different: the check returned series
 	// but the detector has too little fitted history to judge them, so the monitor keeps
@@ -313,9 +324,16 @@ type BaseMonitorRequest struct {
 	// error monitors it accepts the same template placeholders the name does and is rendered
 	// against the series that fired; SLO descriptions are static text. Omit it or send an
 	// empty string for none. At most 4000 characters after outer whitespace is trimmed.
-	Description           string   `json:"description,omitzero"`
-	NotifyEveryoneByEmail bool     `json:"notifyEveryoneByEmail,omitzero"`
-	TeamIDs               []uint64 `json:"teamIds,omitempty"`
+	Description string `json:"description,omitzero"`
+
+	// The words the monitor is filed under, such as payments or team:backend. A tag is a free
+	// string: key:value is a convention, not parsed. The server trims each tag and drops empty
+	// ones and repeats, keeping the order given. At most 20 tags, each at most 100 characters.
+	// On an update, omit it to keep the stored tags, and send an empty list to remove them
+	// all.
+	Tags                  *[]string `json:"tags,omitzero"`
+	NotifyEveryoneByEmail bool      `json:"notifyEveryoneByEmail,omitzero"`
+	TeamIDs               []uint64  `json:"teamIds,omitempty"`
 
 	// The notification channels the monitor names. On an update the three states differ: omit
 	// it to keep the stored links, send a list to replace them, and send an empty list to
@@ -575,9 +593,16 @@ type ErrorMonitorRequest struct {
 	// error monitors it accepts the same template placeholders the name does and is rendered
 	// against the series that fired; SLO descriptions are static text. Omit it or send an
 	// empty string for none. At most 4000 characters after outer whitespace is trimmed.
-	Description           *string  `json:"description,omitzero"`
-	NotifyEveryoneByEmail *bool    `json:"notifyEveryoneByEmail,omitzero"`
-	TeamIDs               []uint64 `json:"teamIds,omitempty"`
+	Description *string `json:"description,omitzero"`
+
+	// The words the monitor is filed under, such as payments or team:backend. A tag is a free
+	// string: key:value is a convention, not parsed. The server trims each tag and drops empty
+	// ones and repeats, keeping the order given. At most 20 tags, each at most 100 characters.
+	// On an update, omit it to keep the stored tags, and send an empty list to remove them
+	// all.
+	Tags                  *[]string `json:"tags,omitzero"`
+	NotifyEveryoneByEmail *bool     `json:"notifyEveryoneByEmail,omitzero"`
+	TeamIDs               []uint64  `json:"teamIds,omitempty"`
 
 	// The notification channels the monitor names. On an update the three states differ: omit
 	// it to keep the stored links, send a list to replace them, and send an empty list to
@@ -702,9 +727,16 @@ type ForecastMonitorRequest struct {
 	// error monitors it accepts the same template placeholders the name does and is rendered
 	// against the series that fired; SLO descriptions are static text. Omit it or send an
 	// empty string for none. At most 4000 characters after outer whitespace is trimmed.
-	Description           *string  `json:"description,omitzero"`
-	NotifyEveryoneByEmail *bool    `json:"notifyEveryoneByEmail,omitzero"`
-	TeamIDs               []uint64 `json:"teamIds,omitempty"`
+	Description *string `json:"description,omitzero"`
+
+	// The words the monitor is filed under, such as payments or team:backend. A tag is a free
+	// string: key:value is a convention, not parsed. The server trims each tag and drops empty
+	// ones and repeats, keeping the order given. At most 20 tags, each at most 100 characters.
+	// On an update, omit it to keep the stored tags, and send an empty list to remove them
+	// all.
+	Tags                  *[]string `json:"tags,omitzero"`
+	NotifyEveryoneByEmail *bool     `json:"notifyEveryoneByEmail,omitzero"`
+	TeamIDs               []uint64  `json:"teamIds,omitempty"`
 
 	// The notification channels the monitor names. On an update the three states differ: omit
 	// it to keep the stored links, send a list to replace them, and send an empty list to
@@ -1360,9 +1392,16 @@ type OutlierMonitorRequest struct {
 	// error monitors it accepts the same template placeholders the name does and is rendered
 	// against the series that fired; SLO descriptions are static text. Omit it or send an
 	// empty string for none. At most 4000 characters after outer whitespace is trimmed.
-	Description           *string  `json:"description,omitzero"`
-	NotifyEveryoneByEmail *bool    `json:"notifyEveryoneByEmail,omitzero"`
-	TeamIDs               []uint64 `json:"teamIds,omitempty"`
+	Description *string `json:"description,omitzero"`
+
+	// The words the monitor is filed under, such as payments or team:backend. A tag is a free
+	// string: key:value is a convention, not parsed. The server trims each tag and drops empty
+	// ones and repeats, keeping the order given. At most 20 tags, each at most 100 characters.
+	// On an update, omit it to keep the stored tags, and send an empty list to remove them
+	// all.
+	Tags                  *[]string `json:"tags,omitzero"`
+	NotifyEveryoneByEmail *bool     `json:"notifyEveryoneByEmail,omitzero"`
+	TeamIDs               []uint64  `json:"teamIds,omitempty"`
 
 	// The notification channels the monitor names. On an update the three states differ: omit
 	// it to keep the stored links, send a list to replace them, and send an empty list to
@@ -2071,9 +2110,16 @@ type SLOMonitorRequest struct {
 	// error monitors it accepts the same template placeholders the name does and is rendered
 	// against the series that fired; SLO descriptions are static text. Omit it or send an
 	// empty string for none. At most 4000 characters after outer whitespace is trimmed.
-	Description           *string  `json:"description,omitzero"`
-	NotifyEveryoneByEmail *bool    `json:"notifyEveryoneByEmail,omitzero"`
-	TeamIDs               []uint64 `json:"teamIds,omitempty"`
+	Description *string `json:"description,omitzero"`
+
+	// The words the monitor is filed under, such as payments or team:backend. A tag is a free
+	// string: key:value is a convention, not parsed. The server trims each tag and drops empty
+	// ones and repeats, keeping the order given. At most 20 tags, each at most 100 characters.
+	// On an update, omit it to keep the stored tags, and send an empty list to remove them
+	// all.
+	Tags                  *[]string `json:"tags,omitzero"`
+	NotifyEveryoneByEmail *bool     `json:"notifyEveryoneByEmail,omitzero"`
+	TeamIDs               []uint64  `json:"teamIds,omitempty"`
 
 	// The notification channels the monitor names. On an update the three states differ: omit
 	// it to keep the stored links, send a list to replace them, and send an empty list to
@@ -2511,9 +2557,16 @@ type ThresholdMonitorRequest struct {
 	// error monitors it accepts the same template placeholders the name does and is rendered
 	// against the series that fired; SLO descriptions are static text. Omit it or send an
 	// empty string for none. At most 4000 characters after outer whitespace is trimmed.
-	Description           *string  `json:"description,omitzero"`
-	NotifyEveryoneByEmail *bool    `json:"notifyEveryoneByEmail,omitzero"`
-	TeamIDs               []uint64 `json:"teamIds,omitempty"`
+	Description *string `json:"description,omitzero"`
+
+	// The words the monitor is filed under, such as payments or team:backend. A tag is a free
+	// string: key:value is a convention, not parsed. The server trims each tag and drops empty
+	// ones and repeats, keeping the order given. At most 20 tags, each at most 100 characters.
+	// On an update, omit it to keep the stored tags, and send an empty list to remove them
+	// all.
+	Tags                  *[]string `json:"tags,omitzero"`
+	NotifyEveryoneByEmail *bool     `json:"notifyEveryoneByEmail,omitzero"`
+	TeamIDs               []uint64  `json:"teamIds,omitempty"`
 
 	// The notification channels the monitor names. On an update the three states differ: omit
 	// it to keep the stored links, send a list to replace them, and send an empty list to
