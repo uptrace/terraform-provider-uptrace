@@ -658,15 +658,15 @@ func (r *monitorResource) ImportState(ctx context.Context, req resource.ImportSt
 }
 
 // maxTags and maxTagChars are the server's bounds on a monitor's tags, named as
-// the contract names them (BaseMonitorRequest's x-constants). maxTagChars counts
-// characters, as monitormodel.NormalizeTags does, not bytes.
+// the contract names them (the Tag schema's x-constants). maxTagChars counts
+// characters, as models.NormalizeTags does, not bytes.
 const (
 	maxTags     = 20
 	maxTagChars = 100
 )
 
 // tagValidator refuses a tag the server would store in another form or refuse,
-// by monitormodel.NormalizeTags' own rule: outer whitespace, which the server
+// by models.NormalizeTags' own rule: outer whitespace, which the server
 // trims as strings.TrimSpace does (Unicode spaces included), and a control
 // character. Planned as written, such a tag would leave the state unlike the
 // plan after the apply, or fail it.

@@ -281,7 +281,7 @@ func TestTagValidator(t *testing.T) {
 }
 
 // The server bounds a tag by its characters, not its bytes
-// (monitormodel.NormalizeTags), so the tags attribute must take 100 two-byte
+// (models.NormalizeTags), so the tags attribute must take 100 two-byte
 // characters and refuse 101, as it does for ASCII.
 func TestTagsAttribute_boundsCharactersNotBytes(t *testing.T) {
 	ctx := context.Background()
