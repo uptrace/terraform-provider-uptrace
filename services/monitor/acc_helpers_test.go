@@ -2,6 +2,7 @@ package monitor_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"testing"
@@ -62,5 +63,43 @@ func deleteMonitorOutOfBand(t *testing.T, projectIDStr, monitorIDStr string) {
 	_, err = c.API.DeleteMonitor(context.Background(), api.DeleteMonitorRequest{ProjectID: uint32(projectID), MonitorID: monitorID})
 	if err != nil && !client.IsNotFound(err) {
 		t.Fatalf("delete monitor %d out-of-band: %v", monitorID, err)
+	}
+}
+
+// updateMonitorQueryOutOfBand sets the query of a threshold monitor through
+// the API, as a person would in the UI, and keeps the rest of the monitor.
+func updateMonitorQueryOutOfBand(t *testing.T, projectIDStr, monitorIDStr, query string) {
+	t.Helper()
+	if projectIDStr == "" || monitorIDStr == "" {
+		t.Fatal("project ID or monitor ID was not captured before the out-of-band update")
+	}
+	projectID, err := strconv.ParseUint(projectIDStr, 10, 32)
+	if err != nil {
+		t.Fatalf("invalid project ID %q: %v", projectIDStr, err)
+	}
+	monitorID, err := strconv.ParseUint(monitorIDStr, 10, 64)
+	if err != nil {
+		t.Fatalf("invalid monitor ID %q: %v", monitorIDStr, err)
+	}
+
+	ctx := context.Background()
+	c := testutil.TestAccClient(t)
+	out, err := c.API.GetMonitor(ctx, api.GetMonitorRequest{ProjectID: uint32(projectID), MonitorID: monitorID})
+	if err != nil {
+		t.Fatalf("read monitor %d: %v", monitorID, err)
+	}
+	// The read's fields that a write does not take drop out in the decode.
+	b, err := json.Marshal(out.Monitor)
+	if err != nil {
+		t.Fatalf("encode monitor %d: %v", monitorID, err)
+	}
+	var body api.UpdateThresholdMonitorBody
+	if err := json.Unmarshal(b, &body); err != nil {
+		t.Fatalf("decode monitor %d as a threshold update: %v", monitorID, err)
+	}
+	body.Params.Query = query
+	req := api.UpdateThresholdMonitorRequest{ProjectID: uint32(projectID), MonitorID: monitorID}
+	if _, err := c.API.UpdateThresholdMonitor(ctx, req, body); err != nil {
+		t.Fatalf("update the query of monitor %d out-of-band: %v", monitorID, err)
 	}
 }

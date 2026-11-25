@@ -569,6 +569,14 @@ func (r *monitorResource) Read(ctx context.Context, req resource.ReadRequest, re
 			return
 		}
 	}
+	// A state no write of this version has stored a canon for (one written
+	// by v0.3.0 or older) is compared with its own query texts, so a change
+	// made before the upgrade shows in the plan instead of becoming the
+	// canon. A query the server only rewrote shows once too, and the next
+	// apply stores its canon.
+	if canon == nil {
+		canon = priorQueries(state.Params)
+	}
 	server, diags := r.apply(ctx, out.Monitor, &state, canon)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -785,14 +793,13 @@ func (r *monitorResource) requestBody(ctx context.Context, m *monitorModel, prio
 	return b, diags
 }
 
-// apply maps a monitor the server returned onto m. monitor is any of the
-// generated monitor unions; it is decoded through its JSON form.
 // apply writes the monitor the server returned onto m, and returns the
-// server's query texts (queryCanon). canon is what the server returned for
-// them at the last write, or nil on a write and on a state from before the
-// canon was stored: a query attribute whose server text differs from canon
-// takes the server's value, so the plan shows an out-of-band change, and one
-// that still matches keeps the configured spelling.
+// server's query texts (queryCanon). monitor is any of the generated monitor
+// unions; it is decoded through its JSON form. canon is what the server
+// returned for the queries at the last write, or nil on a write, whose plan
+// spelling is the truth: a query attribute whose server text differs from
+// canon takes the server's value, so the plan shows an out-of-band change,
+// and one that still matches keeps the configured spelling.
 func (r *monitorResource) apply(ctx context.Context, monitor any, m *monitorModel, canon queryCanon) (queryCanon, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
@@ -876,7 +883,8 @@ func (r *monitorResource) apply(ctx context.Context, monitor any, m *monitorMode
 // good_query and total_query. The server rewrites a saved query to its
 // canonical MQL text, so the configured spelling is kept in state while the
 // server still returns the text it returned at the last write; the
-// provider parses no MQL (ADR-0464), so it compares the texts.
+// provider parses no MQL (ADR-0464), so it compares the texts. It implements
+// ADR-1139.
 type queryCanon map[string]string
 
 // queryCanonKey is the private state key that holds a queryCanon.
@@ -930,6 +938,25 @@ func (c queryCanon) store(ctx context.Context, private privateState) diag.Diagno
 		return diags
 	}
 	return private.SetKey(ctx, queryCanonKey, b)
+}
+
+// priorQueries reads the query texts a state holds, by the same names as
+// serverQueries, for a state that holds no canon. A null or unknown params
+// object, as an import has, holds none.
+func priorQueries(params types.Object) queryCanon {
+	if params.IsNull() || params.IsUnknown() {
+		return nil
+	}
+	canon := queryCanon{}
+	for name, v := range params.Attributes() {
+		if name != "query" && name != "good_query" && name != "total_query" {
+			continue
+		}
+		if s, ok := v.(types.String); ok && !s.IsNull() && !s.IsUnknown() {
+			canon[name] = s.ValueString()
+		}
+	}
+	return canon
 }
 
 // readQueryCanon reads the queryCanon the last write stored, or nil when the

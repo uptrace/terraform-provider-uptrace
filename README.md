@@ -419,7 +419,10 @@ Type-specific `params`:
   `factor` for `burn_rate` or `consumed_bound` for `budget_consumed`, and `min_total`.
 
 The server normalizes an MQL query (an alias gains `{}`); the resource keeps the configured
-spelling, so a refresh shows no diff.
+spelling, so a refresh shows no diff. A query changed outside Terraform, in the UI or through the
+API, shows in the plan, and an apply sets it back to the configured one. After an upgrade from
+v0.3.0 or older, the first plan may show a query diff that is only the server's spelling of the same
+query; the next apply clears it.
 
 Import any monitor: `terraform import uptrace_<type>_monitor.x <project_id>:<monitor_id>`. Importing
 a monitor into the resource of another type fails and names the right one.

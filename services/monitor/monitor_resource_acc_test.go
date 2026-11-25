@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 
 	"github.com/uptrace/terraform/testutil"
@@ -451,6 +452,59 @@ resource "uptrace_threshold_monitor" "test" {
 				Config:             config,
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
+			},
+		},
+	})
+}
+
+// TestAccThresholdMonitor_queryChangedOutOfBand checks that a query changed
+// outside Terraform shows in the plan, while the server's own rewrite of the
+// configured query ("{}" after each alias) does not.
+func TestAccThresholdMonitor_queryChangedOutOfBand(t *testing.T) {
+	const addr = "uptrace_threshold_monitor.test"
+	const query = "sum($g) | group by service_name"
+	config := testAccProjectConfig("acc-threshold-query-oob-org", "acc-threshold-query-oob-project") + fmt.Sprintf(`
+resource "uptrace_threshold_monitor" "test" {
+  project_id = uptrace_project.test.id
+  name       = "acc query out of band"
+
+  params = {
+    metrics   = [{ name = "go_goroutine_count", alias = "$g" }]
+    query     = %q
+    max_value = 100000
+  }
+}
+`, query)
+	var projectID, monitorID string
+	resource.Test(t, resource.TestCase{
+		PreCheck:                 func() { testutil.PreCheck(t) },
+		ProtoV6ProviderFactories: testutil.ProtoV6ProviderFactories,
+		CheckDestroy:             testAccCheckMonitorDestroy(t, "uptrace_threshold_monitor"),
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testutil.CaptureAttr(addr, "project_id", &projectID),
+					testutil.CaptureAttr(addr, "id", &monitorID),
+				),
+			},
+			// The server stores the query as "sum($g{}) | ...": no diff.
+			{Config: config, PlanOnly: true},
+			{
+				PreConfig: func() { updateMonitorQueryOutOfBand(t, projectID, monitorID, "avg($g) | group by service_name") },
+				Config:    config,
+				ConfigPlanChecks: resource.ConfigPlanChecks{
+					PreApply: []plancheck.PlanCheck{plancheck.ExpectResourceAction(addr, plancheck.ResourceActionUpdate)},
+				},
+				Check: resource.TestCheckResourceAttr(addr, "params.query", query),
+			},
+			{Config: config, PlanOnly: true},
+			{
+				ResourceName:            addr,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateIdFunc:       importIDFunc(addr),
+				ImportStateVerifyIgnore: []string{"status", "params.query"},
 			},
 		},
 	})

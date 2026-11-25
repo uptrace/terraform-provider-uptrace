@@ -91,7 +91,8 @@ func float64Value(p *float64) types.Float64 {
 // configured spelling stays the source of truth; an import, which has no
 // prior value, takes the server's. For a query, monitorResource.apply nulls
 // the prior first when the server's text differs from the text it returned at
-// the last write (dropDriftedQueries), so an out-of-band change is taken.
+// the last write, or from the state's own text when no write stored one
+// (dropDriftedQueries), so an out-of-band change is taken.
 func stringOrPrior(api string, prior types.String) types.String {
 	if !prior.IsNull() && !prior.IsUnknown() {
 		return prior

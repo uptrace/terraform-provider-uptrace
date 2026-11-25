@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -13,11 +15,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/stretchr/testify/require"
 
 	"github.com/uptrace/terraform/api"
+	"github.com/uptrace/terraform/client"
 )
 
 // serverParams is a params object per kind as the server returns it.
@@ -659,6 +664,121 @@ func TestApply_takesAnOutOfBandQueryChange(t *testing.T) {
 		require.False(t, diags.HasError(), "apply: %v", diags)
 		require.Equal(t, "sum($g{}) | group by service_name", queryOf(t, m))
 	})
+
+	// A state written before the canon was stored (v0.3.0) is compared with
+	// its own text, which Read passes as the canon.
+	t.Run("a read of a state without a canon keeps the text the server holds", func(t *testing.T) {
+		m := configured(t)
+		var p thresholdParamsModel
+		require.False(t, m.Params.As(ctx, &p, basetypesObjectAsOptions()).HasError())
+		p.Query = types.StringValue("sum($g{}) | group by service_name")
+		var d diag.Diagnostics
+		m.Params = paramsToObject(ctx, k, &p, &d)
+		require.False(t, d.HasError())
+
+		canon, diags := r.apply(ctx, server, m, priorQueries(m.Params))
+		require.False(t, diags.HasError(), "apply: %v", diags)
+		require.Equal(t, "sum($g{}) | group by service_name", queryOf(t, m))
+		require.Equal(t, queryCanon{"query": "sum($g{}) | group by service_name"}, canon)
+	})
+
+	t.Run("a read of a state without a canon takes another text", func(t *testing.T) {
+		m := configured(t)
+		_, diags := r.apply(ctx, server, m, priorQueries(m.Params))
+		require.False(t, diags.HasError(), "apply: %v", diags)
+		require.Equal(t, "sum($g{}) | group by service_name", queryOf(t, m),
+			"the server's text differs from the state's, and the state cannot tell a rewrite from a change")
+	})
+}
+
+// readMonitor runs the resource's Read for monitor 7 of project 21 on state,
+// against a server that answers with monitor, and with no private state: as
+// a state written by v0.3.0 holds no canon.
+func readMonitor(t *testing.T, k *kind, state *monitorModel, monitor map[string]any) *monitorModel {
+	t.Helper()
+	ctx := context.Background()
+
+	body, err := json.Marshal(map[string]any{"monitor": monitor})
+	require.NoError(t, err)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "/internal/v1/monitors/21/7", r.URL.Path)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(body)
+	}))
+	t.Cleanup(srv.Close)
+	c, err := client.New(srv.URL, "token", "test")
+	require.NoError(t, err)
+
+	r := &monitorResource{kind: k, client: c}
+	var schemaResp resource.SchemaResponse
+	r.Schema(ctx, resource.SchemaRequest{}, &schemaResp)
+	require.False(t, schemaResp.Diagnostics.HasError())
+	sch := schemaResp.Schema
+
+	req := resource.ReadRequest{State: tfsdk.State{Schema: sch, Raw: tftypes.NewValue(sch.Type().TerraformType(ctx), nil)}}
+	state.ID = types.StringValue("7")
+	require.False(t, req.State.Set(ctx, state).HasError())
+	resp := resource.ReadResponse{State: req.State}
+	r.Read(ctx, req, &resp)
+	require.False(t, resp.Diagnostics.HasError(), "read: %v", resp.Diagnostics)
+
+	var got monitorModel
+	require.False(t, resp.State.Get(ctx, &got).HasError())
+	return &got
+}
+
+// A read of a state that holds no canon, one written by v0.3.0, compares the
+// server's query with the state's own: a change made outside Terraform
+// before the upgrade shows in the plan instead of becoming the canon.
+func TestRead_stateWithoutCanon(t *testing.T) {
+	k := kindByName(t, "threshold")
+	ctx := context.Background()
+	server := map[string]any{
+		"id": 7, "type": "threshold", "name": "Dev: threshold", "description": "",
+		"status": "active", "channelIds": []any{}, "trendAggFunc": "sum", "trendSensitivity": "medium",
+		"repeatInterval": map[string]any{"strategy": "fixed", "interval": 3_600_000},
+		"params":         json.RawMessage(serverParams["threshold"]),
+	}
+	withQuery := func(t *testing.T, query string) *monitorModel {
+		t.Helper()
+		m := testModel(t, k, paramsFromServer(t, k))
+		var p thresholdParamsModel
+		require.False(t, m.Params.As(ctx, &p, basetypesObjectAsOptions()).HasError())
+		p.Query = types.StringValue(query)
+		var d diag.Diagnostics
+		m.Params = paramsToObject(ctx, k, &p, &d)
+		require.False(t, d.HasError())
+		return m
+	}
+	queryOf := func(t *testing.T, m *monitorModel) string {
+		t.Helper()
+		var got thresholdParamsModel
+		require.False(t, m.Params.As(ctx, &got, basetypesObjectAsOptions()).HasError())
+		return got.Query.ValueString()
+	}
+
+	t.Run("the server's text matches the state's", func(t *testing.T) {
+		got := readMonitor(t, k, withQuery(t, "sum($g{}) | group by service_name"), server)
+		require.Equal(t, "sum($g{}) | group by service_name", queryOf(t, got))
+	})
+
+	t.Run("the server's text differs from the state's", func(t *testing.T) {
+		got := readMonitor(t, k, withQuery(t, "avg($g) | group by service_name"), server)
+		require.Equal(t, "sum($g{}) | group by service_name", queryOf(t, got))
+	})
+}
+
+// priorQueries reads the query texts a state holds, by the names
+// serverQueries gives them, so Read can compare a state without a canon.
+func TestPriorQueries(t *testing.T) {
+	for _, name := range []string{"threshold", "slo"} {
+		k := kindByName(t, name)
+		server, err := serverQueries(json.RawMessage(serverParams[name]))
+		require.NoError(t, err)
+		require.Equal(t, server, priorQueries(paramsFromServer(t, k)), name)
+	}
+	require.Nil(t, priorQueries(types.ObjectNull(kindByName(t, "threshold").paramsAttrTypes())),
+		"an import has no params, so no text")
 }
 
 // serverQueries reads each query a kind stores, and nothing for a kind
